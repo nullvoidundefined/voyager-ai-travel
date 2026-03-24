@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 
 import { GoogleIcon } from '@/components/GoogleIcon/GoogleIcon';
+import { Toast } from '@/components/Toast/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError } from '@/lib/api';
 
@@ -16,6 +17,7 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [toast, setToast] = useState('');
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
@@ -30,21 +32,21 @@ export default function LoginPage() {
             await login(email, password);
             router.push('/trips');
         } catch (err) {
-            if (err instanceof ApiError) {
-                setError(err.message);
-            } else {
-                setError('Something went wrong. Please try again.');
-            }
+            const msg =
+                err instanceof ApiError
+                    ? err.message
+                    : 'Something went wrong. Please try again.';
+            setToast(msg);
         }
     }
 
     async function handleGoogle() {
-        setError('');
+        setToast('');
         try {
             await loginWithGoogle();
             router.push('/trips');
         } catch {
-            setError('Google sign-in failed. Please try again.');
+            setToast('Google sign-in failed. Please try again.');
         }
     }
 
@@ -117,6 +119,8 @@ export default function LoginPage() {
                     How does Atlas work? &rarr;
                 </Link>
             </div>
+
+            {toast && <Toast message={toast} onClose={() => setToast('')} />}
         </div>
     );
 }

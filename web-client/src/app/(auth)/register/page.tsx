@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 
 import { GoogleIcon } from '@/components/GoogleIcon/GoogleIcon';
+import { Toast } from '@/components/Toast/Toast';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError, put } from '@/lib/api';
 
@@ -64,6 +65,7 @@ export default function RegisterPage() {
     const [social, setSocial] = useState('couple');
 
     const [error, setError] = useState('');
+    const [toast, setToast] = useState('');
 
     function handleStepOne(e: FormEvent) {
         e.preventDefault();
@@ -95,28 +97,28 @@ export default function RegisterPage() {
 
     async function handleStepTwo(e: FormEvent) {
         e.preventDefault();
-        setError('');
+        setToast('');
 
         try {
             await signup(email, password);
             await put('/user-preferences', { dietary, intensity, social });
             router.push('/trips');
         } catch (err) {
-            if (err instanceof ApiError) {
-                setError(err.message);
-            } else {
-                setError('Something went wrong. Please try again.');
-            }
+            const msg =
+                err instanceof ApiError
+                    ? err.message
+                    : 'Something went wrong. Please try again.';
+            setToast(msg);
         }
     }
 
     async function handleGoogle() {
-        setError('');
+        setToast('');
         try {
             await loginWithGoogle();
             router.push('/trips');
         } catch {
-            setError('Google sign-up failed. Please try again.');
+            setToast('Google sign-up failed. Please try again.');
         }
     }
 
@@ -271,8 +273,6 @@ export default function RegisterPage() {
                             </div>
                         </fieldset>
 
-                        {error && <p className={styles.error}>{error}</p>}
-
                         <div className={styles.stepButtons}>
                             <button
                                 type="button"
@@ -316,6 +316,8 @@ export default function RegisterPage() {
                     </>
                 )}
             </div>
+
+            {toast && <Toast message={toast} onClose={() => setToast('')} />}
         </div>
     );
 }

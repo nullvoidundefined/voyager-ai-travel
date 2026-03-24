@@ -37,3 +37,7 @@ The agent loop runs synchronously on the API server (not BullMQ). The agent need
 
 ## Frontend conventions
 - Use **TanStack Query** (React Query) for all server state — data fetching, caching, mutations, and optimistic updates. No raw useEffect + fetch patterns.
+- Use **Toast** component for API/server errors — never show raw error messages or stack traces inline. Keep inline `{error}` only for form validation messages.
+
+## Commit conventions
+- Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.
