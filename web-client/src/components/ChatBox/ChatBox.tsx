@@ -206,6 +206,19 @@ export function ChatBox({ tripId }: ChatBoxProps) {
                     </div>
                 ))}
 
+                {isSending && tools.length === 0 && !streamingText && (
+                    <div className={`${styles.message} ${styles.assistant}`}>
+                        <div className={styles.roleBadge}>Atlas</div>
+                        <div className={styles.bubble}>
+                            <span className={styles.typing}>
+                                <span />
+                                <span />
+                                <span />
+                            </span>
+                        </div>
+                    </div>
+                )}
+
                 {isSending && tools.length > 0 && (
                     <div className={`${styles.message} ${styles.assistant}`}>
                         <div className={styles.roleBadge}>Atlas</div>
