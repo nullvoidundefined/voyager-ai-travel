@@ -9,7 +9,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY server/package.json server/package.json
 
 # Install dependencies (production + dev for build)
-RUN pnpm install --frozen-lockfile --filter agentic-travel-agent-server
+RUN pnpm install --frozen-lockfile --filter agentic-travel-agent-server --ignore-scripts
 
 # Copy server source
 COPY server/ server/
@@ -24,7 +24,7 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY server/package.json server/package.json
-RUN pnpm install --frozen-lockfile --filter agentic-travel-agent-server --prod
+RUN pnpm install --frozen-lockfile --filter agentic-travel-agent-server --ignore-scripts --prod
 
 COPY --from=base /app/server/dist server/dist
 COPY server/migrations server/migrations
