@@ -8,12 +8,12 @@
   },
   "scripts": {
     "dev": "pnpm --parallel run dev",
-    "build": "pnpm --filter server build && pnpm --filter web-client build",
+    "build": "pnpm --filter agentic-travel-agent-server build && pnpm --filter agentic-travel-agent-web build",
     "lint": "pnpm -r run lint",
     "format": "pnpm -r run format",
     "format:check": "pnpm -r run format:check",
-    "test": "pnpm --filter server run test",
-    "test:coverage": "pnpm --filter server run test:coverage",
+    "test": "pnpm --filter agentic-travel-agent-server run test",
+    "test:coverage": "pnpm --filter agentic-travel-agent-server run test:coverage",
     "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true"
   },
   "devDependencies": {
