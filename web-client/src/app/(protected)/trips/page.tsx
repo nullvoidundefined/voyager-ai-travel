@@ -1,9 +1,9 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 
-import { get } from '@/lib/api';
+import { del, get } from '@/lib/api';
 
 import styles from './trips.module.scss';
 
@@ -52,6 +52,8 @@ function statusLabel(status: string): string {
 }
 
 export default function TripsPage() {
+    const queryClient = useQueryClient();
+
     const {
         data: trips,
         isLoading,
@@ -59,6 +61,13 @@ export default function TripsPage() {
     } = useQuery({
         queryKey: ['trips'],
         queryFn: () => get<{ trips: Trip[] }>('/trips').then((r) => r.trips),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (tripId: string) => del(`/trips/${tripId}`),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['trips'] });
+        },
     });
 
     return (
@@ -81,34 +90,43 @@ export default function TripsPage() {
             {trips && trips.length > 0 && (
                 <div className={styles.tripList}>
                     {trips.map((trip) => (
-                        <Link
-                            key={trip.id}
-                            href={`/trips/${trip.id}`}
-                            className={styles.tripCard}
-                        >
-                            <div className={styles.tripInfo}>
-                                <h2>{trip.destination}</h2>
-                                <p className={styles.dates}>
-                                    {formatDates(
-                                        trip.departure_date,
-                                        trip.return_date,
-                                    )}
-                                </p>
-                            </div>
-                            <div className={styles.tripMeta}>
-                                <span className={styles.budget}>
-                                    {formatBudget(
-                                        trip.budget_total,
-                                        trip.budget_currency,
-                                    )}
-                                </span>
-                                <span
-                                    className={`${styles.status} ${styles[trip.status]}`}
-                                >
-                                    {statusLabel(trip.status)}
-                                </span>
-                            </div>
-                        </Link>
+                        <div key={trip.id} className={styles.tripCard}>
+                            <Link
+                                href={`/trips/${trip.id}`}
+                                className={styles.tripLink}
+                            >
+                                <div className={styles.tripInfo}>
+                                    <h2>{trip.destination}</h2>
+                                    <p className={styles.dates}>
+                                        {formatDates(
+                                            trip.departure_date,
+                                            trip.return_date,
+                                        )}
+                                    </p>
+                                </div>
+                                <div className={styles.tripMeta}>
+                                    <span className={styles.budget}>
+                                        {formatBudget(
+                                            trip.budget_total,
+                                            trip.budget_currency,
+                                        )}
+                                    </span>
+                                    <span
+                                        className={`${styles.status} ${styles[trip.status]}`}
+                                    >
+                                        {statusLabel(trip.status)}
+                                    </span>
+                                </div>
+                            </Link>
+                            <button
+                                type="button"
+                                className={styles.deleteBtn}
+                                aria-label="Delete trip"
+                                onClick={() => deleteMutation.mutate(trip.id)}
+                            >
+                                &times;
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}
