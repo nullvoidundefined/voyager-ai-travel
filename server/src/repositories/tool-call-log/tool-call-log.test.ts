@@ -43,7 +43,7 @@ describe("tool-call-log repository", () => {
 
       expect(result).toEqual(mockRow);
       expect(query).toHaveBeenCalledTimes(1);
-      const [sql, params] = vi.mocked(query).mock.calls[0];
+      const [sql, params] = vi.mocked(query).mock.calls[0]!;
       expect(sql).toContain("INSERT INTO tool_call_log");
       expect(params).toContain("search_flights");
     });

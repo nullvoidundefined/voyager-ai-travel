@@ -24,7 +24,7 @@ describe("conversations repository", () => {
       const result = await getOrCreateConversation("trip-1");
 
       expect(result).toEqual(existing);
-      const sql = vi.mocked(query).mock.calls[0][0] as string;
+      const sql = vi.mocked(query).mock.calls[0]![0] as string;
       expect(sql).toContain("INSERT INTO conversations");
       expect(sql).toContain("ON CONFLICT");
     });

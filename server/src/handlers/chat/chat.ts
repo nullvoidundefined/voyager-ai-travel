@@ -11,7 +11,7 @@ import { runAgentLoop } from "app/services/agent.service.js";
 import { logger } from "app/utils/logs/logger.js";
 
 export async function chat(req: Request, res: Response) {
-  const tripId = req.params.id;
+  const tripId = req.params.id as string;
   const userId = req.user!.id;
   const { message } = req.body;
 
@@ -47,15 +47,32 @@ export async function chat(req: Request, res: Response) {
   // Build trip context for system prompt
   const tripContext: TripContext = {
     destination: trip.destination,
-    origin: trip.origin ?? undefined,
-    departure_date: trip.departure_date ?? undefined,
-    return_date: trip.return_date ?? undefined,
-    budget_total: trip.budget_total ?? undefined,
-    budget_currency: trip.budget_currency ?? undefined,
-    travelers: trip.travelers ?? undefined,
-    selected_flights: trip.flights ?? [],
-    selected_hotels: trip.hotels ?? [],
-    selected_experiences: trip.experiences ?? [],
+    origin: trip.origin ?? null,
+    departure_date: trip.departure_date ?? null,
+    return_date: trip.return_date ?? null,
+    budget_total: trip.budget_total ?? 0,
+    budget_currency: trip.budget_currency ?? "USD",
+    travelers: trip.travelers ?? 1,
+    preferences: {},
+    selected_flights: (trip.flights ?? []).map((f) => ({
+      airline: f.airline ?? "",
+      flight_number: f.flight_number ?? "",
+      price: f.price ?? 0,
+      departure_time: f.departure_time ? f.departure_time.toISOString() : "",
+      arrival_time: f.arrival_time ? f.arrival_time.toISOString() : "",
+    })),
+    selected_hotels: (trip.hotels ?? []).map((h) => ({
+      name: h.name ?? "",
+      price_per_night: h.price_per_night ?? 0,
+      total_price: h.total_price ?? 0,
+      star_rating: h.star_rating ?? 0,
+    })),
+    selected_experiences: (trip.experiences ?? []).map((e) => ({
+      name: e.name ?? "",
+      estimated_cost: e.estimated_cost ?? 0,
+      category: e.category ?? "",
+    })),
+    total_spent: 0,
   };
 
   // Set up SSE
@@ -105,7 +122,7 @@ export async function chat(req: Request, res: Response) {
 }
 
 export async function getMessages(req: Request, res: Response) {
-  const tripId = req.params.id;
+  const tripId = req.params.id as string;
   const conversation = await getOrCreateConversation(tripId);
   const messages = await getMessagesByConversation(conversation.id);
   res.json({ messages });

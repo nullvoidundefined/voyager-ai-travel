@@ -126,7 +126,7 @@ describe("flights.tool", () => {
         passengers: 1,
       });
 
-      expect(result[0].price).toBeLessThanOrEqual(result[1].price);
+      expect(result[0]!.price).toBeLessThanOrEqual(result[1]!.price);
     });
 
     it("caches results after fetching", async () => {

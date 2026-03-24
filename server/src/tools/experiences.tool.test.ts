@@ -98,7 +98,7 @@ describe("experiences.tool", () => {
         categories: ["museum"],
       });
 
-      const fetchCall = mockFetch.mock.calls[0];
+      const fetchCall = mockFetch.mock.calls[0]!;
       expect(fetchCall[1].headers["X-Goog-Api-Key"]).toBe("test-api-key");
       expect(fetchCall[1].headers["X-Goog-FieldMask"]).toBeDefined();
     });
@@ -115,7 +115,7 @@ describe("experiences.tool", () => {
         categories: ["museum", "art gallery"],
       });
 
-      const fetchCall = mockFetch.mock.calls[0];
+      const fetchCall = mockFetch.mock.calls[0]!;
       const body = JSON.parse(fetchCall[1].body);
       expect(body.textQuery).toContain("Paris");
       expect(body.textQuery).toContain("museum");
@@ -184,7 +184,7 @@ describe("experiences.tool", () => {
         limit: 10,
       });
 
-      const fetchCall = mockFetch.mock.calls[0];
+      const fetchCall = mockFetch.mock.calls[0]!;
       const body = JSON.parse(fetchCall[1].body);
       expect(body.maxResultCount).toBe(10);
     });

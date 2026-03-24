@@ -26,7 +26,7 @@ export async function listTrips(req: Request, res: Response): Promise<void> {
 
 export async function getTrip(req: Request, res: Response): Promise<void> {
   const userId = req.user!.id;
-  const tripId = req.params.id;
+  const tripId = req.params.id as string;
 
   const trip = await tripRepo.getTripWithDetails(tripId, userId);
   if (!trip) {
@@ -39,7 +39,7 @@ export async function getTrip(req: Request, res: Response): Promise<void> {
 
 export async function deleteTrip(req: Request, res: Response): Promise<void> {
   const userId = req.user!.id;
-  const tripId = req.params.id;
+  const tripId = req.params.id as string;
 
   const deleted = await tripRepo.deleteTrip(tripId, userId);
   if (!deleted) {

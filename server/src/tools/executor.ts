@@ -13,19 +13,21 @@ export async function executeTool(
 
   switch (toolName) {
     case "search_flights":
-      return searchFlights(input as Parameters<typeof searchFlights>[0]);
+      return searchFlights(input as unknown as Parameters<typeof searchFlights>[0]);
 
     case "search_hotels":
-      return searchHotels(input as Parameters<typeof searchHotels>[0]);
+      return searchHotels(input as unknown as Parameters<typeof searchHotels>[0]);
 
     case "search_experiences":
-      return searchExperiences(input as Parameters<typeof searchExperiences>[0]);
+      return searchExperiences(input as unknown as Parameters<typeof searchExperiences>[0]);
 
     case "calculate_remaining_budget":
-      return calculateRemainingBudget(input as Parameters<typeof calculateRemainingBudget>[0]);
+      return calculateRemainingBudget(
+        input as unknown as Parameters<typeof calculateRemainingBudget>[0],
+      );
 
     case "get_destination_info":
-      return getDestinationInfo(input as Parameters<typeof getDestinationInfo>[0]);
+      return getDestinationInfo(input as unknown as Parameters<typeof getDestinationInfo>[0]);
 
     default:
       throw new Error(`Unknown tool: ${toolName}`);

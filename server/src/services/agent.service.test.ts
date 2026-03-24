@@ -102,7 +102,7 @@ describe("agent.service", () => {
 
       expect(result.response).toBe("I found flights starting at $450.");
       expect(result.tool_calls).toHaveLength(1);
-      expect(result.tool_calls[0].tool_name).toBe("search_flights");
+      expect(result.tool_calls[0]!.tool_name).toBe("search_flights");
       expect(mockCreate).toHaveBeenCalledTimes(2);
       expect(executeTool).toHaveBeenCalledTimes(1);
     });
@@ -248,7 +248,7 @@ describe("agent.service", () => {
 
       expect(result.response).toContain("error");
       // The tool result sent back to Claude should contain the error
-      const secondCallMessages = mockCreate.mock.calls[1][0].messages;
+      const secondCallMessages = mockCreate.mock.calls[1]![0].messages;
       const toolResultMsg = secondCallMessages.find((m: { role: string }) => m.role === "user");
       expect(toolResultMsg).toBeDefined();
     });

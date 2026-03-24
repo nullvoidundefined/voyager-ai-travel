@@ -12,6 +12,7 @@ const mockRedisInstance = {
 
 vi.mock("ioredis", () => ({
   default: vi.fn(() => mockRedisInstance),
+  Redis: vi.fn(() => mockRedisInstance),
 }));
 
 vi.mock("app/utils/logs/logger.js", () => ({
@@ -30,6 +31,7 @@ describe("cache.service", () => {
     // Re-mock after resetModules
     vi.doMock("ioredis", () => ({
       default: vi.fn(() => mockRedisInstance),
+      Redis: vi.fn(() => mockRedisInstance),
     }));
     vi.doMock("app/utils/logs/logger.js", () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },

@@ -57,7 +57,7 @@ describe("userPreferences repository", () => {
       mockQuery.mockResolvedValueOnce(mockResult([row]));
 
       const input = {
-        dietary: ["vegetarian", "gluten-free"],
+        dietary: ["vegetarian", "gluten-free"] as ("vegetarian" | "gluten-free")[],
         intensity: "active" as const,
         social: "couple" as const,
       };

@@ -96,7 +96,7 @@ describe("amadeus.service", () => {
 
       await amadeusService.getAccessToken();
 
-      const fetchCall = mockFetch.mock.calls[0];
+      const fetchCall = mockFetch.mock.calls[0]!;
       const body = fetchCall[1].body as string;
       expect(body).toContain("grant_type=client_credentials");
       expect(body).toContain("client_id=test-client-id");
@@ -131,7 +131,7 @@ describe("amadeus.service", () => {
       });
 
       expect(result).toEqual({ data: [{ id: "1" }] });
-      const fetchCall = mockFetch.mock.calls[0];
+      const fetchCall = mockFetch.mock.calls[0]!;
       expect(fetchCall[0]).toContain("/v2/shopping/flight-offers?originLocationCode=SFO");
       expect(fetchCall[1].headers.Authorization).toBe("Bearer my-token");
     });

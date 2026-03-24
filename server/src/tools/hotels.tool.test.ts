@@ -115,7 +115,7 @@ describe("hotels.tool", () => {
         guests: 2,
       });
 
-      expect(result[0].total_price).toBeLessThanOrEqual(result[1].total_price);
+      expect(result[0]!.total_price).toBeLessThanOrEqual(result[1]!.total_price);
     });
 
     it("caches results after fetching", async () => {
