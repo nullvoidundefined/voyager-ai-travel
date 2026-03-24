@@ -2,11 +2,15 @@ import type { NextConfig } from 'next';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+// Point to the monorepo root so Vercel's file tracing can find all dependencies
+// (including hoisted node_modules) when building serverless functions.
+const monorepoRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    '..',
+);
 
 const nextConfig: NextConfig = {
-    // Avoid inferring a parent directory as the workspace root when another lockfile exists above this app.
-    outputFileTracingRoot: projectRoot,
+    outputFileTracingRoot: monorepoRoot,
 };
 
 export default nextConfig;
