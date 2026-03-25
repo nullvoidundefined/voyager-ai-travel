@@ -40,7 +40,7 @@ The agent loop runs synchronously on the API server (not BullMQ). The agent need
 
 ## Vercel deploy caveats
 - Do NOT set `outputFileTracingRoot` in `next.config.ts`. It causes a double-nested path error on Vercel (`/vercel/path0/path0/.next/routes-manifest.json` ENOENT) because Vercel already resolves the project root correctly.
-- There are two Vercel projects: `web-client` (auto-generated) and `app-8-agentic-travel-agent` (which has the `interviewiangreenough.xyz` domain). Deploy to `app-8-agentic-travel-agent` so the custom domain works. The local `.vercel/project.json` in `web-client/` currently points to the wrong project and needs to be relinked.
+- The Vercel project is `app-8-agentic-travel-agent` with custom domain `interviewiangreenough.xyz`. Deploy via `vercel --prod` from `web-client/`. The `vercel.json` sets `"framework": "nextjs"` to override stale dashboard settings.
 
 ## Commit conventions
 - Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.
