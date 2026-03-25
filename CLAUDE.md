@@ -38,9 +38,28 @@ The agent loop runs synchronously on the API server (not BullMQ). The agent need
 - Use **TanStack Query** (React Query) for all server state — data fetching, caching, mutations, and optimistic updates. No raw useEffect + fetch patterns.
 - Use **Toast** component for API/server errors — never show raw error messages or stack traces inline. Keep inline `{error}` only for form validation messages.
 
-## Vercel deploy caveats
-- Do NOT set `outputFileTracingRoot` in `next.config.ts`. It causes a double-nested path error on Vercel (`/vercel/path0/path0/.next/routes-manifest.json` ENOENT) because Vercel already resolves the project root correctly.
-- The Vercel project is `app-8-agentic-travel-agent` with custom domain `interviewiangreenough.xyz`. Deploy via `vercel --prod` from `web-client/`. The `vercel.json` sets `"framework": "nextjs"` to override stale dashboard settings.
+## Deployment
+
+### Vercel (frontend)
+```bash
+cd web-client
+npx vercel --prod
+```
+- **Project:** `app-8-agentic-travel-agent` with custom domain `interviewiangreenough.xyz`
+- **Must run from `web-client/`** — this is the Vercel project root.
+- `vercel.json` sets `"framework": "nextjs"` to override stale dashboard settings.
+- Do NOT set `outputFileTracingRoot` in `next.config.ts`. It causes a double-nested path error on Vercel (`/vercel/path0/path0/.next/routes-manifest.json` ENOENT).
+
+### Railway (server)
+```bash
+cd /path/to/application   # monorepo root, where Dockerfile.server lives
+railway up --detach
+```
+- **Must run from `application/`** — the monorepo root containing `Dockerfile.server`, `railway.toml`, `package.json`, `pnpm-workspace.yaml`, and `server/`.
+- **Railway CLI is linked to `application/`** (not the parent `app-8-agentic-travel-agent/`). If `railway up` uploads the wrong context (you see `application/` as a subdirectory in build logs), relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from inside `application/`.
+- `railway.toml` sets `dockerfilePath = "Dockerfile.server"`. The Railway dashboard Build → Dockerfile Path must also be set to `Dockerfile.server`.
+- Do NOT set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars — these conflict with the custom Dockerfile.
+- `CORS_ORIGIN` env var is comma-separated: `https://interviewiangreenough.xyz,https://web-client-green-ten.vercel.app`
 
 ## Commit conventions
 - Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.
