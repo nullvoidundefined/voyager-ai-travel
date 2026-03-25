@@ -13,26 +13,16 @@ Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about re
 - `get_destination_info` → IATA codes, weather, timezone
 
 ## Stack
-- Monorepo: `packages/api`, `packages/worker`, `packages/web`, `packages/common`
-- Next.js on Vercel, Express + BullMQ worker on Railway
-- PostgreSQL on Neon, Redis on Railway
-- SerpApi (Google Flights + Hotels, free tier: 250 searches/month)
-- Google Places API (New) with API key
-- Anthropic Claude API (tool use + streaming)
-
-## MCP servers for development
-- `google-maps` — test place searches directly
-- `railway` — deploy API + worker
-- `vercel` — deploy frontend
-
-## Spec
-Read `FULL_APPLICATION_SPEC.md` for full system design, DB schema, API integration details, and task breakdown.
-
-## Build order
-POC → send "Plan a trip to Barcelona, $3000 budget" → agent calls search_flights → calculate_remaining_budget → search_hotels → returns itinerary. Get the loop working with 2 tools first, then add the rest one at a time.
+- **Monorepo:** pnpm workspaces with `server/` and `web-client/` packages
+- **Frontend:** Next.js 15 on Vercel
+- **API:** Express 5 + TypeScript on Railway (Docker)
+- **Database:** PostgreSQL on Neon
+- **Cache:** Redis on Railway (ioredis)
+- **External APIs:** SerpApi (Google Flights + Hotels, 250 searches/month free tier), Google Places API
+- **LLM:** Anthropic Claude API (tool use + streaming)
 
 ## Critical implementation note
-The agent loop runs synchronously on the API server (not BullMQ). The agent needs immediate results to reason. BullMQ is only for background tasks (cache warming). Cache SerpApi responses aggressively — 250 searches/month on free tier.
+The agent loop runs synchronously on the API server. The agent needs immediate results to reason. Cache SerpApi responses aggressively — 250 searches/month on free tier.
 
 ## Frontend conventions
 - Use **TanStack Query** (React Query) for all server state — data fetching, caching, mutations, and optimistic updates. No raw useEffect + fetch patterns.
@@ -42,24 +32,26 @@ The agent loop runs synchronously on the API server (not BullMQ). The agent need
 
 ### Vercel (frontend)
 ```bash
-cd web-client
-npx vercel --prod
+cd web-client && npx vercel --prod
 ```
-- **Project:** `app-8-agentic-travel-agent` with custom domain `interviewiangreenough.xyz`
-- **Must run from `web-client/`** — this is the Vercel project root.
-- `vercel.json` sets `"framework": "nextjs"` to override stale dashboard settings.
-- Do NOT set `outputFileTracingRoot` in `next.config.ts`. It causes a double-nested path error on Vercel (`/vercel/path0/path0/.next/routes-manifest.json` ENOENT).
+- Vercel project `app-8-agentic-travel-agent`, domain `interviewiangreenough.xyz`
+- `.vercel/` link lives in `web-client/` — always deploy from there
+- `web-client/vercel.json` sets `"framework": "nextjs"`
+- Do NOT set `outputFileTracingRoot` in `next.config.ts` (causes Vercel path doubling error)
 
 ### Railway (server)
 ```bash
-cd /path/to/application   # monorepo root, where Dockerfile.server lives
-railway up --detach
+cd application && railway up --detach
 ```
-- **Must run from `application/`** — the monorepo root containing `Dockerfile.server`, `railway.toml`, `package.json`, `pnpm-workspace.yaml`, and `server/`.
-- **Railway CLI is linked to `application/`** (not the parent `app-8-agentic-travel-agent/`). If `railway up` uploads the wrong context (you see `application/` as a subdirectory in build logs), relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from inside `application/`.
-- `railway.toml` sets `dockerfilePath = "Dockerfile.server"`. The Railway dashboard Build → Dockerfile Path must also be set to `Dockerfile.server`.
-- Do NOT set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars — these conflict with the custom Dockerfile.
+- Railway CLI is linked to `application/` (the monorepo root, where `Dockerfile.server` lives)
+- `railway.toml` sets `dockerfilePath = "Dockerfile.server"`
+- Railway dashboard Build → Dockerfile Path must be `Dockerfile.server`
 - `CORS_ORIGIN` env var is comma-separated: `https://interviewiangreenough.xyz,https://web-client-green-ten.vercel.app`
+
+### Deploy pitfalls
+- **Wrong directory:** Railway must run from `application/`, not `server/` or the parent. Vercel must run from `web-client/`, not the root.
+- **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars — they override the Dockerfile.
+- **Stale Railway link:** If build logs show `application/` as a subdirectory, relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from inside `application/`.
 
 ## Commit conventions
 - Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.

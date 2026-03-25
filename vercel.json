@@ -1,6 +1,0 @@
-{
-  "installCommand": "pnpm install --ignore-scripts",
-  "buildCommand": "cd web-client && pnpm run build",
-  "outputDirectory": "web-client/.next",
-  "framework": "nextjs"
-}
