@@ -1,1 +1,1 @@
-export const APP_NAME = 'Atlas';
+export const APP_NAME = 'Global';
