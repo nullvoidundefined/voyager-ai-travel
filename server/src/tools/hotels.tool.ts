@@ -1,6 +1,10 @@
-import { cacheGet, cacheSet, normalizeCacheKey } from "app/services/cache.service.js";
-import { serpApiGet } from "app/services/serpapi.service.js";
-import { logger } from "app/utils/logs/logger.js";
+import {
+  cacheGet,
+  cacheSet,
+  normalizeCacheKey,
+} from 'app/services/cache.service.js';
+import { serpApiGet } from 'app/services/serpapi.service.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 3600;
 
@@ -46,32 +50,41 @@ interface SerpApiHotelsResponse {
 }
 
 function parseStarRating(hotelClass: number | string | undefined): number {
-  if (typeof hotelClass === "number") return hotelClass;
-  if (typeof hotelClass === "string") {
+  if (typeof hotelClass === 'number') return hotelClass;
+  if (typeof hotelClass === 'string') {
     const match = hotelClass.match(/(\d)/);
     return match ? Number(match[1]) : 0;
   }
   return 0;
 }
 
-function normalizeHotel(entry: SerpApiHotel, index: number, input: HotelSearchInput): HotelResult {
+function normalizeHotel(
+  entry: SerpApiHotel,
+  index: number,
+  input: HotelSearchInput,
+): HotelResult {
   return {
     hotel_id: `serpapi-hotel-${index}`,
     offer_id: `serpapi-hotel-offer-${index}`,
     name: entry.name,
-    address: "",
+    address: '',
     city: input.city,
     star_rating: parseStarRating(entry.hotel_class),
-    total_price: entry.total_rate?.extracted_lowest ?? entry.rate_per_night?.extracted_lowest ?? 0,
+    total_price:
+      entry.total_rate?.extracted_lowest ??
+      entry.rate_per_night?.extracted_lowest ??
+      0,
     price_per_night: entry.rate_per_night?.extracted_lowest ?? 0,
-    currency: "USD",
+    currency: 'USD',
     check_in: input.check_in,
     check_out: input.check_out,
   };
 }
 
-export async function searchHotels(input: HotelSearchInput): Promise<HotelResult[]> {
-  const cacheKey = normalizeCacheKey("serpapi", "google-hotels", {
+export async function searchHotels(
+  input: HotelSearchInput,
+): Promise<HotelResult[]> {
+  const cacheKey = normalizeCacheKey('serpapi', 'google-hotels', {
     city: input.city,
     checkIn: input.check_in,
     checkOut: input.check_out,
@@ -81,7 +94,7 @@ export async function searchHotels(input: HotelSearchInput): Promise<HotelResult
 
   const cached = await cacheGet<HotelResult[]>(cacheKey);
   if (cached) {
-    logger.debug({ cacheKey }, "Hotel search cache hit");
+    logger.debug({ cacheKey }, 'Hotel search cache hit');
     return cached;
   }
 
@@ -90,26 +103,36 @@ export async function searchHotels(input: HotelSearchInput): Promise<HotelResult
     check_in_date: input.check_in,
     check_out_date: input.check_out,
     adults: input.guests,
-    currency: "USD",
-    hl: "en",
+    currency: 'USD',
+    hl: 'en',
   };
 
-  const response = (await serpApiGet("google_hotels", params)) as SerpApiHotelsResponse;
+  const response = (await serpApiGet(
+    'google_hotels',
+    params,
+  )) as SerpApiHotelsResponse;
 
-  let results = (response.properties ?? []).map((h, i) => normalizeHotel(h, i, input));
+  let results = (response.properties ?? []).map((h, i) =>
+    normalizeHotel(h, i, input),
+  );
 
   if (input.star_rating_min) {
     results = results.filter((r) => r.star_rating >= input.star_rating_min!);
   }
 
   if (input.max_price_per_night) {
-    results = results.filter((r) => r.price_per_night <= input.max_price_per_night!);
+    results = results.filter(
+      (r) => r.price_per_night <= input.max_price_per_night!,
+    );
   }
 
   results = results.sort((a, b) => a.total_price - b.total_price).slice(0, 5);
 
   await cacheSet(cacheKey, results, CACHE_TTL);
-  logger.info({ count: results.length, city: input.city }, "Hotel search complete");
+  logger.info(
+    { count: results.length, city: input.city },
+    'Hotel search complete',
+  );
 
   return results;
 }

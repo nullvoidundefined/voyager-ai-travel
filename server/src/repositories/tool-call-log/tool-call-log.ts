@@ -1,4 +1,4 @@
-import { query } from "app/db/pool/pool.js";
+import { query } from 'app/db/pool/pool.js';
 
 export interface ToolCallLogEntry {
   id: string;
@@ -24,7 +24,9 @@ export interface InsertToolCallLogInput {
   error: string | null;
 }
 
-export async function insertToolCallLog(input: InsertToolCallLogInput): Promise<ToolCallLogEntry> {
+export async function insertToolCallLog(
+  input: InsertToolCallLogInput,
+): Promise<ToolCallLogEntry> {
   const result = await query<ToolCallLogEntry>(
     `INSERT INTO tool_call_log
        (conversation_id, message_id, tool_name, tool_input_json, tool_result_json, latency_ms, cache_hit, error)
@@ -35,14 +37,16 @@ export async function insertToolCallLog(input: InsertToolCallLogInput): Promise<
       input.message_id ?? null,
       input.tool_name,
       JSON.stringify(input.tool_input_json),
-      input.tool_result_json != null ? JSON.stringify(input.tool_result_json) : null,
+      input.tool_result_json != null
+        ? JSON.stringify(input.tool_result_json)
+        : null,
       input.latency_ms,
       input.cache_hit,
       input.error,
     ],
   );
   const row = result.rows[0];
-  if (!row) throw new Error("Insert returned no row");
+  if (!row) throw new Error('Insert returned no row');
   return row;
 }
 

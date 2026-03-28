@@ -20,14 +20,17 @@ export interface BudgetResult {
 }
 
 export function calculateRemainingBudget(input: BudgetInput): BudgetResult {
-  const { total_budget, flight_cost, hotel_total_cost, experience_costs } = input;
+  const { total_budget, flight_cost, hotel_total_cost, experience_costs } =
+    input;
 
   const experienceTotal = experience_costs.reduce((sum, cost) => sum + cost, 0);
   const totalSpent = flight_cost + hotel_total_cost + experienceTotal;
   const remaining = total_budget - totalSpent;
-  const remainingPercentage = total_budget > 0 ? (remaining / total_budget) * 100 : 0;
+  const remainingPercentage =
+    total_budget > 0 ? (remaining / total_budget) * 100 : 0;
 
-  const pct = (amount: number) => (total_budget > 0 ? (amount / total_budget) * 100 : 0);
+  const pct = (amount: number) =>
+    total_budget > 0 ? (amount / total_budget) * 100 : 0;
 
   const result: BudgetResult = {
     total_budget,
@@ -36,7 +39,10 @@ export function calculateRemainingBudget(input: BudgetInput): BudgetResult {
     remaining_percentage: Math.round(remainingPercentage * 100) / 100,
     over_budget: remaining < 0,
     breakdown: {
-      flights: { amount: flight_cost, percentage: Math.round(pct(flight_cost) * 100) / 100 },
+      flights: {
+        amount: flight_cost,
+        percentage: Math.round(pct(flight_cost) * 100) / 100,
+      },
       hotels: {
         amount: hotel_total_cost,
         percentage: Math.round(pct(hotel_total_cost) * 100) / 100,

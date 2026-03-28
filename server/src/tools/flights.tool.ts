@@ -1,6 +1,10 @@
-import { cacheGet, cacheSet, normalizeCacheKey } from "app/services/cache.service.js";
-import { serpApiGet } from "app/services/serpapi.service.js";
-import { logger } from "app/utils/logs/logger.js";
+import {
+  cacheGet,
+  cacheSet,
+  normalizeCacheKey,
+} from 'app/services/cache.service.js';
+import { serpApiGet } from 'app/services/serpapi.service.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 3600; // 1 hour
 
@@ -66,17 +70,20 @@ function normalizeOffer(offer: SerpApiFlight, index: number): FlightResult {
 
   return {
     offer_id: `serpapi-flight-${index}`,
-    origin: firstLeg?.departure_airport.id ?? "",
-    destination: lastLeg?.arrival_airport.id ?? "",
-    departure_time: firstLeg?.departure_airport.time ?? "",
-    arrival_time: lastLeg?.arrival_airport.time ?? "",
-    airline: firstLeg?.airline ?? "",
-    flight_number: firstLeg?.flight_number ?? "",
+    origin: firstLeg?.departure_airport.id ?? '',
+    destination: lastLeg?.arrival_airport.id ?? '',
+    departure_time: firstLeg?.departure_airport.time ?? '',
+    arrival_time: lastLeg?.arrival_airport.time ?? '',
+    airline: firstLeg?.airline ?? '',
+    flight_number: firstLeg?.flight_number ?? '',
     price: offer.price,
-    currency: "USD",
+    currency: 'USD',
     cabin_class: null,
     segments: offer.flights.map((f) => ({
-      departure: { iataCode: f.departure_airport.id, at: f.departure_airport.time },
+      departure: {
+        iataCode: f.departure_airport.id,
+        at: f.departure_airport.time,
+      },
       arrival: { iataCode: f.arrival_airport.id, at: f.arrival_airport.time },
       carrierCode: f.airline,
       number: f.flight_number,
@@ -84,8 +91,10 @@ function normalizeOffer(offer: SerpApiFlight, index: number): FlightResult {
   };
 }
 
-export async function searchFlights(input: FlightSearchInput): Promise<FlightResult[]> {
-  const cacheKey = normalizeCacheKey("serpapi", "google-flights", {
+export async function searchFlights(
+  input: FlightSearchInput,
+): Promise<FlightResult[]> {
+  const cacheKey = normalizeCacheKey('serpapi', 'google-flights', {
     origin: input.origin,
     destination: input.destination,
     departureDate: input.departure_date,
@@ -97,7 +106,7 @@ export async function searchFlights(input: FlightSearchInput): Promise<FlightRes
 
   const cached = await cacheGet<FlightResult[]>(cacheKey);
   if (cached) {
-    logger.debug({ cacheKey }, "Flight search cache hit");
+    logger.debug({ cacheKey }, 'Flight search cache hit');
     return cached;
   }
 
@@ -108,13 +117,19 @@ export async function searchFlights(input: FlightSearchInput): Promise<FlightRes
     return_date: input.return_date,
     adults: input.passengers,
     travel_class: input.cabin_class ? CABIN_MAP[input.cabin_class] : undefined,
-    currency: "USD",
-    hl: "en",
+    currency: 'USD',
+    hl: 'en',
   };
 
-  const response = (await serpApiGet("google_flights", params)) as SerpApiFlightsResponse;
+  const response = (await serpApiGet(
+    'google_flights',
+    params,
+  )) as SerpApiFlightsResponse;
 
-  const allFlights = [...(response.best_flights ?? []), ...(response.other_flights ?? [])];
+  const allFlights = [
+    ...(response.best_flights ?? []),
+    ...(response.other_flights ?? []),
+  ];
 
   let results = allFlights.map((f, i) => normalizeOffer(f, i));
 
@@ -126,8 +141,12 @@ export async function searchFlights(input: FlightSearchInput): Promise<FlightRes
 
   await cacheSet(cacheKey, results, CACHE_TTL);
   logger.info(
-    { count: results.length, origin: input.origin, destination: input.destination },
-    "Flight search complete",
+    {
+      count: results.length,
+      origin: input.origin,
+      destination: input.destination,
+    },
+    'Flight search complete',
   );
 
   return results;

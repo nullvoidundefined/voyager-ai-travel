@@ -1,11 +1,10 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-import { buildSystemPrompt } from "app/prompts/system-prompt.js";
-import type { TripContext } from "app/prompts/trip-context.js";
-import { insertToolCallLog } from "app/repositories/tool-call-log/tool-call-log.js";
-import { TOOL_DEFINITIONS } from "app/tools/definitions.js";
-import { executeTool, type ToolContext } from "app/tools/executor.js";
-import { logger } from "app/utils/logs/logger.js";
+import Anthropic from '@anthropic-ai/sdk';
+import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
+import type { TripContext } from 'app/prompts/trip-context.js';
+import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
+import { TOOL_DEFINITIONS } from 'app/tools/definitions.js';
+import { type ToolContext, executeTool } from 'app/tools/executor.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const MAX_TOOL_CALLS = 15;
 
@@ -23,9 +22,14 @@ interface AgentResult {
 }
 
 type ProgressEvent =
-  | { type: "tool_start"; tool_name: string; tool_id: string; input: Record<string, unknown> }
-  | { type: "tool_result"; tool_id: string; result: unknown }
-  | { type: "assistant"; text: string };
+  | {
+      type: 'tool_start';
+      tool_name: string;
+      tool_id: string;
+      input: Record<string, unknown>;
+    }
+  | { type: 'tool_result'; tool_id: string; result: unknown }
+  | { type: 'assistant'; text: string };
 
 export async function runAgentLoop(
   messages: Anthropic.MessageParam[],
@@ -43,7 +47,7 @@ export async function runAgentLoop(
 
   while (true) {
     const response = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       system: systemPrompt,
       tools: TOOL_DEFINITIONS as Anthropic.Tool[],
@@ -53,18 +57,22 @@ export async function runAgentLoop(
     totalTokens.input += response.usage.input_tokens;
     totalTokens.output += response.usage.output_tokens;
 
-    if (response.stop_reason === "end_turn") {
+    if (response.stop_reason === 'end_turn') {
       const textBlock = response.content.find(
-        (block): block is Anthropic.TextBlock => block.type === "text",
+        (block): block is Anthropic.TextBlock => block.type === 'text',
       );
-      const text = textBlock?.text ?? "";
-      onEvent({ type: "assistant", text });
-      return { response: text, tool_calls: toolCalls, total_tokens: totalTokens };
+      const text = textBlock?.text ?? '';
+      onEvent({ type: 'assistant', text });
+      return {
+        response: text,
+        tool_calls: toolCalls,
+        total_tokens: totalTokens,
+      };
     }
 
-    if (response.stop_reason === "tool_use") {
+    if (response.stop_reason === 'tool_use') {
       const toolUseBlocks = response.content.filter(
-        (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
+        (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use',
       );
 
       // Check tool call limit before executing
@@ -78,13 +86,21 @@ export async function runAgentLoop(
       }
 
       // Add assistant message with tool use blocks
-      conversationMessages.push({ role: "assistant", content: response.content });
+      conversationMessages.push({
+        role: 'assistant',
+        content: response.content,
+      });
 
       const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
       for (const block of toolUseBlocks) {
         const input = block.input as Record<string, unknown>;
-        onEvent({ type: "tool_start", tool_name: block.name, tool_id: block.id, input });
+        onEvent({
+          type: 'tool_start',
+          tool_name: block.name,
+          tool_id: block.id,
+          input,
+        });
 
         let result: unknown;
         let isError = false;
@@ -97,12 +113,17 @@ export async function runAgentLoop(
           isError = true;
           errorMessage = err instanceof Error ? err.message : String(err);
           result = `Error: ${errorMessage}`;
-          logger.error({ err, toolName: block.name }, "Tool execution failed");
+          logger.error({ err, toolName: block.name }, 'Tool execution failed');
         }
         const latencyMs = Date.now() - startTime;
 
-        toolCalls.push({ tool_name: block.name, tool_id: block.id, input, result });
-        onEvent({ type: "tool_result", tool_id: block.id, result });
+        toolCalls.push({
+          tool_name: block.name,
+          tool_id: block.id,
+          input,
+          result,
+        });
+        onEvent({ type: 'tool_result', tool_id: block.id, result });
 
         // Fire-and-forget: log tool call for observability
         insertToolCallLog({
@@ -114,18 +135,18 @@ export async function runAgentLoop(
           cache_hit: false,
           error: errorMessage,
         }).catch((logErr) => {
-          logger.warn({ err: logErr }, "Failed to log tool call");
+          logger.warn({ err: logErr }, 'Failed to log tool call');
         });
 
         toolResults.push({
-          type: "tool_result",
+          type: 'tool_result',
           tool_use_id: block.id,
-          content: typeof result === "string" ? result : JSON.stringify(result),
+          content: typeof result === 'string' ? result : JSON.stringify(result),
           ...(isError && { is_error: true }),
         });
       }
 
-      conversationMessages.push({ role: "user", content: toolResults });
+      conversationMessages.push({ role: 'user', content: toolResults });
     }
   }
 }

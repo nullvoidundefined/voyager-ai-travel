@@ -1,49 +1,49 @@
 /** @type {import("node-pg-migrate").MigrationBuilder} */
 export const up = (pgm) => {
-  pgm.createType("preference_intensity", ["relaxed", "moderate", "active"]);
-  pgm.createType("preference_social", ["solo", "couple", "group", "family"]);
+  pgm.createType('preference_intensity', ['relaxed', 'moderate', 'active']);
+  pgm.createType('preference_social', ['solo', 'couple', 'group', 'family']);
 
-  pgm.createTable("user_preferences", {
+  pgm.createTable('user_preferences', {
     id: {
-      type: "uuid",
+      type: 'uuid',
       primaryKey: true,
-      default: pgm.func("gen_random_uuid()"),
+      default: pgm.func('gen_random_uuid()'),
     },
     user_id: {
-      type: "uuid",
+      type: 'uuid',
       notNull: true,
       unique: true,
-      references: "users",
-      onDelete: "CASCADE",
+      references: 'users',
+      onDelete: 'CASCADE',
     },
     dietary: {
-      type: "text[]",
+      type: 'text[]',
       notNull: true,
-      default: pgm.func("ARRAY[]::text[]"),
+      default: pgm.func('ARRAY[]::text[]'),
     },
     intensity: {
-      type: "preference_intensity",
+      type: 'preference_intensity',
       notNull: true,
-      default: "moderate",
+      default: 'moderate',
     },
     social: {
-      type: "preference_social",
+      type: 'preference_social',
       notNull: true,
-      default: "couple",
+      default: 'couple',
     },
     created_at: {
-      type: "timestamptz",
+      type: 'timestamptz',
       notNull: true,
-      default: pgm.func("NOW()"),
+      default: pgm.func('NOW()'),
     },
     updated_at: {
-      type: "timestamptz",
+      type: 'timestamptz',
       notNull: true,
-      default: pgm.func("NOW()"),
+      default: pgm.func('NOW()'),
     },
   });
 
-  pgm.createIndex("user_preferences", "user_id");
+  pgm.createIndex('user_preferences', 'user_id');
 
   // Reuse the existing set_updated_at trigger function from the users migration
   pgm.sql(`
@@ -55,7 +55,7 @@ export const up = (pgm) => {
 
 /** @type {import("node-pg-migrate").MigrationBuilder} */
 export const down = (pgm) => {
-  pgm.dropTable("user_preferences");
-  pgm.dropType("preference_social");
-  pgm.dropType("preference_intensity");
+  pgm.dropTable('user_preferences');
+  pgm.dropType('preference_social');
+  pgm.dropType('preference_intensity');
 };

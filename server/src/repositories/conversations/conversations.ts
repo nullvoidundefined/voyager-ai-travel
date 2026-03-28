@@ -1,4 +1,4 @@
-import { query } from "app/db/pool/pool.js";
+import { query } from 'app/db/pool/pool.js';
 
 export interface Conversation {
   id: string;
@@ -10,7 +10,7 @@ export interface Conversation {
 export interface Message {
   id: string;
   conversation_id: string;
-  role: "user" | "assistant" | "tool";
+  role: 'user' | 'assistant' | 'tool';
   content: string | null;
   tool_calls_json: unknown;
   token_count: number | null;
@@ -19,13 +19,15 @@ export interface Message {
 
 export interface InsertMessageInput {
   conversation_id: string;
-  role: "user" | "assistant" | "tool";
+  role: 'user' | 'assistant' | 'tool';
   content: string | null;
   tool_calls_json?: unknown;
   token_count?: number | null;
 }
 
-export async function getOrCreateConversation(tripId: string): Promise<Conversation> {
+export async function getOrCreateConversation(
+  tripId: string,
+): Promise<Conversation> {
   const result = await query<Conversation>(
     `INSERT INTO conversations (trip_id)
      VALUES ($1)
@@ -34,11 +36,13 @@ export async function getOrCreateConversation(tripId: string): Promise<Conversat
     [tripId],
   );
   const row = result.rows[0];
-  if (!row) throw new Error("Failed to get or create conversation");
+  if (!row) throw new Error('Failed to get or create conversation');
   return row;
 }
 
-export async function insertMessage(input: InsertMessageInput): Promise<Message> {
+export async function insertMessage(
+  input: InsertMessageInput,
+): Promise<Message> {
   const result = await query<Message>(
     `INSERT INTO messages (conversation_id, role, content, tool_calls_json, token_count)
      VALUES ($1, $2, $3, $4, $5)
@@ -52,11 +56,13 @@ export async function insertMessage(input: InsertMessageInput): Promise<Message>
     ],
   );
   const row = result.rows[0];
-  if (!row) throw new Error("Failed to insert message");
+  if (!row) throw new Error('Failed to insert message');
   return row;
 }
 
-export async function getMessagesByConversation(conversationId: string): Promise<Message[]> {
+export async function getMessagesByConversation(
+  conversationId: string,
+): Promise<Message[]> {
   const result = await query<Message>(
     `SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at ASC`,
     [conversationId],

@@ -10,6 +10,7 @@
     "dev": "pnpm --parallel run dev",
     "build": "pnpm --filter agentic-travel-agent-server build && pnpm --filter agentic-travel-agent-web build",
     "lint": "pnpm -r run lint",
+    "lint:fix": "pnpm -r run lint:fix",
     "format": "pnpm -r run format",
     "format:check": "pnpm -r run format:check",
     "test": "pnpm --filter agentic-travel-agent-server run test",

@@ -1,30 +1,29 @@
-import type { Request, Response } from "express";
-
-import type { TripContext } from "app/prompts/trip-context.js";
+import type { TripContext } from 'app/prompts/trip-context.js';
 import {
   getMessagesByConversation,
   getOrCreateConversation,
   insertMessage,
-} from "app/repositories/conversations/conversations.js";
-import { getTripWithDetails } from "app/repositories/trips/trips.js";
-import { findByUserId as findUserPreferences } from "app/repositories/userPreferences/userPreferences.js";
-import { runAgentLoop } from "app/services/agent.service.js";
-import { logger } from "app/utils/logs/logger.js";
+} from 'app/repositories/conversations/conversations.js';
+import { getTripWithDetails } from 'app/repositories/trips/trips.js';
+import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
+import { runAgentLoop } from 'app/services/agent.service.js';
+import { logger } from 'app/utils/logs/logger.js';
+import type { Request, Response } from 'express';
 
 export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const userId = req.user!.id;
   const { message } = req.body;
 
-  if (!message || typeof message !== "string") {
-    res.status(400).json({ error: "message is required" });
+  if (!message || typeof message !== 'string') {
+    res.status(400).json({ error: 'message is required' });
     return;
   }
 
   // Load trip
   const trip = await getTripWithDetails(tripId, userId);
   if (!trip) {
-    res.status(404).json({ error: "Trip not found" });
+    res.status(404).json({ error: 'Trip not found' });
     return;
   }
 
@@ -39,14 +38,14 @@ export async function chat(req: Request, res: Response) {
 
   // Build messages for Claude
   const claudeMessages = history
-    .filter((m) => m.role === "user" || m.role === "assistant")
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => ({
-      role: m.role as "user" | "assistant",
-      content: m.content ?? "",
+      role: m.role as 'user' | 'assistant',
+      content: m.content ?? '',
     }));
 
   // Add current message
-  claudeMessages.push({ role: "user", content: message });
+  claudeMessages.push({ role: 'user', content: message });
 
   // Build trip context for system prompt
   const tripContext: TripContext = {
@@ -55,44 +54,48 @@ export async function chat(req: Request, res: Response) {
     departure_date: trip.departure_date ?? null,
     return_date: trip.return_date ?? null,
     budget_total: trip.budget_total ?? 0,
-    budget_currency: trip.budget_currency ?? "USD",
+    budget_currency: trip.budget_currency ?? 'USD',
     travelers: trip.travelers ?? 1,
     preferences: {},
     user_preferences: userPrefs
-      ? { dietary: userPrefs.dietary, intensity: userPrefs.intensity, social: userPrefs.social }
+      ? {
+          dietary: userPrefs.dietary,
+          intensity: userPrefs.intensity,
+          social: userPrefs.social,
+        }
       : undefined,
     selected_flights: (trip.flights ?? []).map((f) => ({
-      airline: f.airline ?? "",
-      flight_number: f.flight_number ?? "",
+      airline: f.airline ?? '',
+      flight_number: f.flight_number ?? '',
       price: f.price ?? 0,
-      departure_time: f.departure_time ? f.departure_time.toISOString() : "",
-      arrival_time: f.arrival_time ? f.arrival_time.toISOString() : "",
+      departure_time: f.departure_time ? f.departure_time.toISOString() : '',
+      arrival_time: f.arrival_time ? f.arrival_time.toISOString() : '',
     })),
     selected_hotels: (trip.hotels ?? []).map((h) => ({
-      name: h.name ?? "",
+      name: h.name ?? '',
       price_per_night: h.price_per_night ?? 0,
       total_price: h.total_price ?? 0,
       star_rating: h.star_rating ?? 0,
     })),
     selected_experiences: (trip.experiences ?? []).map((e) => ({
-      name: e.name ?? "",
+      name: e.name ?? '',
       estimated_cost: e.estimated_cost ?? 0,
-      category: e.category ?? "",
+      category: e.category ?? '',
     })),
     total_spent: 0,
   };
 
   // Set up SSE
   res.writeHead(200, {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-    Connection: "keep-alive",
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
   });
 
   // Persist user message
   await insertMessage({
     conversation_id: conversation.id,
-    role: "user",
+    role: 'user',
     content: message,
   });
 
@@ -111,9 +114,10 @@ export async function chat(req: Request, res: Response) {
     // Persist assistant message
     await insertMessage({
       conversation_id: conversation.id,
-      role: "assistant",
+      role: 'assistant',
       content: result.response,
-      tool_calls_json: result.tool_calls.length > 0 ? result.tool_calls : undefined,
+      tool_calls_json:
+        result.tool_calls.length > 0 ? result.tool_calls : undefined,
       token_count: result.total_tokens.input + result.total_tokens.output,
     });
 
@@ -122,8 +126,10 @@ export async function chat(req: Request, res: Response) {
       `event: done\ndata: ${JSON.stringify({ response: result.response, tool_calls: result.tool_calls })}\n\n`,
     );
   } catch (err) {
-    logger.error({ err, tripId }, "Agent loop failed");
-    res.write(`event: error\ndata: ${JSON.stringify({ error: "Agent encountered an error" })}\n\n`);
+    logger.error({ err, tripId }, 'Agent loop failed');
+    res.write(
+      `event: error\ndata: ${JSON.stringify({ error: 'Agent encountered an error' })}\n\n`,
+    );
   }
 
   res.end();

@@ -1,7 +1,7 @@
-import "dotenv/config";
-import { loadSecrets } from "app/config/secrets.js";
+import { loadSecrets } from 'app/config/secrets.js';
+import 'dotenv/config';
 
 await loadSecrets();
 
-const { startServer } = await import("app/app.js");
+const { startServer } = await import('app/app.js');
 startServer();

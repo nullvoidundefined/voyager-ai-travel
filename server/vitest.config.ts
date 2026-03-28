@@ -1,29 +1,29 @@
-import path from "node:path";
-import { configDefaults, defineConfig } from "vitest/config";
+import path from 'node:path';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   resolve: {
-    alias: { app: path.resolve(__dirname, "./src") },
+    alias: { app: path.resolve(__dirname, './src') },
   },
   test: {
     coverage: {
       exclude: [
-        "dist/**",
-        "migrations/**",
-        "scripts/**",
-        "*.config.*",
-        "**/config/**",
-        "**/types/**",
-        "**/db/**",
-        "**/rateLimiter.ts",
-        "**/*.d.ts",
-        "**/*.test.ts",
-        "src/index.ts",
-        "src/constants/**",
+        'dist/**',
+        'migrations/**',
+        'scripts/**',
+        '*.config.*',
+        '**/config/**',
+        '**/types/**',
+        '**/db/**',
+        '**/rateLimiter.ts',
+        '**/*.d.ts',
+        '**/*.test.ts',
+        'src/index.ts',
+        'src/constants/**',
       ],
-      provider: "v8",
-      reporter: ["text", "lcov"],
-      reportsDirectory: "coverage",
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
       thresholds: {
         branches: 80,
         functions: 80,
@@ -31,8 +31,8 @@ export default defineConfig({
         statements: 80,
       },
     },
-    environment: "node",
-    exclude: [...configDefaults.exclude, "migrations/**"],
+    environment: 'node',
+    exclude: [...configDefaults.exclude, 'migrations/**'],
     globals: true,
   },
 });

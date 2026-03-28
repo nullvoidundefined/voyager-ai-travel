@@ -1,24 +1,27 @@
-import type { NextFunction, Request, Response } from "express";
-
-import { logger } from "app/utils/logs/logger.js";
+import { logger } from 'app/utils/logs/logger.js';
+import type { NextFunction, Request, Response } from 'express';
 
 // Centralized error handler to ensure all uncaught errors are logged once and surfaced with a safe JSON response.
 // The full error is only exposed in non-production environments to avoid leaking implementation details.
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- 4th arg required so Express recognizes this as error-handling middleware
-export function errorHandler(err: unknown, req: Request, res: Response, _next: NextFunction) {
+export function errorHandler(
+  err: unknown,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) {
   const status = 500;
 
-  logger.error({ err, reqId: req.id }, "Unhandled error in request handler");
+  logger.error({ err, reqId: req.id }, 'Unhandled error in request handler');
 
   res.status(status).json({
     error: {
       message:
-        process.env.NODE_ENV === "production"
-          ? "Internal server error"
+        process.env.NODE_ENV === 'production'
+          ? 'Internal server error'
           : err instanceof Error
             ? err.message
-            : "Internal server error",
+            : 'Internal server error',
     },
   });
 }

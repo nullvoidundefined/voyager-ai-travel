@@ -4,13 +4,13 @@
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
  */
 export const up = (pgm) => {
-  pgm.addColumns("users", {
-    first_name: { type: "text", notNull: false },
-    last_name: { type: "text", notNull: false },
+  pgm.addColumns('users', {
+    first_name: { type: 'text', notNull: false },
+    last_name: { type: 'text', notNull: false },
   });
 };
 
 /** @param pgm {import('node-pg-migrate').MigrationBuilder} */
 export const down = (pgm) => {
-  pgm.dropColumns("users", ["first_name", "last_name"]);
+  pgm.dropColumns('users', ['first_name', 'last_name']);
 };

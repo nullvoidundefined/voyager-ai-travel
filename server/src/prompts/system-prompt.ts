@@ -1,4 +1,7 @@
-import { formatTripContext, type TripContext } from "app/prompts/trip-context.js";
+import {
+  type TripContext,
+  formatTripContext,
+} from 'app/prompts/trip-context.js';
 
 const BASE_PROMPT = `You are an expert travel planning assistant. You help users plan trips by searching for flights, hotels, and experiences, then assembling complete itineraries within their budget.
 
@@ -52,7 +55,7 @@ The user may have set dietary restrictions, travel intensity, and social style p
 - Acknowledge the user's preferences and explain your choices`;
 
 export function buildSystemPrompt(tripContext?: TripContext): string {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
   const dateLine = `\n\nToday's date is ${today}. All flight and hotel searches must use dates in the future — never use past dates.`;
 
   if (!tripContext) {
