@@ -77,7 +77,9 @@ export function TripDetailsForm({
     <form onSubmit={handleSubmit} className={styles.form}>
       {fields.map((field) => (
         <div key={field.type} className={styles.field}>
-          <label htmlFor={field.type} className={styles.label}>{field.label}</label>
+          <label htmlFor={field.type} className={styles.label}>
+            {field.label}
+          </label>
           {field.type === 'origin' && (
             <input
               id='origin'

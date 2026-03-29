@@ -18,9 +18,7 @@ export async function register(req: Request, res: Response): Promise<void> {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res
-      .status(400)
-      .json({ error: 'VALIDATION_ERROR', message });
+    res.status(400).json({ error: 'VALIDATION_ERROR', message });
     return;
   }
   const { email, password, first_name, last_name } = parsed.data;
@@ -68,9 +66,7 @@ export async function login(req: Request, res: Response): Promise<void> {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res
-      .status(400)
-      .json({ error: 'VALIDATION_ERROR', message });
+    res.status(400).json({ error: 'VALIDATION_ERROR', message });
     return;
   }
   const { email, password } = parsed.data;

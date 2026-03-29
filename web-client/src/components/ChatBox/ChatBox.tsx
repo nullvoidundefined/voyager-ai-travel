@@ -1,6 +1,12 @@
 'use client';
 
-import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { get } from '@/lib/api';
 import { APP_NAME } from '@/lib/constants';
