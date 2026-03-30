@@ -1,12 +1,16 @@
 pre-commit:
   parallel: true
   commands:
-    lint:
-      run: pnpm -r run lint
     format:
-      run: pnpm --filter server run format:check
+      run: pnpm format:check
+    lint:
+      run: pnpm lint
 
 pre-push:
   commands:
-    tests:
-      run: pnpm --filter server run test:coverage
+    format:
+      run: pnpm format:check
+    lint:
+      run: pnpm lint
+    build:
+      run: pnpm --filter agentic-travel-agent-server build

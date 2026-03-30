@@ -11,21 +11,34 @@
     "build": "pnpm --filter agentic-travel-agent-server build && pnpm --filter agentic-travel-agent-web build",
     "lint": "eslint --config eslint.config.bottomlessmargaritas.js .",
     "lint:fix": "eslint --config eslint.config.bottomlessmargaritas.js . --fix",
-    "format": "prettier --config prettier.config.bottomlessmargaritas.js --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
-    "format:check": "prettier --config prettier.config.bottomlessmargaritas.js --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format": "prettier --config prettier.config.bottomlessmargaritas.mjs --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --config prettier.config.bottomlessmargaritas.mjs --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "test": "pnpm --filter agentic-travel-agent-server run test",
     "test:coverage": "pnpm --filter agentic-travel-agent-server run test:coverage",
-    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true"
+    "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true",
+    "bottomlessmargaritas:format": "prettier --config prettier.config.bottomlessmargaritas.mjs --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "bottomlessmargaritas:format:check": "prettier --config prettier.config.bottomlessmargaritas.mjs --check \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
+    "bottomlessmargaritas:lint": "eslint --config eslint.config.bottomlessmargaritas.js .",
+    "bottomlessmargaritas:lint:fix": "eslint --config eslint.config.bottomlessmargaritas.js . --fix"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@bottomlessmargaritas/claude-architecture-prompts": "^2.1.0",
+    "@trivago/prettier-plugin-sort-imports": "^4",
+    "@typescript-eslint/parser": "^8",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^10",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "lefthook": "^2.1.1"
+    "eslint-plugin-security": "^3",
+    "eslint-plugin-unused-imports": "^4",
+    "globals": "^15",
+    "lefthook": "^2.1.1",
+    "prettier": "^3",
+    "typescript-eslint": "^8"
   },
   "dependencies": {
-    "@bottomlessmargaritas/formatting-configs": "^2.1.0"
+    "@bottomlessmargaritas/formatting-configs": "^2.2.2"
   }
 }
