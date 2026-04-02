@@ -1,12 +1,12 @@
 "use client";
 
 import {
-    type FormEvent,
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
 } from "react";
 
 import { API_BASE, get } from "@/lib/api";
@@ -15,9 +15,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import styles from "./ChatBox.module.scss";
 import {
-    TripDetailsForm,
-    parseTripFormFields,
-    parseSubmittedValues,
+  TripDetailsForm,
+  parseTripFormFields,
+  parseSubmittedValues,
 } from "./TripDetailsForm";
 import { FlightCard } from "./widgets/FlightCard";
 import { HotelCard } from "./widgets/HotelCard";
@@ -25,644 +25,533 @@ import { ExperienceCard } from "./widgets/ExperienceCard";
 import { SelectableCardGroup } from "./widgets/SelectableCardGroup";
 import { QuickReplyChips, parseQuickReplies } from "./widgets/QuickReplyChips";
 import { InlineBudgetBar } from "./widgets/InlineBudgetBar";
-import {
-    ItineraryTimeline,
-    parseItinerary,
-} from "./widgets/ItineraryTimeline";
+import { ItineraryTimeline, parseItinerary } from "./widgets/ItineraryTimeline";
 
 interface Message {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
+  id: string;
+  role: "user" | "assistant";
+  content: string;
 }
 
 interface ToolProgress {
-    tool_name: string;
-    tool_id: string;
-    status: "running" | "done";
+  tool_name: string;
+  tool_id: string;
+  status: "running" | "done";
 }
 
 function toolLabel(name: string) {
-    return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  return name.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function renderText(text: string) {
-    if (!text.trim()) return null;
-    return text.split("\n").map((line, i) => (
-        <p key={i}>
-            {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
-                if (part.startsWith("**") && part.endsWith("**")) {
-                    return <strong key={j}>{part.slice(2, -2)}</strong>;
-                }
-                return part;
-            })}
-        </p>
-    ));
+  if (!text.trim()) return null;
+  return text.split("\n").map((line, i) => (
+    <p key={i}>
+      {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
+        if (part.startsWith("**") && part.endsWith("**")) {
+          return <strong key={j}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      })}
+    </p>
+  ));
 }
 
 interface ChatBoxProps {
-    tripId: string;
-    hasFlights?: boolean;
-    tripStatus?: string;
-    onBookTrip?: () => void;
-    budgetTotal?: number | null;
-    budgetAllocated?: number | null;
-    budgetCurrency?: string;
+  tripId: string;
+  hasFlights?: boolean;
+  tripStatus?: string;
+  onBookTrip?: () => void;
+  budgetTotal?: number | null;
+  budgetAllocated?: number | null;
+  budgetCurrency?: string;
 }
 
 export function ChatBox({
-    tripId,
-    hasFlights,
-    tripStatus,
-    onBookTrip,
-    budgetTotal,
-    budgetAllocated,
-    budgetCurrency,
+  tripId,
+  hasFlights,
+  tripStatus,
+  onBookTrip,
+  budgetTotal,
+  budgetAllocated,
+  budgetCurrency,
 }: ChatBoxProps) {
-    const queryClient = useQueryClient();
-    const [input, setInput] = useState("");
-    const [localMessages, setLocalMessages] = useState<Message[]>([]);
-    const [streamingText, setStreamingText] = useState("");
-    const [tools, setTools] = useState<ToolProgress[]>([]);
-    const [isSending, setIsSending] = useState(false);
-    const [toolResults, setToolResults] = useState<
-        Record<string, { tool_name: string; result: unknown }>
-    >({});
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const [input, setInput] = useState("");
+  const [localMessages, setLocalMessages] = useState<Message[]>([]);
+  const [streamingText, setStreamingText] = useState("");
+  const [tools, setTools] = useState<ToolProgress[]>([]);
+  const [isSending, setIsSending] = useState(false);
+  const [toolResults, setToolResults] = useState<
+    Record<string, { tool_name: string; result: unknown }>
+  >({});
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const { data: serverMessages } = useQuery({
-        queryKey: ["messages", tripId],
-        queryFn: () =>
-            get<{ messages: Message[] }>(`/trips/${tripId}/messages`).then(
-                (r) => r.messages,
-            ),
-    });
+  const { data: serverMessages } = useQuery({
+    queryKey: ["messages", tripId],
+    queryFn: () =>
+      get<{ messages: Message[] }>(`/trips/${tripId}/messages`).then(
+        (r) => r.messages,
+      ),
+  });
 
-    const allMessages = useMemo(
-        () => [...(serverMessages ?? []), ...localMessages],
-        [serverMessages, localMessages],
-    );
+  const allMessages = useMemo(
+    () => [...(serverMessages ?? []), ...localMessages],
+    [serverMessages, localMessages],
+  );
 
-    const showBookingActions =
-        hasFlights && tripStatus === "planning" && !isSending;
+  const showBookingActions =
+    hasFlights && tripStatus === "planning" && !isSending;
 
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [allMessages.length, streamingText]);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages.length, streamingText]);
 
-    const sendMessage = useCallback(
-        async (msg: string) => {
-            if (!msg || isSending) {
-                return;
+  const sendMessage = useCallback(
+    async (msg: string) => {
+      if (!msg || isSending) {
+        return;
+      }
+
+      function handleSSEEvent(
+        eventType: string,
+        data: Record<string, unknown>,
+      ) {
+        switch (eventType) {
+          case "tool_start":
+            setTools((prev) => [
+              ...prev,
+              {
+                tool_name: data.tool_name as string,
+                tool_id: data.tool_id as string,
+                status: "running",
+              },
+            ]);
+            break;
+          case "tool_result":
+            setTools((prev) => {
+              const matched = prev.find((t) => t.tool_id === data.tool_id);
+              if (matched) {
+                setToolResults((r) => ({
+                  ...r,
+                  [data.tool_id as string]: {
+                    tool_name: matched.tool_name,
+                    result: data.result,
+                  },
+                }));
+              }
+              return prev.map((t) =>
+                t.tool_id === data.tool_id
+                  ? { ...t, status: "done" as const }
+                  : t,
+              );
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["trips", tripId],
+            });
+            break;
+          case "assistant":
+            setStreamingText(data.text as string);
+            break;
+          case "done":
+            setStreamingText(data.response as string);
+            break;
+          case "error":
+            setStreamingText((data.error as string) ?? "An error occurred.");
+            break;
+        }
+      }
+
+      setIsSending(true);
+      setStreamingText("");
+      setTools([]);
+      setToolResults({});
+
+      const userMsg: Message = {
+        id: `local-${Date.now()}`,
+        role: "user",
+        content: msg,
+      };
+      setLocalMessages((prev) => [...prev, userMsg]);
+
+      try {
+        const res = await fetch(`${API_BASE}/trips/${tripId}/chat`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          body: JSON.stringify({ message: msg }),
+        });
+
+        if (!res.ok || !res.body) {
+          throw new Error("Chat request failed");
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() ?? "";
+
+          let eventType = "";
+          for (const line of lines) {
+            if (line.startsWith("event: ")) {
+              eventType = line.slice(7);
+            } else if (line.startsWith("data: ")) {
+              const data = JSON.parse(line.slice(6));
+              handleSSEEvent(eventType, data);
             }
+          }
+        }
+      } catch {
+        setLocalMessages((prev) => [
+          ...prev,
+          {
+            id: `error-${Date.now()}`,
+            role: "assistant",
+            content: "Something went wrong. Please try again.",
+          },
+        ]);
+      } finally {
+        setIsSending(false);
+        await queryClient.invalidateQueries({
+          queryKey: ["messages", tripId],
+        });
+        setLocalMessages([]);
+        setStreamingText("");
+        queryClient.invalidateQueries({
+          queryKey: ["trips", tripId],
+        });
+      }
+    },
+    [isSending, tripId, queryClient],
+  );
 
-            function handleSSEEvent(
-                eventType: string,
-                data: Record<string, unknown>,
-            ) {
-                switch (eventType) {
-                    case "tool_start":
-                        setTools((prev) => [
-                            ...prev,
-                            {
-                                tool_name: data.tool_name as string,
-                                tool_id: data.tool_id as string,
-                                status: "running",
-                            },
-                        ]);
-                        break;
-                    case "tool_result":
-                        setTools((prev) => {
-                            const matched = prev.find(
-                                (t) => t.tool_id === data.tool_id,
-                            );
-                            if (matched) {
-                                setToolResults((r) => ({
-                                    ...r,
-                                    [data.tool_id as string]: {
-                                        tool_name: matched.tool_name,
-                                        result: data.result,
-                                    },
-                                }));
-                            }
-                            return prev.map((t) =>
-                                t.tool_id === data.tool_id
-                                    ? { ...t, status: "done" as const }
-                                    : t,
-                            );
-                        });
-                        queryClient.invalidateQueries({
-                            queryKey: ["trips", tripId],
-                        });
-                        break;
-                    case "assistant":
-                        setStreamingText(data.text as string);
-                        break;
-                    case "done":
-                        setStreamingText(data.response as string);
-                        break;
-                    case "error":
-                        setStreamingText(
-                            (data.error as string) ?? "An error occurred.",
-                        );
-                        break;
-                }
-            }
+  const handleSubmit = useCallback(
+    (e: FormEvent) => {
+      e.preventDefault();
+      const msg = input.trim();
+      if (!msg) {
+        return;
+      }
+      setInput("");
+      sendMessage(msg);
+    },
+    [input, sendMessage],
+  );
 
-            setIsSending(true);
-            setStreamingText("");
-            setTools([]);
-            setToolResults({});
-
-            const userMsg: Message = {
-                id: `local-${Date.now()}`,
-                role: "user",
-                content: msg,
-            };
-            setLocalMessages((prev) => [...prev, userMsg]);
-
-            try {
-                const res = await fetch(`${API_BASE}/trips/${tripId}/chat`, {
-                    method: "POST",
-                    credentials: "include",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Requested-With": "XMLHttpRequest",
-                    },
-                    body: JSON.stringify({ message: msg }),
-                });
-
-                if (!res.ok || !res.body) {
-                    throw new Error("Chat request failed");
-                }
-
-                const reader = res.body.getReader();
-                const decoder = new TextDecoder();
-                let buffer = "";
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) {
-                        break;
-                    }
-
-                    buffer += decoder.decode(value, { stream: true });
-                    const lines = buffer.split("\n");
-                    buffer = lines.pop() ?? "";
-
-                    let eventType = "";
-                    for (const line of lines) {
-                        if (line.startsWith("event: ")) {
-                            eventType = line.slice(7);
-                        } else if (line.startsWith("data: ")) {
-                            const data = JSON.parse(line.slice(6));
-                            handleSSEEvent(eventType, data);
-                        }
-                    }
-                }
-            } catch {
-                setLocalMessages((prev) => [
-                    ...prev,
-                    {
-                        id: `error-${Date.now()}`,
-                        role: "assistant",
-                        content: "Something went wrong. Please try again.",
-                    },
-                ]);
-            } finally {
-                setIsSending(false);
-                await queryClient.invalidateQueries({
-                    queryKey: ["messages", tripId],
-                });
-                setLocalMessages([]);
-                setStreamingText("");
-                queryClient.invalidateQueries({
-                    queryKey: ["trips", tripId],
-                });
-            }
-        },
-        [isSending, tripId, queryClient],
-    );
-
-    const handleSubmit = useCallback(
-        (e: FormEvent) => {
-            e.preventDefault();
-            const msg = input.trim();
-            if (!msg) {
-                return;
-            }
-            setInput("");
-            sendMessage(msg);
-        },
-        [input, sendMessage],
-    );
-
-    return (
-        <div className={styles.chatBox}>
-            <div className={styles.messageList}>
-                {allMessages.length === 0 && !isSending && (
-                    <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>{APP_NAME}</div>
-                        <div className={styles.bubble}>
-                            <p>
-                                Hi! I&apos;m {APP_NAME}, your AI travel
-                                planner. Tell me where you&apos;d like to go,
-                                your budget, and your dates — I&apos;ll search
-                                real flights, hotels, and experiences to build
-                                your itinerary.
-                            </p>
-                        </div>
-                    </div>
-                )}
-                {allMessages.map((msg, idx) => {
-                    const formData =
-                        msg.role === "assistant"
-                            ? parseTripFormFields(msg.content)
-                            : null;
-
-                    const itineraryData =
-                        msg.role === "assistant"
-                            ? parseItinerary(msg.content)
-                            : null;
-
-                    let formSubmitted = false;
-                    let formInitialValues:
-                        | Record<string, string>
-                        | undefined;
-                    if (formData) {
-                        const nextMsg = allMessages[idx + 1];
-                        if (nextMsg?.role === "user") {
-                            formSubmitted = true;
-                            formInitialValues = parseSubmittedValues(
-                                nextMsg.content,
-                            );
-                        }
-                    }
-
-                    const isLastAssistant =
-                        msg.role === "assistant" &&
-                        idx === allMessages.length - 1 &&
-                        !isSending;
-                    const quickReplies = isLastAssistant
-                        ? parseQuickReplies(msg.content)
-                        : null;
-
-                    return (
-                        <div
-                            key={msg.id}
-                            className={`${styles.message} ${styles[msg.role]}`}
-                        >
-                            <div className={styles.roleBadge}>
-                                {msg.role === "user" ? "You" : APP_NAME}
-                            </div>
-                            <div className={styles.bubble}>
-                                {formData ? (
-                                    <>
-                                        {renderText(formData.before)}
-                                        <TripDetailsForm
-                                            fields={formData.fields}
-                                            onSubmit={sendMessage}
-                                            disabled={isSending}
-                                            initialValues={formInitialValues}
-                                            submitted={formSubmitted}
-                                        />
-                                        {renderText(formData.after)}
-                                    </>
-                                ) : itineraryData ? (
-                                    <>
-                                        {renderText(itineraryData.before)}
-                                        <ItineraryTimeline
-                                            days={itineraryData.days}
-                                        />
-                                        {renderText(itineraryData.after)}
-                                    </>
-                                ) : (
-                                    renderText(msg.content)
-                                )}
-                                {quickReplies && (
-                                    <QuickReplyChips
-                                        chips={quickReplies}
-                                        onSelect={sendMessage}
-                                        disabled={isSending}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-
-                {isSending && tools.length === 0 && !streamingText && (
-                    <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>{APP_NAME}</div>
-                        <div className={styles.bubble}>
-                            <span className={styles.typing}>
-                                <span />
-                                <span />
-                                <span />
-                            </span>
-                        </div>
-                    </div>
-                )}
-
-                {isSending && tools.length > 0 && (
-                    <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>{APP_NAME}</div>
-                        <div className={styles.toolProgress}>
-                            {tools.map((t) => (
-                                <div key={t.tool_id} className={styles.toolRow}>
-                                    <span className={styles.toolIcon}>
-                                        {t.status === "running"
-                                            ? "\u23F3"
-                                            : "\u2705"}
-                                    </span>
-                                    <span>{toolLabel(t.tool_name)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {Object.keys(toolResults).length > 0 && (
-                    <div>
-                        {Object.entries(toolResults).map(
-                            ([toolId, { tool_name, result }]) => {
-                                if (!Array.isArray(result) || result.length === 0)
-                                    return null;
-
-                                if (tool_name === "search_flights") {
-                                    const items = (
-                                        result as Array<Record<string, unknown>>
-                                    ).map((f, i) => ({
-                                        id: String(i),
-                                        label: `${f.airline ?? "Flight"} ${f.flight_number ?? ""} (${f.origin ?? ""}→${f.destination ?? ""}) - $${f.price ?? "?"}`,
-                                        node: (
-                                            selected: boolean,
-                                            onClick: () => void,
-                                        ) => (
-                                            <FlightCard
-                                                key={i}
-                                                airline={
-                                                    (f.airline as string) ?? ""
-                                                }
-                                                airlineLogo={
-                                                    (f.airline_logo as string) ??
-                                                    null
-                                                }
-                                                flightNumber={
-                                                    (f.flight_number as string) ??
-                                                    ""
-                                                }
-                                                origin={
-                                                    (f.origin as string) ?? ""
-                                                }
-                                                destination={
-                                                    (f.destination as string) ??
-                                                    ""
-                                                }
-                                                departureTime={
-                                                    (f.departure_time as string) ??
-                                                    ""
-                                                }
-                                                price={
-                                                    (f.price as number) ?? 0
-                                                }
-                                                currency={
-                                                    (f.currency as string) ??
-                                                    "USD"
-                                                }
-                                                selected={selected}
-                                                onClick={onClick}
-                                            />
-                                        ),
-                                    }));
-                                    return (
-                                        <div
-                                            key={toolId}
-                                            className={styles.resultCards}
-                                        >
-                                            <SelectableCardGroup
-                                                items={items}
-                                                onConfirm={(label) =>
-                                                    sendMessage(
-                                                        `I've selected this flight: ${label}. Book it and move on to searching for hotels.`,
-                                                    )
-                                                }
-                                                disabled={false}
-                                            />
-                                        </div>
-                                    );
-                                }
-
-                                if (tool_name === "search_hotels") {
-                                    const items = (
-                                        result as Array<Record<string, unknown>>
-                                    ).map((h, i) => ({
-                                        id: String(i),
-                                        label: `${h.name ?? "Hotel"} - $${h.price_per_night ?? "?"}/night`,
-                                        node: (
-                                            selected: boolean,
-                                            onClick: () => void,
-                                        ) => (
-                                            <HotelCard
-                                                key={i}
-                                                name={
-                                                    (h.name as string) ?? ""
-                                                }
-                                                city={
-                                                    (h.city as string) ?? ""
-                                                }
-                                                imageUrl={
-                                                    (h.image_url as string) ??
-                                                    null
-                                                }
-                                                starRating={
-                                                    (h.star_rating as number) ??
-                                                    null
-                                                }
-                                                pricePerNight={
-                                                    (h.price_per_night as number) ??
-                                                    0
-                                                }
-                                                totalPrice={
-                                                    (h.total_price as number) ??
-                                                    0
-                                                }
-                                                currency={
-                                                    (h.currency as string) ??
-                                                    "USD"
-                                                }
-                                                checkIn={
-                                                    (h.check_in as string) ??
-                                                    ""
-                                                }
-                                                checkOut={
-                                                    (h.check_out as string) ??
-                                                    ""
-                                                }
-                                                latitude={
-                                                    (h.latitude as number) ??
-                                                    null
-                                                }
-                                                longitude={
-                                                    (h.longitude as number) ??
-                                                    null
-                                                }
-                                                selected={selected}
-                                                onClick={onClick}
-                                            />
-                                        ),
-                                    }));
-                                    return (
-                                        <div
-                                            key={toolId}
-                                            className={styles.resultCards}
-                                        >
-                                            <SelectableCardGroup
-                                                items={items}
-                                                onConfirm={(label) =>
-                                                    sendMessage(
-                                                        `I've selected this hotel: ${label}. Book it and move on to searching for experiences.`,
-                                                    )
-                                                }
-                                                disabled={false}
-                                            />
-                                        </div>
-                                    );
-                                }
-
-                                if (tool_name === "search_experiences") {
-                                    const items = (
-                                        result as Array<Record<string, unknown>>
-                                    ).map((e, i) => ({
-                                        id: String(i),
-                                        label: `${e.name ?? "Experience"} (~$${e.estimated_cost ?? "?"})`,
-                                        node: (
-                                            selected: boolean,
-                                            onClick: () => void,
-                                        ) => (
-                                            <ExperienceCard
-                                                key={i}
-                                                name={
-                                                    (e.name as string) ?? ""
-                                                }
-                                                category={
-                                                    (e.category as string) ??
-                                                    null
-                                                }
-                                                photoRef={
-                                                    (e.photo_ref as string) ??
-                                                    null
-                                                }
-                                                rating={
-                                                    (e.rating as number) ??
-                                                    null
-                                                }
-                                                estimatedCost={
-                                                    (e.estimated_cost as number) ??
-                                                    null
-                                                }
-                                                latitude={
-                                                    (e.latitude as number) ??
-                                                    null
-                                                }
-                                                longitude={
-                                                    (e.longitude as number) ??
-                                                    null
-                                                }
-                                                selected={selected}
-                                                onClick={onClick}
-                                            />
-                                        ),
-                                    }));
-                                    return (
-                                        <div
-                                            key={toolId}
-                                            className={styles.resultCards}
-                                        >
-                                            <SelectableCardGroup
-                                                items={items}
-                                                onConfirm={(label) =>
-                                                    sendMessage(
-                                                        `I've selected this experience: ${label}. Add it to my itinerary and show me the final budget summary.`,
-                                                    )
-                                                }
-                                                disabled={false}
-                                            />
-                                        </div>
-                                    );
-                                }
-
-                                return null;
-                            },
-                        )}
-
-                        {budgetTotal != null &&
-                            budgetTotal > 0 &&
-                            budgetAllocated != null && (
-                                <InlineBudgetBar
-                                    allocated={budgetAllocated}
-                                    total={budgetTotal}
-                                    currency={budgetCurrency ?? "USD"}
-                                />
-                            )}
-                    </div>
-                )}
-
-                {streamingText && isSending && (
-                    <div className={`${styles.message} ${styles.assistant}`}>
-                        <div className={styles.roleBadge}>{APP_NAME}</div>
-                        <div className={styles.bubble}>
-                            {streamingText.split("\n").map((line, i) => (
-                                <p key={i}>{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {showBookingActions && (
-                    <div className={styles.bookingActions}>
-                        <button
-                            type="button"
-                            className={styles.bookButton}
-                            onClick={onBookTrip}
-                        >
-                            Book This Trip
-                        </button>
-                        <button
-                            type="button"
-                            className={styles.tryAgainButton}
-                            onClick={() =>
-                                sendMessage(
-                                    "I'd like to make some changes to the itinerary. What would you suggest adjusting?",
-                                )
-                            }
-                        >
-                            Try Again
-                        </button>
-                    </div>
-                )}
-
-                <div ref={messagesEndRef} />
+  return (
+    <div className={styles.chatBox}>
+      <div className={styles.messageList}>
+        {allMessages.length === 0 && !isSending && (
+          <div className={`${styles.message} ${styles.assistant}`}>
+            <div className={styles.roleBadge}>{APP_NAME}</div>
+            <div className={styles.bubble}>
+              <p>
+                Hi! I&apos;m {APP_NAME}, your AI travel planner. Tell me where
+                you&apos;d like to go, your budget, and your dates — I&apos;ll
+                search real flights, hotels, and experiences to build your
+                itinerary.
+              </p>
             </div>
+          </div>
+        )}
+        {allMessages.map((msg, idx) => {
+          const formData =
+            msg.role === "assistant" ? parseTripFormFields(msg.content) : null;
 
-            <form onSubmit={handleSubmit} className={styles.inputArea}>
-                <input
-                    type="text"
-                    className={styles.input}
-                    placeholder="Ask the agent to plan your trip..."
-                    aria-label="Ask the agent to plan your trip..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
+          const itineraryData =
+            msg.role === "assistant" ? parseItinerary(msg.content) : null;
+
+          let formSubmitted = false;
+          let formInitialValues: Record<string, string> | undefined;
+          if (formData) {
+            const nextMsg = allMessages[idx + 1];
+            if (nextMsg?.role === "user") {
+              formSubmitted = true;
+              formInitialValues = parseSubmittedValues(nextMsg.content);
+            }
+          }
+
+          const isLastAssistant =
+            msg.role === "assistant" &&
+            idx === allMessages.length - 1 &&
+            !isSending;
+          const quickReplies = isLastAssistant
+            ? parseQuickReplies(msg.content)
+            : null;
+
+          return (
+            <div
+              key={msg.id}
+              className={`${styles.message} ${styles[msg.role]}`}
+            >
+              <div className={styles.roleBadge}>
+                {msg.role === "user" ? "You" : APP_NAME}
+              </div>
+              <div className={styles.bubble}>
+                {formData ? (
+                  <>
+                    {renderText(formData.before)}
+                    <TripDetailsForm
+                      fields={formData.fields}
+                      onSubmit={sendMessage}
+                      disabled={isSending}
+                      initialValues={formInitialValues}
+                      submitted={formSubmitted}
+                    />
+                    {renderText(formData.after)}
+                  </>
+                ) : itineraryData ? (
+                  <>
+                    {renderText(itineraryData.before)}
+                    <ItineraryTimeline days={itineraryData.days} />
+                    {renderText(itineraryData.after)}
+                  </>
+                ) : (
+                  renderText(msg.content)
+                )}
+                {quickReplies && (
+                  <QuickReplyChips
+                    chips={quickReplies}
+                    onSelect={sendMessage}
                     disabled={isSending}
+                  />
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {isSending && tools.length === 0 && !streamingText && (
+          <div className={`${styles.message} ${styles.assistant}`}>
+            <div className={styles.roleBadge}>{APP_NAME}</div>
+            <div className={styles.bubble}>
+              <span className={styles.typing}>
+                <span />
+                <span />
+                <span />
+              </span>
+            </div>
+          </div>
+        )}
+
+        {isSending && tools.length > 0 && (
+          <div className={`${styles.message} ${styles.assistant}`}>
+            <div className={styles.roleBadge}>{APP_NAME}</div>
+            <div className={styles.toolProgress}>
+              {tools.map((t) => (
+                <div key={t.tool_id} className={styles.toolRow}>
+                  <span className={styles.toolIcon}>
+                    {t.status === "running" ? "\u23F3" : "\u2705"}
+                  </span>
+                  <span>{toolLabel(t.tool_name)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {Object.keys(toolResults).length > 0 && (
+          <div>
+            {Object.entries(toolResults).map(
+              ([toolId, { tool_name, result }]) => {
+                if (!Array.isArray(result) || result.length === 0) return null;
+
+                if (tool_name === "search_flights") {
+                  const items = (result as Array<Record<string, unknown>>).map(
+                    (f, i) => ({
+                      id: String(i),
+                      label: `${f.airline ?? "Flight"} ${f.flight_number ?? ""} (${f.origin ?? ""}→${f.destination ?? ""}) - $${f.price ?? "?"}`,
+                      node: (selected: boolean, onClick: () => void) => (
+                        <FlightCard
+                          key={i}
+                          airline={(f.airline as string) ?? ""}
+                          airlineLogo={(f.airline_logo as string) ?? null}
+                          flightNumber={(f.flight_number as string) ?? ""}
+                          origin={(f.origin as string) ?? ""}
+                          destination={(f.destination as string) ?? ""}
+                          departureTime={(f.departure_time as string) ?? ""}
+                          price={(f.price as number) ?? 0}
+                          currency={(f.currency as string) ?? "USD"}
+                          selected={selected}
+                          onClick={onClick}
+                        />
+                      ),
+                    }),
+                  );
+                  return (
+                    <div key={toolId} className={styles.resultCards}>
+                      <SelectableCardGroup
+                        items={items}
+                        onConfirm={(label) =>
+                          sendMessage(
+                            `I've selected this flight: ${label}. Book it and move on to searching for hotels.`,
+                          )
+                        }
+                        disabled={false}
+                      />
+                    </div>
+                  );
+                }
+
+                if (tool_name === "search_hotels") {
+                  const items = (result as Array<Record<string, unknown>>).map(
+                    (h, i) => ({
+                      id: String(i),
+                      label: `${h.name ?? "Hotel"} - $${h.price_per_night ?? "?"}/night`,
+                      node: (selected: boolean, onClick: () => void) => (
+                        <HotelCard
+                          key={i}
+                          name={(h.name as string) ?? ""}
+                          city={(h.city as string) ?? ""}
+                          imageUrl={(h.image_url as string) ?? null}
+                          starRating={(h.star_rating as number) ?? null}
+                          pricePerNight={(h.price_per_night as number) ?? 0}
+                          totalPrice={(h.total_price as number) ?? 0}
+                          currency={(h.currency as string) ?? "USD"}
+                          checkIn={(h.check_in as string) ?? ""}
+                          checkOut={(h.check_out as string) ?? ""}
+                          latitude={(h.latitude as number) ?? null}
+                          longitude={(h.longitude as number) ?? null}
+                          selected={selected}
+                          onClick={onClick}
+                        />
+                      ),
+                    }),
+                  );
+                  return (
+                    <div key={toolId} className={styles.resultCards}>
+                      <SelectableCardGroup
+                        items={items}
+                        onConfirm={(label) =>
+                          sendMessage(
+                            `I've selected this hotel: ${label}. Book it and move on to searching for experiences.`,
+                          )
+                        }
+                        disabled={false}
+                      />
+                    </div>
+                  );
+                }
+
+                if (tool_name === "search_experiences") {
+                  const items = (result as Array<Record<string, unknown>>).map(
+                    (e, i) => ({
+                      id: String(i),
+                      label: `${e.name ?? "Experience"} (~$${e.estimated_cost ?? "?"})`,
+                      node: (selected: boolean, onClick: () => void) => (
+                        <ExperienceCard
+                          key={i}
+                          name={(e.name as string) ?? ""}
+                          category={(e.category as string) ?? null}
+                          photoRef={(e.photo_ref as string) ?? null}
+                          rating={(e.rating as number) ?? null}
+                          estimatedCost={(e.estimated_cost as number) ?? null}
+                          latitude={(e.latitude as number) ?? null}
+                          longitude={(e.longitude as number) ?? null}
+                          selected={selected}
+                          onClick={onClick}
+                        />
+                      ),
+                    }),
+                  );
+                  return (
+                    <div key={toolId} className={styles.resultCards}>
+                      <SelectableCardGroup
+                        items={items}
+                        onConfirm={(label) =>
+                          sendMessage(
+                            `I've selected this experience: ${label}. Add it to my itinerary and show me the final budget summary.`,
+                          )
+                        }
+                        disabled={false}
+                      />
+                    </div>
+                  );
+                }
+
+                return null;
+              },
+            )}
+
+            {budgetTotal != null &&
+              budgetTotal > 0 &&
+              budgetAllocated != null && (
+                <InlineBudgetBar
+                  allocated={budgetAllocated}
+                  total={budgetTotal}
+                  currency={budgetCurrency ?? "USD"}
                 />
-                <button
-                    type="submit"
-                    className={styles.sendButton}
-                    disabled={isSending || !input.trim()}
-                >
-                    {isSending ? "..." : "Send"}
-                </button>
-            </form>
-        </div>
-    );
+              )}
+          </div>
+        )}
+
+        {streamingText && isSending && (
+          <div className={`${styles.message} ${styles.assistant}`}>
+            <div className={styles.roleBadge}>{APP_NAME}</div>
+            <div className={styles.bubble}>
+              {streamingText.split("\n").map((line, i) => (
+                <p key={i}>{line}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {showBookingActions && (
+          <div className={styles.bookingActions}>
+            <button
+              type="button"
+              className={styles.bookButton}
+              onClick={onBookTrip}
+            >
+              Book This Trip
+            </button>
+            <button
+              type="button"
+              className={styles.tryAgainButton}
+              onClick={() =>
+                sendMessage(
+                  "I'd like to make some changes to the itinerary. What would you suggest adjusting?",
+                )
+              }
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      <form onSubmit={handleSubmit} className={styles.inputArea}>
+        <input
+          type="text"
+          className={styles.input}
+          placeholder="Ask the agent to plan your trip..."
+          aria-label="Ask the agent to plan your trip..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={isSending}
+        />
+        <button
+          type="submit"
+          className={styles.sendButton}
+          disabled={isSending || !input.trim()}
+        >
+          {isSending ? "..." : "Send"}
+        </button>
+      </form>
+    </div>
+  );
 }

@@ -33,8 +33,16 @@ export function Header() {
             viewBox="0 0 32 32"
             aria-hidden="true"
           >
-            <path d="M24 7 L10 15 L5 13 L24 7 Z" fill="currentColor" opacity="0.9" />
-            <path d="M24 7 L12 19 L8 25 L24 7 Z" fill="currentColor" opacity="0.6" />
+            <path
+              d="M24 7 L10 15 L5 13 L24 7 Z"
+              fill="currentColor"
+              opacity="0.9"
+            />
+            <path
+              d="M24 7 L12 19 L8 25 L24 7 Z"
+              fill="currentColor"
+              opacity="0.6"
+            />
           </svg>
         </Link>
         <nav className={styles.nav} aria-label="Main navigation">

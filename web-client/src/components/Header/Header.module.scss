@@ -1,119 +1,119 @@
 .header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: var(--background-translucent);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--background-translucent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 32px;
-    height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 72px;
 }
 
 .logo {
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--foreground);
-    transition: color var(--transition-fast);
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  transition: color var(--transition-fast);
 
-    &:hover {
-        color: var(--accent);
-    }
+  &:hover {
+    color: var(--accent);
+  }
 }
 
 .logoIcon {
-    margin-left: 6px;
-    vertical-align: -2px;
-    color: var(--accent);
-    transition: transform var(--transition-fast);
+  margin-left: 6px;
+  vertical-align: -2px;
+  color: var(--accent);
+  transition: transform var(--transition-fast);
 
-    .logo:hover & {
-        transform: translate(2px, -2px);
-    }
+  .logo:hover & {
+    transform: translate(2px, -2px);
+  }
 }
 
 .nav {
-    display: flex;
-    gap: 4px;
-    margin-left: auto;
-    margin-right: 16px;
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 16px;
 }
 
 .navLink {
-    padding: 8px 18px;
-    border-radius: var(--radius-sm);
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--foreground-muted);
-    letter-spacing: 0.01em;
-    transition:
-        background var(--transition-fast),
-        color var(--transition-fast);
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-muted);
+  letter-spacing: 0.01em;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
 
-    &:hover {
-        background: var(--surface);
-        color: var(--foreground);
-    }
+  &:hover {
+    background: var(--surface);
+    color: var(--foreground);
+  }
 
-    &.active {
-        background: var(--surface-alt);
-        color: var(--foreground);
-        font-weight: 600;
-    }
+  &.active {
+    background: var(--surface-alt);
+    color: var(--foreground);
+    font-weight: 600;
+  }
 }
 
 .signIn {
-    display: inline-flex;
-    align-items: center;
-    padding: 9px 22px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    background: transparent;
-    color: var(--foreground);
-    font-size: 14px;
-    font-weight: 500;
-    font-family: var(--font-body);
-    cursor: pointer;
-    text-decoration: none;
-    transition:
-        background var(--transition-fast),
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 22px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 
-    &:hover {
-        background: var(--surface);
-        border-color: var(--accent);
-        box-shadow: var(--shadow-glow);
-    }
+  &:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+  }
 }
 
 @media (max-width: 600px) {
-    .inner {
-        padding: 0 16px;
-        height: 64px;
-    }
+  .inner {
+    padding: 0 16px;
+    height: 64px;
+  }
 
-    .logo {
-        font-size: 22px;
-    }
+  .logo {
+    font-size: 22px;
+  }
 
-    .navLink {
-        padding: 8px 12px;
-        font-size: 13px;
-    }
+  .navLink {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
 
-    .signIn {
-        padding: 7px 16px;
-        font-size: 13px;
-    }
+  .signIn {
+    padding: 7px 16px;
+    font-size: 13px;
+  }
 }
