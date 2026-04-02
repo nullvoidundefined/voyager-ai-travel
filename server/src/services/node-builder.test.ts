@@ -4,21 +4,20 @@ import type { ChatNode } from '@agentic-travel-agent/shared-types';
 
 describe('buildNodeFromToolResult', () => {
   it('maps search_flights result to flight_tiles node', () => {
-    const result = {
-      flights: [
-        {
-          airline: 'Delta',
-          airline_logo: 'https://logo.com/delta.png',
-          flight_number: 'DL123',
-          departure_airport: 'JFK',
-          arrival_airport: 'NRT',
-          departure_time: '2026-05-01T08:00:00',
-          arrival_time: '2026-05-02T12:00:00',
-          price: 850,
-          currency: 'USD',
-        },
-      ],
-    };
+    // Tool results are arrays, not { flights: [...] }
+    const result = [
+      {
+        airline: 'Delta',
+        airline_logo: 'https://logo.com/delta.png',
+        flight_number: 'DL123',
+        origin: 'JFK',
+        destination: 'NRT',
+        departure_time: '2026-05-01T08:00:00',
+        arrival_time: '2026-05-02T12:00:00',
+        price: 850,
+        currency: 'USD',
+      },
+    ];
 
     const node = buildNodeFromToolResult('search_flights', result);
     expect(node).not.toBeNull();
@@ -33,20 +32,18 @@ describe('buildNodeFromToolResult', () => {
   });
 
   it('maps search_hotels result to hotel_tiles node', () => {
-    const result = {
-      hotels: [
-        {
-          name: 'Tokyo Grand',
-          city: 'Tokyo',
-          star_rating: 4,
-          price_per_night: 120,
-          total_price: 840,
-          currency: 'USD',
-          check_in: '2026-05-01',
-          check_out: '2026-05-08',
-        },
-      ],
-    };
+    const result = [
+      {
+        name: 'Tokyo Grand',
+        city: 'Tokyo',
+        star_rating: 4,
+        price_per_night: 120,
+        total_price: 840,
+        currency: 'USD',
+        check_in: '2026-05-01',
+        check_out: '2026-05-08',
+      },
+    ];
 
     const node = buildNodeFromToolResult('search_hotels', result);
     expect(node).not.toBeNull();
@@ -59,23 +56,21 @@ describe('buildNodeFromToolResult', () => {
   });
 
   it('maps search_car_rentals result to car_rental_tiles node', () => {
-    const result = {
-      rentals: [
-        {
-          provider: 'Hertz',
-          car_name: 'Toyota Corolla',
-          car_type: 'compact',
-          price_per_day: 45,
-          total_price: 315,
-          currency: 'USD',
-          pickup_location: 'NRT Airport',
-          dropoff_location: 'NRT Airport',
-          pickup_date: '2026-05-01',
-          dropoff_date: '2026-05-08',
-          features: ['Automatic', 'AC', '5 seats'],
-        },
-      ],
-    };
+    const result = [
+      {
+        provider: 'Hertz',
+        car_name: 'Toyota Corolla',
+        car_type: 'compact',
+        price_per_day: 45,
+        total_price: 315,
+        currency: 'USD',
+        pickup_location: 'NRT Airport',
+        dropoff_location: 'NRT Airport',
+        pickup_date: '2026-05-01',
+        dropoff_date: '2026-05-08',
+        features: ['Automatic', 'AC', '5 seats'],
+      },
+    ];
 
     const node = buildNodeFromToolResult('search_car_rentals', result);
     expect(node).not.toBeNull();
@@ -88,16 +83,14 @@ describe('buildNodeFromToolResult', () => {
   });
 
   it('maps search_experiences result to experience_tiles node', () => {
-    const result = {
-      experiences: [
-        {
-          name: 'Senso-ji Temple',
-          category: 'Temple',
-          rating: 4.6,
-          estimated_cost: 0,
-        },
-      ],
-    };
+    const result = [
+      {
+        name: 'Senso-ji Temple',
+        category: 'Temple',
+        rating: 4.6,
+        estimated_cost: 0,
+      },
+    ];
 
     const node = buildNodeFromToolResult('search_experiences', result);
     expect(node).not.toBeNull();

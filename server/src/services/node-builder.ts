@@ -5,8 +5,8 @@ interface FlightRaw {
   airline: string;
   airline_logo?: string;
   flight_number: string;
-  departure_airport: string;
-  arrival_airport: string;
+  origin: string;
+  destination: string;
   departure_time: string;
   arrival_time?: string;
   price: number;
@@ -26,6 +26,8 @@ interface HotelRaw {
   check_out: string;
   lat?: number;
   lon?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface CarRentalRaw {
@@ -61,8 +63,8 @@ function normalizeFlights(raw: FlightRaw[]): Flight[] {
     airline: f.airline,
     airline_logo: f.airline_logo,
     flight_number: f.flight_number,
-    origin: f.departure_airport,
-    destination: f.arrival_airport,
+    origin: f.origin,
+    destination: f.destination,
     departure_time: f.departure_time,
     arrival_time: f.arrival_time,
     price: f.price,
@@ -83,8 +85,8 @@ function normalizeHotels(raw: HotelRaw[]): Hotel[] {
     currency: h.currency,
     check_in: h.check_in,
     check_out: h.check_out,
-    lat: h.lat,
-    lon: h.lon,
+    lat: h.lat ?? h.latitude,
+    lon: h.lon ?? h.longitude,
   }));
 }
 
@@ -121,31 +123,39 @@ function normalizeExperiences(raw: ExperienceRaw[]): Experience[] {
   }));
 }
 
+// Tool results may be arrays directly (e.g. search_flights returns Flight[])
+// or objects with a named key (e.g. { flights: Flight[] }).
+// Handle both shapes.
+function extractArray<T>(result: unknown, key: string): T[] {
+  if (Array.isArray(result)) return result as T[];
+  const data = result as Record<string, unknown>;
+  if (Array.isArray(data[key])) return data[key] as T[];
+  return [];
+}
+
 export function buildNodeFromToolResult(
   toolName: string,
   result: unknown,
 ): ChatNode | null {
-  const data = result as Record<string, unknown>;
-
   switch (toolName) {
     case 'search_flights':
       return {
         type: 'flight_tiles',
-        flights: normalizeFlights((data.flights as FlightRaw[]) ?? []),
+        flights: normalizeFlights(extractArray<FlightRaw>(result, 'flights')),
         selectable: true,
       };
 
     case 'search_hotels':
       return {
         type: 'hotel_tiles',
-        hotels: normalizeHotels((data.hotels as HotelRaw[]) ?? []),
+        hotels: normalizeHotels(extractArray<HotelRaw>(result, 'hotels')),
         selectable: true,
       };
 
     case 'search_car_rentals':
       return {
         type: 'car_rental_tiles',
-        rentals: normalizeCarRentals((data.rentals as CarRentalRaw[]) ?? []),
+        rentals: normalizeCarRentals(extractArray<CarRentalRaw>(result, 'rentals')),
         selectable: true,
       };
 
@@ -153,18 +163,20 @@ export function buildNodeFromToolResult(
       return {
         type: 'experience_tiles',
         experiences: normalizeExperiences(
-          (data.experiences as ExperienceRaw[]) ?? [],
+          extractArray<ExperienceRaw>(result, 'experiences'),
         ),
         selectable: true,
       };
 
-    case 'calculate_remaining_budget':
+    case 'calculate_remaining_budget': {
+      const data = result as Record<string, unknown>;
       return {
         type: 'budget_bar',
         allocated: (data.total_spent as number) ?? 0,
         total: (data.total_budget as number) ?? 0,
         currency: (data.currency as string) ?? 'USD',
       };
+    }
 
     default:
       return null;
