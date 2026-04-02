@@ -25,6 +25,7 @@ export interface FlightResult {
   departure_time: string;
   arrival_time: string;
   airline: string;
+  airline_logo: string | null;
   flight_number: string;
   price: number;
   currency: string;
@@ -75,6 +76,7 @@ function normalizeOffer(offer: SerpApiFlight, index: number): FlightResult {
     departure_time: firstLeg?.departure_airport.time ?? '',
     arrival_time: lastLeg?.arrival_airport.time ?? '',
     airline: firstLeg?.airline ?? '',
+    airline_logo: firstLeg?.airline_logo ?? null,
     flight_number: firstLeg?.flight_number ?? '',
     price: offer.price,
     currency: 'USD',

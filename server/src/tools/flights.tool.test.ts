@@ -112,6 +112,7 @@ describe('flights.tool', () => {
       expect(result[0]).toHaveProperty('destination', 'BCN');
       expect(result[0]).toHaveProperty('price');
       expect(result[0]).toHaveProperty('airline');
+      expect(result[0]).toHaveProperty('airline_logo');
     });
 
     it('sorts results by price ascending', async () => {
