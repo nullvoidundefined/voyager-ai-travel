@@ -126,7 +126,7 @@ export async function chat(req: Request, res: Response) {
   }
 
   // Inject a trip details form when key fields are missing
-  const missingFields: Array<{ name: string; label: string; field_type: string; required: boolean }> = [];
+  const missingFields: Array<{ name: string; label: string; field_type: 'text' | 'date' | 'number' | 'select'; required: boolean }> = [];
   if (!trip.origin) missingFields.push({ name: 'origin', label: 'Where are you traveling from?', field_type: 'text', required: true });
   if (!trip.departure_date) missingFields.push({ name: 'departure_date', label: 'Departure date', field_type: 'date', required: true });
   if (!trip.return_date) missingFields.push({ name: 'return_date', label: 'Return date', field_type: 'date', required: true });
