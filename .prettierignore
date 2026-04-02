@@ -1,3 +1,6 @@
 # Agent reference docs (not source code)
 .agents/
 server/.agents/
+
+# Shared convention docs (not app source code)
+.claude/
