@@ -1,34 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
     /* — Typography — */
-    --font-display: 'Cormorant Garamond', Georgia, serif;
+    --font-display: 'Fraunces', Georgia, serif;
     --font-body: 'Outfit', system-ui, sans-serif;
 
-    /* — Palette — */
-    --background: #fdfbf7;
-    --background-alt: #f8f4ed;
-    --foreground: #1a1a2e;
-    --foreground-muted: #6b6b80;
-    --border: #ddd5c5;
-    --border-light: #ece6da;
-    --surface: #f3ede3;
-    --surface-alt: #eae2d4;
-    --surface-hover: #e4dccf;
-    --surface-active: #dbd2c3;
-    --accent: #c9a84c;
-    --accent-hover: #b08a3e;
-    --accent-light: rgba(201, 168, 76, 0.1);
-    --accent-text: #a58930;
-    --background-translucent: rgba(253, 251, 247, 0.92);
-    --success: #2d8b5f;
-    --danger: #c24b4b;
+    /* — Palette: Midnight Atlas — */
+    --background: #0a0e17;
+    --background-alt: #0e1320;
+    --foreground: #e4e8ef;
+    --foreground-muted: #7b8599;
+    --border: #1e2a3f;
+    --border-light: #162033;
+    --surface: #131926;
+    --surface-alt: #1a2133;
+    --surface-hover: #1f2840;
+    --surface-active: #25304d;
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --accent-light: rgba(56, 189, 248, 0.1);
+    --accent-text: #7dd3fc;
+    --background-translucent: rgba(10, 14, 23, 0.92);
+    --success: #34d399;
+    --danger: #f87171;
 
     /* — Shadows — */
-    --shadow-sm: 0 1px 3px rgba(26, 26, 46, 0.04);
-    --shadow-md: 0 4px 16px rgba(26, 26, 46, 0.06);
-    --shadow-lg: 0 8px 32px rgba(26, 26, 46, 0.08);
-    --shadow-gold: 0 4px 20px rgba(201, 168, 76, 0.15);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 4px 20px rgba(56, 189, 248, 0.15);
 
     /* — Radii — */
     --radius-sm: 8px;
@@ -71,7 +71,7 @@ a {
 }
 
 html {
-    color-scheme: light;
+    color-scheme: dark;
 }
 
 /* — Global heading style — */
@@ -111,6 +111,6 @@ h4 {
 
 /* — Selection — */
 ::selection {
-    background: rgba(201, 168, 76, 0.2);
+    background: rgba(56, 189, 248, 0.25);
     color: var(--foreground);
 }

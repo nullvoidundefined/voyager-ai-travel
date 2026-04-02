@@ -57,7 +57,7 @@
     }
 
     &.active {
-        background: var(--surface);
+        background: var(--surface-alt);
         color: var(--foreground);
         font-weight: 600;
     }
@@ -84,7 +84,7 @@
     &:hover {
         background: var(--surface);
         border-color: var(--accent);
-        box-shadow: var(--shadow-gold);
+        box-shadow: var(--shadow-glow);
     }
 }
 

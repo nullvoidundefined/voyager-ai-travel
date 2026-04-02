@@ -9,7 +9,7 @@
 .card {
     width: 100%;
     max-width: 420px;
-    background: var(--background);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     padding: 44px 36px;
@@ -46,7 +46,7 @@
     padding: 12px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--background);
+    background: var(--surface-alt);
     color: var(--foreground);
     font-size: 14px;
     font-weight: 600;
@@ -57,7 +57,7 @@
         border-color var(--transition-fast);
 
     &:hover:not(:disabled) {
-        background: var(--surface);
+        background: var(--surface-hover);
         border-color: var(--accent);
     }
 
@@ -140,7 +140,7 @@
 
         &:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
         }
     }
 }
@@ -157,7 +157,7 @@
     border: none;
     border-radius: var(--radius-sm);
     background: var(--accent);
-    color: #fff;
+    color: #0a0e17;
     font-size: 15px;
     font-weight: 600;
     font-family: var(--font-body);
@@ -168,7 +168,7 @@
 
     &:hover:not(:disabled) {
         background: var(--accent-hover);
-        box-shadow: var(--shadow-gold);
+        box-shadow: var(--shadow-glow);
     }
 
     &:disabled {
@@ -261,7 +261,7 @@
 
 .stepActive {
     background: var(--accent);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
 }
 
 .stepLine {
@@ -297,7 +297,7 @@
     padding: 8px 16px;
     border: 1.5px solid var(--border);
     border-radius: 100px;
-    background: var(--background);
+    background: var(--surface-alt);
     color: var(--foreground-muted);
     font-size: 13px;
     font-weight: 500;
@@ -318,12 +318,12 @@
 .chipSelected {
     background: var(--accent);
     border-color: var(--accent);
-    color: #fff;
-    box-shadow: var(--shadow-gold);
+    color: #0a0e17;
+    box-shadow: var(--shadow-glow);
 
     &:hover {
         border-color: var(--accent-hover);
-        color: #fff;
+        color: #0a0e17;
     }
 }
 
@@ -342,7 +342,7 @@
     padding: 14px 16px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--background);
+    background: var(--surface-alt);
     cursor: pointer;
     transition:
         border-color var(--transition-fast),
@@ -357,7 +357,7 @@
 .optionSelected {
     border-color: var(--accent);
     background: var(--accent-light);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.08);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.08);
 }
 
 .optionLabel {
@@ -395,7 +395,7 @@
     padding: 13px 22px;
     border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--background);
+    background: var(--surface-alt);
     color: var(--foreground);
     font-size: 15px;
     font-weight: 600;
@@ -406,7 +406,7 @@
         border-color var(--transition-fast);
 
     &:hover {
-        background: var(--surface);
+        background: var(--surface-hover);
         border-color: var(--accent);
     }
 }

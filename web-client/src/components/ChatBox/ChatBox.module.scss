@@ -4,7 +4,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     overflow: hidden;
-    background: var(--background);
+    background: var(--surface);
     height: 620px;
     box-shadow: var(--shadow-sm);
 }
@@ -63,13 +63,13 @@
 }
 
 .user .bubble {
-    background: var(--foreground);
-    color: var(--background);
+    background: var(--accent);
+    color: #0a0e17;
     border-bottom-right-radius: 4px;
 }
 
 .assistant .bubble {
-    background: var(--surface);
+    background: var(--surface-alt);
     color: var(--foreground);
     border-bottom-left-radius: 4px;
     border: 1px solid var(--border-light);
@@ -80,7 +80,7 @@
 .toolProgress {
     padding: 14px 18px;
     border-radius: var(--radius-md);
-    background: var(--surface);
+    background: var(--surface-alt);
     border: 1px solid var(--border-light);
     display: flex;
     flex-direction: column;
@@ -152,7 +152,7 @@
     gap: 10px;
     padding: 18px 24px;
     border-top: 1px solid var(--border-light);
-    background: var(--background);
+    background: var(--surface);
 }
 
 .input {
@@ -176,7 +176,7 @@
 
     &:focus {
         border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
+        box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.1);
     }
 
     &:disabled {
@@ -190,7 +190,7 @@
     border: none;
     border-radius: var(--radius-sm);
     background: var(--accent);
-    color: #fff;
+    color: #0a0e17;
     font-size: 14px;
     font-weight: 600;
     font-family: var(--font-body);
@@ -202,7 +202,7 @@
 
     &:hover:not(:disabled) {
         background: var(--accent-hover);
-        box-shadow: var(--shadow-gold);
+        box-shadow: var(--shadow-glow);
         transform: translateY(-1px);
     }
 
