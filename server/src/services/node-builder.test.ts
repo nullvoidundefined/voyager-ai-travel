@@ -25,9 +25,9 @@ describe('buildNodeFromToolResult', () => {
     expect(node!.type).toBe('flight_tiles');
     if (node!.type === 'flight_tiles') {
       expect(node!.flights).toHaveLength(1);
-      expect(node!.flights[0].airline).toBe('Delta');
-      expect(node!.flights[0].origin).toBe('JFK');
-      expect(node!.flights[0].destination).toBe('NRT');
+      expect(node!.flights[0]!.airline).toBe('Delta');
+      expect(node!.flights[0]!.origin).toBe('JFK');
+      expect(node!.flights[0]!.destination).toBe('NRT');
       expect(node!.selectable).toBe(true);
     }
   });
@@ -53,7 +53,7 @@ describe('buildNodeFromToolResult', () => {
     expect(node!.type).toBe('hotel_tiles');
     if (node!.type === 'hotel_tiles') {
       expect(node!.hotels).toHaveLength(1);
-      expect(node!.hotels[0].name).toBe('Tokyo Grand');
+      expect(node!.hotels[0]!.name).toBe('Tokyo Grand');
       expect(node!.selectable).toBe(true);
     }
   });
@@ -82,7 +82,7 @@ describe('buildNodeFromToolResult', () => {
     expect(node!.type).toBe('car_rental_tiles');
     if (node!.type === 'car_rental_tiles') {
       expect(node!.rentals).toHaveLength(1);
-      expect(node!.rentals[0].provider).toBe('Hertz');
+      expect(node!.rentals[0]!.provider).toBe('Hertz');
       expect(node!.selectable).toBe(true);
     }
   });

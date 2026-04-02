@@ -144,10 +144,9 @@ describe('agent.service', () => {
         (event) => events.push(event as { type: string }),
       );
 
-      const toolStartEvents = events.filter((e) => e.type === 'tool_start');
-      const toolResultEvents = events.filter((e) => e.type === 'tool_result');
-      expect(toolStartEvents).toHaveLength(1);
-      expect(toolResultEvents).toHaveLength(1);
+      const toolProgressEvents = events.filter((e) => e.type === 'tool_progress');
+      // Two tool_progress events per tool call: running + done
+      expect(toolProgressEvents).toHaveLength(2);
     });
 
     it('enforces max 15 tool calls per turn', async () => {
