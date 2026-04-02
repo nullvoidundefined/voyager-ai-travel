@@ -8,6 +8,7 @@ import { rateLimiter } from 'app/middleware/rateLimiter/rateLimiter.js';
 import { requestLogger } from 'app/middleware/requestLogger/requestLogger.js';
 import { loadSession } from 'app/middleware/requireAuth/requireAuth.js';
 import { authRouter } from 'app/routes/auth.js';
+import { placesRouter } from 'app/routes/places.js';
 import { tripRouter } from 'app/routes/trips.js';
 import { userPreferencesRouter } from 'app/routes/userPreferences.js';
 import { logger } from 'app/utils/logs/logger.js';
@@ -90,6 +91,7 @@ app.get('/health/ready', async (_req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/places', placesRouter);
 app.use('/trips', tripRouter);
 app.use('/user-preferences', userPreferencesRouter);
 
