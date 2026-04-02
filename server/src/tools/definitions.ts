@@ -195,4 +195,96 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
       required: ['city_name'],
     },
   },
+  {
+    name: 'search_car_rentals',
+    description:
+      'Search for car rental options at a destination. Returns available cars with pricing, features, and pickup/dropoff details.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        pickup_location: {
+          type: 'string',
+          description: 'City or airport for car pickup (e.g. "Tokyo" or "NRT")',
+        },
+        pickup_date: {
+          type: 'string',
+          description: 'Pickup date in YYYY-MM-DD format',
+        },
+        dropoff_date: {
+          type: 'string',
+          description: 'Dropoff date in YYYY-MM-DD format',
+        },
+        dropoff_location: {
+          type: 'string',
+          description:
+            'City or airport for dropoff. Defaults to pickup location if omitted.',
+        },
+        car_type: {
+          type: 'string',
+          description:
+            'Preferred car type: economy, compact, midsize, suv, luxury, van',
+        },
+      },
+      required: ['pickup_location', 'pickup_date', 'dropoff_date'],
+    },
+  },
+  {
+    name: 'format_response',
+    description:
+      'REQUIRED: Call this as your LAST tool call every turn. Provides your text response, citations, suggested quick replies, and optional advisory escalation. Do NOT write text outside of this tool — all your text goes in the text field.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        text: {
+          type: 'string',
+          description: 'Your markdown-formatted response text to the user.',
+        },
+        citations: {
+          type: 'array',
+          description:
+            'References backing claims in your text. Each citation needs an id (e.g. "1"), label (display text), and either a url (external link) or source_type.',
+          items: {
+            type: 'object',
+            properties: {
+              id: { type: 'string' },
+              label: { type: 'string' },
+              url: { type: 'string' },
+              source_type: {
+                type: 'string',
+                enum: [
+                  'travel_advisory',
+                  'visa_info',
+                  'weather',
+                  'vaccination',
+                  'general',
+                ],
+              },
+            },
+            required: ['id', 'label'],
+          },
+        },
+        quick_replies: {
+          type: 'array',
+          description:
+            'Suggested next actions for the user (2-4 short options). Only include when there are clear next steps.',
+          items: { type: 'string' },
+        },
+        advisory: {
+          type: 'object',
+          description:
+            'Escalated travel advisory when you detect contextual risk factors (e.g. families traveling to high-risk areas, health concerns). Only use when auto-enrichment baseline is insufficient.',
+          properties: {
+            severity: {
+              type: 'string',
+              enum: ['info', 'warning', 'critical'],
+            },
+            title: { type: 'string' },
+            body: { type: 'string' },
+          },
+          required: ['severity', 'title', 'body'],
+        },
+      },
+      required: ['text'],
+    },
+  },
 ];

@@ -3,6 +3,7 @@ import {
   updateTrip,
 } from 'app/repositories/trips/trips.js';
 import { calculateRemainingBudget } from 'app/tools/budget.tool.js';
+import { searchCarRentals } from 'app/tools/car-rentals.tool.js';
 import { getDestinationInfo } from 'app/tools/destination.tool.js';
 import { searchExperiences } from 'app/tools/experiences.tool.js';
 import { searchFlights } from 'app/tools/flights.tool.js';
@@ -58,6 +59,16 @@ export async function executeTool(
         ? { success: true, message: 'Trip updated successfully' }
         : { success: false, message: 'No fields to update' };
     }
+
+    case 'search_car_rentals':
+      return searchCarRentals(
+        input as unknown as Parameters<typeof searchCarRentals>[0],
+      );
+
+    case 'format_response':
+      // format_response is handled by the orchestrator, not executed as a tool.
+      // Return the input as-is so the orchestrator can extract it.
+      return input;
 
     default:
       throw new Error(`Unknown tool: ${toolName}`);
