@@ -20,6 +20,7 @@ interface ChatBoxProps {
 export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxProps) {
   const queryClient = useQueryClient();
   const [input, setInput] = useState('');
+  const [pendingUserMessage, setPendingUserMessage] = useState<ChatMessage | null>(null);
 
   const { data: serverMessages } = useQuery({
     queryKey: ['messages', tripId],
@@ -29,23 +30,42 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
       ),
   });
 
-  const { sendMessage, isSending, streamingNodes, toolProgress, streamingText } =
-    useSSEChat({ tripId });
+  // Merge server messages with optimistic pending user message
+  const allMessages: ChatMessage[] = [
+    ...(serverMessages ?? []),
+    ...(pendingUserMessage ? [pendingUserMessage] : []),
+  ];
 
+  const { sendMessage, isSending, streamingNodes, toolProgress, streamingText } =
+    useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
 
   const showBookingActions = hasFlights && tripStatus === 'planning' && !isSending;
+
+  const handleSend = useCallback(
+    (msg: string) => {
+      if (!msg.trim()) return;
+      // Optimistic: show user message immediately
+      setPendingUserMessage({
+        id: `pending-${Date.now()}`,
+        role: 'user',
+        nodes: [{ type: 'text', content: msg }],
+        sequence: (serverMessages?.length ?? 0) + 1,
+        created_at: new Date().toISOString(),
+      });
+      sendMessage(msg);
+    },
+    [sendMessage, serverMessages?.length],
+  );
 
   const handleSubmit = useCallback(
     (e: FormEvent) => {
       e.preventDefault();
       const msg = input.trim();
-      if (!msg) {
-        return;
-      }
+      if (!msg) return;
       setInput('');
-      sendMessage(msg);
+      handleSend(msg);
     },
-    [input, sendMessage],
+    [input, handleSend],
   );
 
   // Invalidate trips query after booking-related actions
@@ -57,12 +77,12 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
   return (
     <div className={styles.chatBox}>
       <VirtualizedChat
-        messages={serverMessages ?? []}
+        messages={allMessages}
         streamingNodes={streamingNodes}
         toolProgress={toolProgress}
         streamingText={streamingText}
         isSending={isSending}
-        onQuickReply={sendMessage}
+        onQuickReply={handleSend}
       />
 
       {showBookingActions && (
@@ -74,7 +94,7 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
             type='button'
             className={styles.tryAgainButton}
             onClick={() =>
-              sendMessage(
+              handleSend(
                 "I'd like to make some changes to the itinerary. What would you suggest adjusting?",
               )
             }
