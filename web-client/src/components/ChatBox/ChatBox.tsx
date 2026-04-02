@@ -32,6 +32,9 @@ export function ChatBox({ tripId, hasFlights, tripStatus, onBookTrip }: ChatBoxP
   const { sendMessage, isSending, streamingNodes, toolProgress, streamingText } =
     useSSEChat({ tripId });
 
+  // Debug: log server messages to verify data flow
+  console.log('[ChatBox] serverMessages:', serverMessages?.length, serverMessages);
+
   const showBookingActions = hasFlights && tripStatus === 'planning' && !isSending;
 
   const handleSubmit = useCallback(

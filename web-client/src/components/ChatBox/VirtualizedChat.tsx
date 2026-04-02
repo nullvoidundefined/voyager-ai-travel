@@ -105,6 +105,15 @@ export function VirtualizedChat({
 
   return (
     <div ref={parentRef} className={styles.chatContainer} onScroll={handleScroll}>
+      {allMessages.length === 0 && !isSending && (
+        <div className={styles.emptyState}>
+          <p className={styles.emptyIcon}>&#x2708;&#xFE0F;</p>
+          <p className={styles.emptyTitle}>Start planning your trip</p>
+          <p className={styles.emptySubtitle}>
+            Describe where you want to go, your dates, and budget below.
+          </p>
+        </div>
+      )}
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -121,7 +130,6 @@ export function VirtualizedChat({
               key={virtualItem.key}
               ref={virtualizer.measureElement}
               data-index={virtualItem.index}
-              className={`${styles.message} ${styles[message.role]}`}
               style={{
                 position: 'absolute',
                 top: 0,
@@ -130,17 +138,19 @@ export function VirtualizedChat({
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              <div className={styles.roleBadge}>
-                {message.role === 'user' ? 'You' : APP_NAME}
-              </div>
-              <div className={styles.bubble}>
-                {message.nodes.map((node, nodeIdx) => (
-                  <NodeRenderer
-                    key={`${message.id}-${nodeIdx}`}
-                    node={node}
-                    callbacks={{ onQuickReply }}
-                  />
-                ))}
+              <div className={`${styles.message} ${styles[message.role]}`}>
+                <div className={styles.roleBadge}>
+                  {message.role === 'user' ? 'You' : APP_NAME}
+                </div>
+                <div className={styles.bubble}>
+                  {message.nodes.map((node, nodeIdx) => (
+                    <NodeRenderer
+                      key={`${message.id}-${nodeIdx}`}
+                      node={node}
+                      callbacks={{ onQuickReply }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           );
