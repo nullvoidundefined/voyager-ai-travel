@@ -424,7 +424,7 @@ export function ChatBox({
                                                 items={items}
                                                 onConfirm={(label) =>
                                                     sendMessage(
-                                                        `I'll go with ${label}`,
+                                                        `I've selected this flight: ${label}. Book it and move on to searching for hotels.`,
                                                     )
                                                 }
                                                 disabled={false}
@@ -501,7 +501,7 @@ export function ChatBox({
                                                 items={items}
                                                 onConfirm={(label) =>
                                                     sendMessage(
-                                                        `I'll go with ${label}`,
+                                                        `I've selected this hotel: ${label}. Book it and move on to searching for experiences.`,
                                                     )
                                                 }
                                                 disabled={false}
@@ -563,7 +563,7 @@ export function ChatBox({
                                                 items={items}
                                                 onConfirm={(label) =>
                                                     sendMessage(
-                                                        `I'll go with ${label}`,
+                                                        `I've selected this experience: ${label}. Add it to my itinerary and show me the final budget summary.`,
                                                     )
                                                 }
                                                 disabled={false}
