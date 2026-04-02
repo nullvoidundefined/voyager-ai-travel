@@ -12,6 +12,9 @@ vi.mock('app/repositories/conversations/conversations.js');
 vi.mock('app/repositories/trips/trips.js');
 vi.mock('app/repositories/userPreferences/userPreferences.js');
 vi.mock('app/services/agent.service.js');
+vi.mock('app/services/enrichment.js', () => ({
+  getEnrichmentNodes: vi.fn().mockResolvedValue([]),
+}));
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
@@ -94,13 +97,21 @@ describe('chat handlers', () => {
       vi.mocked(agentService.runAgentLoop).mockImplementationOnce(
         async (_messages, _ctx, onEvent) => {
           onEvent({
-            type: 'tool_start',
+            type: 'tool_progress',
             tool_name: 'search_flights',
             tool_id: 't1',
-            input: {},
+            status: 'running',
           });
-          onEvent({ type: 'tool_result', tool_id: 't1', result: [] });
-          onEvent({ type: 'assistant', text: 'Here is your plan.' });
+          onEvent({
+            type: 'tool_progress',
+            tool_name: 'search_flights',
+            tool_id: 't1',
+            status: 'done',
+          });
+          onEvent({
+            type: 'text_delta',
+            content: 'Here is your plan.',
+          });
           return {
             response: 'Here is your plan.',
             tool_calls: [
@@ -112,6 +123,7 @@ describe('chat handlers', () => {
               },
             ],
             total_tokens: { input: 100, output: 50 },
+            nodes: [{ type: 'text', content: 'Here is your plan.' }],
           };
         },
       );
@@ -130,9 +142,8 @@ describe('chat handlers', () => {
 
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toContain('text/event-stream');
-      expect(res.body).toContain('event: tool_start');
-      expect(res.body).toContain('event: tool_result');
-      expect(res.body).toContain('event: assistant');
+      expect(res.body).toContain('event: tool_progress');
+      expect(res.body).toContain('event: text_delta');
       expect(res.body).toContain('event: done');
     });
 
@@ -166,6 +177,7 @@ describe('chat handlers', () => {
         response: 'Hi!',
         tool_calls: [],
         total_tokens: { input: 50, output: 20 },
+        nodes: [{ type: 'text', content: 'Hi!' }],
       });
 
       await request(app)

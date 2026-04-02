@@ -72,6 +72,7 @@ describe('conversations repository', () => {
         conversation_id: 'conv-1',
         role: 'user',
         content: 'Plan a trip',
+        nodes: [{ type: 'text', content: 'Plan a trip' }],
       });
 
       expect(result).toEqual(msg);
@@ -99,6 +100,7 @@ describe('conversations repository', () => {
         role: 'assistant',
         content: 'Found flights.',
         tool_calls_json: toolCalls,
+        nodes: [{ type: 'text', content: 'Found flights.' }],
         token_count: 75,
       });
 

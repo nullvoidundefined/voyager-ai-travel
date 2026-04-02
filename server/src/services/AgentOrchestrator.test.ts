@@ -1,9 +1,9 @@
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { SSEEvent } from '@agentic-travel-agent/shared-types';
 import {
   AgentOrchestrator,
   type AgentOrchestratorConfig,
-  type ProgressEvent,
 } from './AgentOrchestrator.js';
 
 // ---------------------------------------------------------------------------
@@ -16,6 +16,11 @@ vi.mock('app/utils/logs/logger.js', () => ({
     warn: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+// Mock the node builder — not the focus of these tests
+vi.mock('./node-builder.js', () => ({
+  buildNodeFromToolResult: vi.fn().mockReturnValue(null),
 }));
 
 // ---------------------------------------------------------------------------
@@ -237,9 +242,9 @@ describe('AgentOrchestrator', () => {
   // -----------------------------------------------------------------------
   // Event emission — onEvent callback receives correct events
   // -----------------------------------------------------------------------
-  it('emits events for tool_start, tool_result, and assistant', async () => {
-    const events: ProgressEvent[] = [];
-    const onEvent = (e: ProgressEvent) => events.push(e);
+  it('emits events for tool_progress and text_delta', async () => {
+    const events: SSEEvent[] = [];
+    const onEvent = (e: SSEEvent) => events.push(e);
 
     createMock
       .mockResolvedValueOnce(
@@ -256,21 +261,23 @@ describe('AgentOrchestrator', () => {
     const orchestrator = new AgentOrchestrator(config);
     await orchestrator.run([{ role: 'user', content: 'Search' }], [], onEvent);
 
+    // tool_progress running + tool_progress done + text_delta
     expect(events).toHaveLength(3);
     expect(events[0]).toEqual({
-      type: 'tool_start',
+      type: 'tool_progress',
       tool_name: 'test_tool',
       tool_id: 'tool_1',
-      input: { query: 'paris' },
+      status: 'running',
     });
     expect(events[1]).toEqual({
-      type: 'tool_result',
+      type: 'tool_progress',
+      tool_name: 'test_tool',
       tool_id: 'tool_1',
-      result: { result: 'ok' },
+      status: 'done',
     });
     expect(events[2]).toEqual({
-      type: 'assistant',
-      text: 'Here are your results.',
+      type: 'text_delta',
+      content: 'Here are your results.',
     });
   });
 

@@ -1,3 +1,8 @@
+import type {
+  ChatNode,
+  ChatMessage,
+  SSEEvent,
+} from '@agentic-travel-agent/shared-types';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import {
   getMessagesByConversation,
@@ -6,6 +11,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
+import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
@@ -95,43 +101,69 @@ export async function chat(req: Request, res: Response) {
     Connection: 'keep-alive',
   });
 
-  // Persist user message
+  // Persist user message with typed nodes
+  const userNodes: ChatNode[] = [{ type: 'text', content: message }];
   await insertMessage({
     conversation_id: conversation.id,
     role: 'user',
     content: message,
+    nodes: userNodes,
   });
+
+  // Fetch enrichment nodes if trip has a destination
+  let enrichmentNodes: ChatNode[] = [];
+  if (trip.destination) {
+    try {
+      enrichmentNodes = await getEnrichmentNodes(
+        trip.destination,
+        trip.origin ?? undefined,
+      );
+    } catch (err) {
+      logger.warn({ err, tripId }, 'Failed to fetch enrichment nodes');
+    }
+  }
+
+  // Typed SSE event emitter
+  const onEvent = (event: SSEEvent) => {
+    res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
+  };
 
   try {
     const result = await runAgentLoop(
       claudeMessages,
       tripContext,
-      (event) => {
-        const eventType = event.type;
-        res.write(`event: ${eventType}\ndata: ${JSON.stringify(event)}\n\n`);
-      },
+      onEvent,
       conversation.id,
       { tripId, userId },
+      enrichmentNodes,
     );
 
-    // Persist assistant message
-    await insertMessage({
+    // Persist assistant message with dual columns (content + tool_calls_json + nodes)
+    const assistantMessage = await insertMessage({
       conversation_id: conversation.id,
       role: 'assistant',
       content: result.response,
       tool_calls_json:
         result.tool_calls.length > 0 ? result.tool_calls : undefined,
+      nodes: result.nodes,
       token_count: result.total_tokens.input + result.total_tokens.output,
     });
 
-    // Send done event
+    // Send done event with full ChatMessage
+    const chatMessage: ChatMessage = {
+      id: assistantMessage.id,
+      role: 'assistant',
+      nodes: result.nodes,
+      sequence: assistantMessage.sequence,
+      created_at: assistantMessage.created_at,
+    };
     res.write(
-      `event: done\ndata: ${JSON.stringify({ response: result.response, tool_calls: result.tool_calls })}\n\n`,
+      `event: done\ndata: ${JSON.stringify({ type: 'done', message: chatMessage })}\n\n`,
     );
   } catch (err) {
     logger.error({ err, tripId }, 'Agent loop failed');
     res.write(
-      `event: error\ndata: ${JSON.stringify({ error: 'AI_SERVICE_ERROR', message: 'Agent encountered an error' })}\n\n`,
+      `event: error\ndata: ${JSON.stringify({ type: 'error', error: 'Agent encountered an error' })}\n\n`,
     );
   }
 
@@ -141,6 +173,20 @@ export async function chat(req: Request, res: Response) {
 export async function getMessages(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const conversation = await getOrCreateConversation(tripId);
-  const messages = await getMessagesByConversation(conversation.id);
+  const dbMessages = await getMessagesByConversation(conversation.id);
+
+  const messages: ChatMessage[] = dbMessages
+    .filter((m) => m.role !== ('tool' as string)) // exclude legacy tool-role messages
+    .map((m) => ({
+      id: m.id,
+      role: m.role as 'user' | 'assistant',
+      nodes:
+        m.nodes && m.nodes.length > 0
+          ? m.nodes
+          : [{ type: 'text' as const, content: m.content ?? '' }],
+      sequence: m.sequence,
+      created_at: m.created_at,
+    }));
+
   res.json({ messages });
 }

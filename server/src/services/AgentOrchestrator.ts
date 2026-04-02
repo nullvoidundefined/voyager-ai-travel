@@ -1,4 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type { ChatNode, SSEEvent } from '@agentic-travel-agent/shared-types';
+import { buildNodeFromToolResult } from './node-builder.js';
 import { logger } from 'app/utils/logs/logger.js';
 
 const DEFAULT_MAX_ITERATIONS = 15;
@@ -12,22 +14,25 @@ export interface ToolCallRecord {
   result: unknown;
 }
 
+export interface FormatResponseData {
+  text: string;
+  citations?: unknown[];
+  quick_replies?: string[];
+  advisory?: {
+    severity: 'info' | 'warning' | 'critical';
+    title: string;
+    body: string;
+  };
+}
+
 export interface OrchestratorResult {
   response: string;
   toolCallsUsed: ToolCallRecord[];
   tokensUsed: { input: number; output: number };
   iterations: number;
+  nodes: ChatNode[];
+  formatResponse: FormatResponseData | null;
 }
-
-export type ProgressEvent =
-  | {
-      type: 'tool_start';
-      tool_name: string;
-      tool_id: string;
-      input: Record<string, unknown>;
-    }
-  | { type: 'tool_result'; tool_id: string; result: unknown }
-  | { type: 'assistant'; text: string };
 
 export type ToolExecutor = (
   toolName: string,
@@ -82,13 +87,15 @@ export class AgentOrchestrator {
   async run(
     messages: Anthropic.MessageParam[],
     systemPromptArgs: unknown[],
-    onEvent?: (event: ProgressEvent) => void,
+    onEvent?: (event: SSEEvent) => void,
     meta?: Record<string, unknown>,
   ): Promise<OrchestratorResult> {
     const systemPrompt = this.systemPromptBuilder(...systemPromptArgs);
     const toolCalls: ToolCallRecord[] = [];
     const tokensUsed = { input: 0, output: 0 };
     let iterations = 0;
+    const collectedNodes: ChatNode[] = [];
+    let formatResponseData: FormatResponseData | null = null;
 
     const conversationMessages = [...messages];
 
@@ -111,12 +118,14 @@ export class AgentOrchestrator {
           (block): block is Anthropic.TextBlock => block.type === 'text',
         );
         const text = textBlock?.text ?? '';
-        onEvent?.({ type: 'assistant', text });
+        onEvent?.({ type: 'text_delta', content: text });
         return {
           response: text,
           toolCallsUsed: toolCalls,
           tokensUsed,
           iterations,
+          nodes: collectedNodes,
+          formatResponse: formatResponseData,
         };
       }
 
@@ -133,6 +142,8 @@ export class AgentOrchestrator {
             toolCallsUsed: toolCalls,
             tokensUsed,
             iterations,
+            nodes: collectedNodes,
+            formatResponse: formatResponseData,
           };
         }
 
@@ -147,10 +158,10 @@ export class AgentOrchestrator {
         for (const block of toolUseBlocks) {
           const input = block.input as Record<string, unknown>;
           onEvent?.({
-            type: 'tool_start',
+            type: 'tool_progress',
             tool_name: block.name,
             tool_id: block.id,
-            input,
+            status: 'running',
           });
 
           let result: unknown;
@@ -179,7 +190,24 @@ export class AgentOrchestrator {
           };
           toolCalls.push(record);
 
-          onEvent?.({ type: 'tool_result', tool_id: block.id, result });
+          // Build a typed node from the tool result
+          const node = buildNodeFromToolResult(block.name, result);
+          if (node) {
+            collectedNodes.push(node);
+            onEvent?.({ type: 'node', node });
+          }
+
+          // Detect format_response tool
+          if (block.name === 'format_response') {
+            formatResponseData = result as FormatResponseData;
+          }
+
+          onEvent?.({
+            type: 'tool_progress',
+            tool_name: block.name,
+            tool_id: block.id,
+            status: 'done',
+          });
 
           this.onToolExecuted?.({
             ...record,
