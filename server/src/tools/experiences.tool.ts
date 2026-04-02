@@ -8,7 +8,7 @@ import { logger } from 'app/utils/logs/logger.js';
 const CACHE_TTL = 3600;
 const PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText';
 const FIELD_MASK =
-  'places.id,places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.primaryTypeDisplayName';
+  'places.id,places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.primaryTypeDisplayName,places.photos,places.location';
 
 export interface ExperienceSearchInput {
   location: string;
@@ -25,6 +25,9 @@ export interface ExperienceResult {
   price_level: string | null;
   estimated_cost: number | null;
   category: string | null;
+  photo_ref: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface GooglePlace {
@@ -34,6 +37,8 @@ interface GooglePlace {
   rating?: number;
   priceLevel?: string;
   primaryTypeDisplayName?: { text: string };
+  photos?: Array<{ name: string }>;
+  location?: { latitude: number; longitude: number };
 }
 
 const PRICE_LEVEL_MAP: Record<string, number> = {
@@ -55,6 +60,9 @@ function normalizePlace(place: GooglePlace): ExperienceResult {
       ? (PRICE_LEVEL_MAP[place.priceLevel] ?? null)
       : null,
     category: place.primaryTypeDisplayName?.text ?? null,
+    photo_ref: place.photos?.[0]?.name ?? null,
+    latitude: place.location?.latitude ?? null,
+    longitude: place.location?.longitude ?? null,
   };
 }
 

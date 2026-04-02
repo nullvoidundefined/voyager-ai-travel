@@ -84,6 +84,39 @@ describe('experiences.tool', () => {
       expect(result[0]).toHaveProperty('address');
       expect(result[0]).toHaveProperty('rating', 4.7);
       expect(result[0]).toHaveProperty('place_id', 'place_1');
+      expect(result[0]).toHaveProperty('photo_ref', null);
+      expect(result[0]).toHaveProperty('latitude', null);
+      expect(result[0]).toHaveProperty('longitude', null);
+    });
+
+    it('normalizes photo_ref and coordinates when present', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          places: [
+            {
+              id: 'place_3',
+              displayName: { text: 'Park Güell' },
+              formattedAddress: 'Carrer d\'Olot, Barcelona',
+              rating: 4.6,
+              priceLevel: 'PRICE_LEVEL_MODERATE',
+              primaryTypeDisplayName: { text: 'Park' },
+              photos: [{ name: 'places/place_3/photos/photo_abc123' }],
+              location: { latitude: 41.4145, longitude: 2.1527 },
+            },
+          ],
+        }),
+      });
+
+      const result = await searchExperiences({
+        location: 'Barcelona',
+        categories: ['parks'],
+      });
+
+      expect(result[0]).toHaveProperty('photo_ref', 'places/place_3/photos/photo_abc123');
+      expect(result[0]).toHaveProperty('latitude', 41.4145);
+      expect(result[0]).toHaveProperty('longitude', 2.1527);
     });
 
     it('sends correct headers including API key and field mask', async () => {
