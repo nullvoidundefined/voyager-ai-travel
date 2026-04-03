@@ -98,6 +98,9 @@ export async function runAgentLoop(
       citations: result.formatResponse.citations as Citation[] | undefined,
     });
   } else if (result.response) {
+    logger.warn(
+      'Agent completed without calling format_response — using raw text fallback',
+    );
     finalNodes.push({ type: 'text', content: result.response });
   }
 
