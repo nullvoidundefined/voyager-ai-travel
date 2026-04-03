@@ -19,6 +19,10 @@ export default tseslint.config([
       '**/.turbo/**',
       '**/.next/**',
       '**/vitest.config.ts',
+      '**/vitest.integration.config.ts',
+      '**/playwright.config.ts',
+      'e2e/**',
+      'scripts/**',
     ],
   },
   {
