@@ -4710,6 +4710,651 @@ export const DESTINATIONS: Destination[] = [
       { month: 'December', high_c: 14, low_c: 5, rainfall_mm: 46 },
     ],
   },
+  {
+    slug: 'auckland',
+    name: 'Auckland',
+    country: 'New Zealand',
+    categories: ['city', 'adventure', 'nature', 'family'],
+    price_level: 3,
+    best_season: 'December - February',
+    description:
+      "Auckland straddles two harbours on a narrow volcanic isthmus, giving it a relationship with water that few cities can match. Sailing is practically a birthright here — the city earned the nickname City of Sails long before it hosted two America's Cup defences — and the Hauraki Gulf beyond the downtown waterfront opens onto dozens of islands, each with its own character. Waiheke Island, a 35-minute ferry ride away, combines world-class pinot gris vineyards, olive groves, and white-sand beaches into a single effortless day trip.\n\nThe volcanic landscape is just as defining. Rangitoto Island, the youngest and largest of 53 Auckland volcanoes, rises symmetrically from the gulf and can be summited in a morning. In the city itself, One Tree Hill Domain and Mount Eden sit above leafy suburbs and offer 360-degree panoramas of the two coasts. The Waitematā Harbour Bridge arcs over the sparkling water, and a harbour-side walk links the Ferry Building to Wynyard Quarter's restaurants and markets.\n\nAuckland's food culture has been transformed by successive waves of Pacific and Asian immigration. Dominion Road is lined with some of the best Cantonese, Korean, and Malaysian restaurants in the Southern Hemisphere. The Otara Flea Market on Saturday mornings is a crash course in Pacific Island cuisine — fresh coconut cream, palusami, and hangi-cooked pork alongside second-hand treasures and live music.",
+    currency: 'New Zealand Dollar (NZD)',
+    language: 'English',
+    estimated_daily_budget: { budget: 85, mid: 180, luxury: 450 },
+    visa_summary:
+      'US passport holders: visa-free with NZeTA (NZD 23) for up to 90 days.',
+    top_experiences: [
+      {
+        name: 'Waiheke Island Day Trip',
+        category: 'adventure',
+        description:
+          'Take the 35-minute ferry to this gulf island and spend the day wine-tasting at Cable Bay or Stonyridge, swimming at Onetangi Beach, and cycling between vineyards.',
+        estimated_cost: 65,
+      },
+      {
+        name: 'Sky Tower Climb & View',
+        category: 'city',
+        description:
+          "Ascend Auckland's 328-metre Sky Tower for panoramic views of both coastlines, or strap in for the SkyWalk around the open-air ledge 192 metres up.",
+        estimated_cost: 32,
+      },
+      {
+        name: 'Rangitoto Island Summit',
+        category: 'adventure',
+        description:
+          'Ferry across the Hauraki Gulf to climb this 600-year-old volcano, exploring lava caves and pohutukawa forests on the way to summit views across the gulf.',
+        estimated_cost: 40,
+      },
+      {
+        name: 'Auckland War Memorial Museum',
+        category: 'culture',
+        description:
+          "Explore New Zealand's finest collection of Māori and Pacific taonga (treasures), natural history exhibits, and war memorials inside this neoclassical hilltop landmark.",
+        estimated_cost: 28,
+      },
+      {
+        name: 'Harbour Sailing Experience',
+        category: 'adventure',
+        description:
+          "Crew an America's Cup yacht on the Waitemata Harbour — hoist spinnakers and work as part of a racing team on the same class of boat that won the Cup.",
+        estimated_cost: 175,
+      },
+      {
+        name: 'Otara Flea Market',
+        category: 'culture',
+        description:
+          'Browse this vibrant Saturday morning market for Pacific Island food, crafts, and clothing — one of the best places in New Zealand to experience Polynesian culture.',
+        estimated_cost: 15,
+      },
+      {
+        name: 'Piha Beach & Lion Rock',
+        category: 'adventure',
+        description:
+          'Drive 45 minutes west to the wild black-sand surf beach flanked by the iconic Lion Rock monolith — a favourite of surfers and hikers alike.',
+        estimated_cost: 5,
+      },
+      {
+        name: 'Mount Eden Summit',
+        category: 'nature',
+        description:
+          "Stand at the rim of Auckland's highest natural point, a perfectly preserved volcanic crater, for sweeping 360-degree views of the city and its two harbours.",
+        estimated_cost: 0,
+      },
+      {
+        name: "Kelly Tarlton's Sea Life Aquarium",
+        category: 'family',
+        description:
+          'Walk through a submerged tunnel as sharks and rays glide overhead, and watch the colony of king and gentoo penguins in a recreated Antarctic environment.',
+        estimated_cost: 38,
+      },
+      {
+        name: 'Kauri Museum Day Trip to Northland',
+        category: 'culture',
+        description:
+          "Drive north through Warkworth to the Kauri Museum in Matakohe, learning about the ancient kauri trees that shaped New Zealand's pioneering economy.",
+        estimated_cost: 45,
+      },
+    ],
+    dining_highlights: [
+      {
+        name: 'Clooney',
+        cuisine: 'Modern New Zealand',
+        price_level: 4,
+        description:
+          "Auckland's most celebrated fine-dining room, with a tasting menu showcasing pristine local produce — Bluff oysters, Canterbury lamb, and Central Otago pinot.",
+      },
+      {
+        name: 'Depot Eatery',
+        cuisine: 'Seafood / New Zealand',
+        price_level: 2,
+        description:
+          "Al Brown's buzzy downtown diner is famous for its oyster sliders and salt-and-pepper squid — no reservations, communal tables, and perpetually packed.",
+      },
+      {
+        name: 'Dominion Road Malaysian',
+        cuisine: 'Malaysian',
+        price_level: 1,
+        description:
+          'The strip of Dominion Road restaurants offers some of the best roti canai, laksa, and char kway teow outside Kuala Lumpur at extremely affordable prices.',
+      },
+      {
+        name: 'The Oyster Inn (Waiheke)',
+        cuisine: 'Seafood / Wine Bar',
+        price_level: 3,
+        description:
+          'Perched above Oneroa on Waiheke Island, this beautifully appointed bar and restaurant pairs freshly shucked oysters with excellent local and international wines.',
+      },
+      {
+        name: 'Giapo',
+        cuisine: 'Artisan Gelato',
+        price_level: 2,
+        description:
+          'Wildly creative gelato sculptures — towering constructions of edible art — that have made this downtown parlour a global social media phenomenon.',
+      },
+    ],
+    neighborhoods: [
+      {
+        name: 'Ponsonby',
+        description:
+          "Auckland's most fashionable inner suburb, with heritage villas housing boutique clothing stores, specialty coffee roasters, and the city's densest concentration of excellent restaurants. Karangahape Road (K Road) nearby adds a grittier, arts-focused edge.",
+      },
+      {
+        name: 'Wynyard Quarter',
+        description:
+          'The redeveloped waterfront precinct buzzes with weekend markets, seafood restaurants, and the Team New Zealand base. The harbour promenade here offers some of the finest city-and-water views in the country.',
+      },
+      {
+        name: 'Devonport',
+        description:
+          'A 12-minute ferry ride across the harbour delivers you to this charming Victorian village with heritage-listed buildings, two volcanic summits (Mount Victoria and North Head), independent bookshops, and the oldest continuously operating pub in Auckland.',
+      },
+      {
+        name: 'Parnell',
+        description:
+          "Auckland's oldest suburb sits on a ridge overlooking the waterfront, with a village high street of galleries, antique shops, and the rose gardens of Parnell Park. The Auckland Domain and museum are a short walk away.",
+      },
+    ],
+    weather: [
+      { month: 'January', high_c: 23, low_c: 16, rainfall_mm: 79 },
+      { month: 'February', high_c: 24, low_c: 16, rainfall_mm: 66 },
+      { month: 'March', high_c: 22, low_c: 15, rainfall_mm: 81 },
+      { month: 'April', high_c: 19, low_c: 12, rainfall_mm: 97 },
+      { month: 'May', high_c: 16, low_c: 10, rainfall_mm: 121 },
+      { month: 'June', high_c: 14, low_c: 8, rainfall_mm: 137 },
+      { month: 'July', high_c: 13, low_c: 7, rainfall_mm: 145 },
+      { month: 'August', high_c: 14, low_c: 7, rainfall_mm: 117 },
+      { month: 'September', high_c: 15, low_c: 9, rainfall_mm: 102 },
+      { month: 'October', high_c: 17, low_c: 11, rainfall_mm: 102 },
+      { month: 'November', high_c: 19, low_c: 13, rainfall_mm: 85 },
+      { month: 'December', high_c: 22, low_c: 15, rainfall_mm: 79 },
+    ],
+  },
+  {
+    slug: 'lima',
+    name: 'Lima',
+    country: 'Peru',
+    categories: ['city', 'food-wine', 'culture', 'budget'],
+    price_level: 2,
+    best_season: 'December - April',
+    description:
+      "Lima has quietly become South America's gastronomic capital, a claim backed by the fact that four of the world's 50 best restaurants are located in a single coastal neighbourhood. The city's unique position — a desert metropolis perched on Pacific cliffs, flanked by the Andes and the sea — has produced a cuisine unlike any other: ceviche cured in tiger's milk, causa terrines layered with native potato, and nikkei dishes that fuse Japanese technique with Peruvian ingredients, born from the Japanese immigrants who arrived in the 19th century.\n\nBeyond the plate, Lima is a city of dramatic contrasts. The colonial historic centre, a UNESCO World Heritage Site, concentrates baroque churches, elaborate balconied mansions, and the catacombs beneath San Francisco Convent into a compact area around the Plaza Mayor. Miraflores and Barranco perch on cliffs above the Pacific, connected by a cliff-top park where paragliders ride thermal currents and the sea crashes against rocky coves far below.\n\nBarranco is Lima's artistic heart — its pastel-painted streets hold bohemian bars, art galleries, craft studios, and the famous Bridge of Sighs, a wooden footbridge said to grant wishes to those who cross it holding their breath. The combination of world-class food, rich history, Pacific energy, and affordable prices makes Lima one of the most underrated city-break destinations on the planet.",
+    currency: 'Peruvian Sol (PEN)',
+    language: 'Spanish',
+    estimated_daily_budget: { budget: 45, mid: 100, luxury: 280 },
+    visa_summary: 'US passport holders: visa-free for up to 183 days.',
+    top_experiences: [
+      {
+        name: 'Miraflores Cliff Walk & Larcomar',
+        category: 'city',
+        description:
+          'Stroll the Malecón cliff-top promenade above the Pacific, past paragliders launching into thermals, then descend into the Larcomar shopping centre carved into the cliffs.',
+        estimated_cost: 0,
+      },
+      {
+        name: 'Ceviche Masterclass',
+        category: 'food-wine',
+        description:
+          "Learn to prepare authentic Peruvian ceviche with a local chef — selecting fish at the market, mixing tiger's milk, and balancing chilli, citrus, and onion by instinct.",
+        estimated_cost: 65,
+      },
+      {
+        name: 'Larco Museum',
+        category: 'culture',
+        description:
+          "Explore 5,000 years of pre-Columbian art in a 18th-century viceroy's mansion in Pueblo Libre, with an extraordinary collection of gold, ceramics, and the famous erotic pottery gallery.",
+        estimated_cost: 15,
+      },
+      {
+        name: 'Historic Centre & San Francisco Catacombs',
+        category: 'culture',
+        description:
+          'Walk the UNESCO-listed Plaza Mayor, tour the ornate 16th-century Convento de San Francisco, and descend into catacombs holding the bones of 70,000 colonial-era residents.',
+        estimated_cost: 5,
+      },
+      {
+        name: 'Barranco Neighbourhood Walk',
+        category: 'culture',
+        description:
+          "Wander the bohemian clifftop district's colourful streets, cross the Bridge of Sighs, browse galleries on Bajada de Baños, and settle into a bar as sunset turns the Pacific gold.",
+        estimated_cost: 20,
+      },
+      {
+        name: 'Central Restaurant',
+        category: 'food-wine',
+        description:
+          "Experience Virgilio Martínez's legendary tasting menu, a vertical journey through Peru's altitudes from sea level to 4,000 metres, pairing ingredients by ecosystem.",
+        estimated_cost: 180,
+      },
+      {
+        name: 'Pachacamac Archaeological Site',
+        category: 'culture',
+        description:
+          'Take a taxi 30 km south to this vast pre-Inca and Inca ceremonial complex overlooking the Pacific desert coast — one of the most impressive archaeological sites in South America.',
+        estimated_cost: 8,
+      },
+      {
+        name: 'Mercado de Surquillo',
+        category: 'food-wine',
+        description:
+          "Browse stalls piled with 3,000+ varieties of native potato, rare Andean grains, tropical fruits, and fresh seafood at this working market beloved by Lima's top chefs.",
+        estimated_cost: 10,
+      },
+      {
+        name: 'Paragliding Over Miraflores',
+        category: 'adventure',
+        description:
+          'Launch from the Miraflores cliffs with an experienced tandem pilot and soar over the Pacific coast, looking back at the Lima skyline from 300 metres above the sea.',
+        estimated_cost: 70,
+      },
+      {
+        name: 'MALI (Museo de Arte de Lima)',
+        category: 'culture',
+        description:
+          "Peru's most comprehensive fine-arts museum spans 3,000 years of Peruvian art from pre-Columbian textiles to contemporary painting inside a grand Parque de la Exposición palace.",
+        estimated_cost: 7,
+      },
+    ],
+    dining_highlights: [
+      {
+        name: 'La Mar Cebichería',
+        cuisine: 'Ceviche / Peruvian Seafood',
+        price_level: 2,
+        description:
+          "Gastón Acurio's beloved Miraflores cevichería serves the city's finest leche de tigre with impeccably fresh Pacific fish — arrive early as queues form before opening.",
+      },
+      {
+        name: 'Central',
+        cuisine: 'Avant-garde Peruvian',
+        price_level: 4,
+        description:
+          "Consistently ranked among the world's top five restaurants, Virgilio Martínez's tasting menu elevates indigenous Peruvian ingredients into a breathtaking culinary journey through altitude.",
+      },
+      {
+        name: 'Maido',
+        cuisine: 'Nikkei (Japanese-Peruvian)',
+        price_level: 4,
+        description:
+          "Mitsuharu Tsumura's nikkei cuisine masterfully fuses Japanese precision with Peruvian flavour — nigiri topped with anticucho sauce, ramen with Amazonian ingredients.",
+      },
+      {
+        name: 'El Mercado',
+        cuisine: 'Peruvian Seafood',
+        price_level: 2,
+        description:
+          "Chef Rafael Osterling's casual Miraflores favourite serves pitch-perfect traditional ceviche, tiradito, and causas in a relaxed, market-inspired setting.",
+      },
+      {
+        name: 'Isolina Taberna Peruana',
+        cuisine: 'Creole Peruvian',
+        price_level: 2,
+        description:
+          'A Barranco institution celebrating comida criolla: seco de res, ají de gallina, and tacu-tacu served in abundant portions that would satisfy any Peruvian grandmother.',
+      },
+    ],
+    neighborhoods: [
+      {
+        name: 'Miraflores',
+        description:
+          "The upscale clifftop district is Lima's tourist hub — safe, walkable, and equipped with the best concentration of restaurants, hotels, and the stunning Malecón promenade above the Pacific. Most visitors base themselves here.",
+      },
+      {
+        name: 'Barranco',
+        description:
+          "Lima's bohemian soul occupies a smaller clifftop neighbourhood just south of Miraflores. Painted 19th-century houses, art galleries, craft beer bars, and the Bridge of Sighs make it the city's most atmospheric district for an evening wander.",
+      },
+      {
+        name: 'Centro Histórico',
+        description:
+          'The UNESCO-listed colonial centre clusters grand baroque churches, the Presidential Palace, ornate wooden balconies, and busy covered markets around the Plaza Mayor. Go by day and hire a guide for safety and context.',
+      },
+      {
+        name: 'San Isidro',
+        description:
+          "Lima's financial district is also an unexpectedly pleasant neighbourhood with the ancient Huaca Huallamarca pyramid rising incongruously between glass towers, and Bosque El Olivar's centuries-old olive grove providing a peaceful urban escape.",
+      },
+    ],
+    weather: [
+      { month: 'January', high_c: 26, low_c: 19, rainfall_mm: 1 },
+      { month: 'February', high_c: 27, low_c: 20, rainfall_mm: 1 },
+      { month: 'March', high_c: 26, low_c: 19, rainfall_mm: 0 },
+      { month: 'April', high_c: 24, low_c: 17, rainfall_mm: 0 },
+      { month: 'May', high_c: 20, low_c: 15, rainfall_mm: 1 },
+      { month: 'June', high_c: 18, low_c: 14, rainfall_mm: 1 },
+      { month: 'July', high_c: 17, low_c: 13, rainfall_mm: 1 },
+      { month: 'August', high_c: 16, low_c: 13, rainfall_mm: 1 },
+      { month: 'September', high_c: 17, low_c: 13, rainfall_mm: 0 },
+      { month: 'October', high_c: 19, low_c: 14, rainfall_mm: 0 },
+      { month: 'November', high_c: 21, low_c: 15, rainfall_mm: 0 },
+      { month: 'December', high_c: 24, low_c: 17, rainfall_mm: 0 },
+    ],
+  },
+  {
+    slug: 'mexico-city',
+    name: 'Mexico City',
+    country: 'Mexico',
+    categories: ['city', 'food-wine', 'culture', 'budget'],
+    price_level: 2,
+    best_season: 'March - May',
+    description:
+      "Mexico City operates at a scale and intensity that overwhelms the senses in the best possible way. At 2,240 metres altitude and spanning over 1,400 square kilometres, this megalopolis of 22 million people is simultaneously one of the world\'s great museum cities, an extraordinary culinary destination, a design and art capital, and a living testament to 700 years of history layered over an Aztec foundation. The Zócalo — one of the largest city squares on Earth — sits above the ruins of Tenochtitlan, and the Templo Mayor excavation at its edge reveals stone carvings just metres below the colonial cathedral.\n\nThe food culture here is staggering in its depth and diversity. Street tacos al pastor — pork carved from a vertical spit, pineapple charred at the tip, wrapped in a warm corn tortilla — cost a dollar and rank among the most satisfying bites in world gastronomy. At the other end of the spectrum, Pujol and Quintonil have pushed Mexican haute cuisine onto the global stage. Between those extremes lies a universe of market fondas, mezcalerías, mariscos stands, and taqueros who have perfected their single craft over decades.\n\nThe city\'s colonias each have a distinct personality. Roma and Condesa feel like a Latin-inflected Paris, with tree-lined boulevards, art deco apartment buildings, independent bookshops, and outdoor café terraces. Coyoacán preserves the cobblestone tranquility of a colonial village — it\'s the neighbourhood where Frida Kahlo was born and Diego Rivera maintained his studio. Polanco gleams with luxury boutiques and gallery-quality restaurants. Wherever you land, Mexico City rewards deep exploration.",
+    currency: 'Mexican Peso (MXN)',
+    language: 'Spanish',
+    estimated_daily_budget: { budget: 40, mid: 95, luxury: 280 },
+    visa_summary: 'US passport holders: visa-free for up to 180 days.',
+    top_experiences: [
+      {
+        name: 'Teotihuacan Pyramids',
+        category: 'culture',
+        description:
+          'Rise early to climb the Pyramid of the Sun and Pyramid of the Moon at the ancient city of Teotihuacan, 50 km north-east — arriving at dawn beats the crowds and the midday heat.',
+        estimated_cost: 30,
+      },
+      {
+        name: 'Museo Nacional de Antropología',
+        category: 'culture',
+        description:
+          "The world's finest collection of Mesoamerican archaeology, housing the Aztec Sun Stone, extraordinary Maya stele, and artefacts from every pre-Columbian civilisation in Mexico.",
+        estimated_cost: 5,
+      },
+      {
+        name: 'Frida Kahlo Museum (La Casa Azul)',
+        category: 'culture',
+        description:
+          'Tour the cobalt-blue house in Coyoacán where Frida Kahlo was born, lived, and died — her personal belongings, studio, and garden are preserved exactly as she left them.',
+        estimated_cost: 12,
+      },
+      {
+        name: 'Xochimilco Trajinera Cruise',
+        category: 'family',
+        description:
+          'Pole through the UNESCO-listed canal network on a colourfully painted trajinera boat, passing floating gardens, mariachi boats, and vendors selling corn and mezcal.',
+        estimated_cost: 35,
+      },
+      {
+        name: 'Tacos al Pastor Crawl',
+        category: 'food-wine',
+        description:
+          "Sample Mexico City's signature street taco from El Huequito and El Tizoncito in the Centro and Roma — the trompo (vertical spit) loaded with pork and pineapple is the city's edible icon.",
+        estimated_cost: 12,
+      },
+      {
+        name: 'Palacio de Bellas Artes',
+        category: 'culture',
+        description:
+          "Marvel at the art nouveau and art deco exterior before entering to see Diego Rivera's magnificent murals and catch a performance by the Ballet Folklórico de México.",
+        estimated_cost: 4,
+      },
+      {
+        name: 'Mercado de la Merced',
+        category: 'food-wine',
+        description:
+          'Plunge into one of the largest traditional markets in the Americas — sprawling across multiple covered halls packed with chiles, tropical fruits, prepared food stalls, and piñata makers.',
+        estimated_cost: 10,
+      },
+      {
+        name: 'Lucha Libre at Arena México',
+        category: 'city',
+        description:
+          'Watch masked wrestlers stage acrobatic bouts at the "Cathedral of Lucha Libre" — a theatrical spectacle combining sport, comedy, and Mexican folk tradition under one raucous roof.',
+        estimated_cost: 20,
+      },
+      {
+        name: 'Chapultepec Park & Castle',
+        category: 'culture',
+        description:
+          'Explore the vast urban park that contains two world-class museums, a zoo, and Chapultepec Castle — a 19th-century imperial palace with stunning valley views and the National History Museum inside.',
+        estimated_cost: 3,
+      },
+      {
+        name: 'Mezcal Tasting in Roma Norte',
+        category: 'food-wine',
+        description:
+          'Join a guided mezcal tasting at La Clandestina or La Botica, learning to distinguish between espadín, tobalá, and tepextate expressions from different Oaxacan producers.',
+        estimated_cost: 30,
+      },
+    ],
+    dining_highlights: [
+      {
+        name: 'Pujol',
+        cuisine: 'Avant-garde Mexican',
+        price_level: 4,
+        description:
+          "Enrique Olvera's flagship restaurant repeatedly ranks in the world's top 20, famous for its mole madre — a sauce aged for over 1,500 days and refreshed daily with new mole.",
+      },
+      {
+        name: 'El Huequito',
+        cuisine: 'Tacos al Pastor',
+        price_level: 1,
+        description:
+          'The oldest tacos al pastor restaurant in Mexico City, founded in 1959, still carving from the same trompo in a narrow stall near the Centro Histórico.',
+      },
+      {
+        name: 'Contramar',
+        cuisine: 'Mexican Seafood',
+        price_level: 2,
+        description:
+          'A Roma institution celebrated for tuna tostadas, red-and-green grilled fish, and a party atmosphere that begins at lunch and carries through to closing.',
+      },
+      {
+        name: 'Quintonil',
+        cuisine: 'Modern Mexican',
+        price_level: 4,
+        description:
+          "Jorge Vallejo's Polanco restaurant puts native Mexican ingredients front and centre, elevating heirloom vegetables, insects, and wild herbs into dishes of extraordinary finesse.",
+      },
+      {
+        name: 'Mercado Roma',
+        cuisine: 'Food Hall / Mexican',
+        price_level: 2,
+        description:
+          'A curated gourmet market in Cuauhtémoc with stalls offering everything from grasshopper tacos and craft beer to Venezuelan arepas and artisan chocolate — ideal for grazing.',
+      },
+      {
+        name: 'Los Danzantes Coyoacán',
+        cuisine: 'Oaxacan / Mezcal Bar',
+        price_level: 2,
+        description:
+          'A beautiful courtyard restaurant in Coyoacán specialising in Oaxacan cuisine — black mole, tlayudas, and memelas — alongside one of the finest mezcal selections in the city.',
+      },
+    ],
+    neighborhoods: [
+      {
+        name: 'Roma Norte & Condesa',
+        description:
+          "The adjacent art deco neighbourhoods of Roma Norte and Condesa are Mexico City's most liveable and visitor-friendly zones — shaded by enormous Indian laurel trees, filled with independent cafés, natural wine bars, taco stalls, and design-forward restaurants. Parque México at the heart of Condesa is perfect for weekend morning strolls.",
+      },
+      {
+        name: 'Centro Histórico',
+        description:
+          "The ancient colonial core built atop Aztec Tenochtitlan houses the Zócalo, the Metropolitan Cathedral, the National Palace with Rivera's monumental murals, and the excavated Templo Mayor. The best tacos al pastor and street food concentrate here, and the energy is relentless from dawn to midnight.",
+      },
+      {
+        name: 'Coyoacán',
+        description:
+          "A cobblestoned colonial village absorbed by the expanding city but fiercely protective of its identity. The Frida Kahlo Museum, Diego Rivera's studio, a handsome central plaza with weekend craft markets, and some of the city's best café con leche make it essential for any first-time visitor.",
+      },
+      {
+        name: 'Polanco',
+        description:
+          "Mexico City's most affluent neighbourhood delivers wide, tree-lined boulevards, the Museum of Anthropology on its edge, luxury boutiques along Presidente Masaryk, and the highest concentration of world-class restaurants in the city — Pujol, Quintonil, and Biko all within walking distance.",
+      },
+    ],
+    weather: [
+      { month: 'January', high_c: 21, low_c: 7, rainfall_mm: 11 },
+      { month: 'February', high_c: 23, low_c: 8, rainfall_mm: 7 },
+      { month: 'March', high_c: 26, low_c: 10, rainfall_mm: 12 },
+      { month: 'April', high_c: 27, low_c: 12, rainfall_mm: 24 },
+      { month: 'May', high_c: 27, low_c: 13, rainfall_mm: 50 },
+      { month: 'June', high_c: 25, low_c: 13, rainfall_mm: 128 },
+      { month: 'July', high_c: 23, low_c: 12, rainfall_mm: 161 },
+      { month: 'August', high_c: 23, low_c: 12, rainfall_mm: 147 },
+      { month: 'September', high_c: 22, low_c: 12, rainfall_mm: 130 },
+      { month: 'October', high_c: 22, low_c: 11, rainfall_mm: 60 },
+      { month: 'November', high_c: 22, low_c: 9, rainfall_mm: 19 },
+      { month: 'December', high_c: 21, low_c: 7, rainfall_mm: 8 },
+    ],
+  },
+  {
+    slug: 'mumbai',
+    name: 'Mumbai',
+    country: 'India',
+    categories: ['city', 'culture', 'food-wine', 'budget'],
+    price_level: 2,
+    best_season: 'November - February',
+    description:
+      "Mumbai is India distilled into a single relentless city: extremes of wealth and poverty, ancient tradition and contemporary ambition, chaos and extraordinary beauty coexisting block by block. On the southern tip of the peninsula, colonial Gothic architecture — the Chhatrapati Shivaji Maharaj Terminus, the High Court, the University Library — rises in ornate Victorian splendour along wide boulevards. The Gateway of India stands at the waterfront like a stone exclamation point, while the Taj Mahal Palace hotel behind it remains one of the most storied grand hotels in Asia.\n\nThe city's food culture is as layered as its history. Mumbai invented the dabba system — the legendary lunchbox delivery network that brings 200,000 home-cooked meals daily from the suburbs to offices in the business district. Vada pav, the fried potato dumpling sandwich sold on every street corner, is Mumbai's beating heart. Bhelpuri assembled on Chowpatty Beach, fresh pomfret curry at Mahim's seafood joints, butter chicken at a Colaba tourist dhaba — every bite tells a story about the city's migrations and mixtures.\n\nBollywood casts its own particular light on Mumbai. Film City in Goregaon has been producing India's dream factory since the 1970s, and the industry's outsized cultural presence is visible everywhere from the billboard-covered flyovers to the movie-music spilling from auto-rickshaws. Dharavi, one of Asia's most densely populated urban settlements, is simultaneously a social challenge and an extraordinary economic ecosystem of recycling, pottery, leather goods, and food production that contributes over a billion dollars annually to the city's economy.",
+    currency: 'Indian Rupee (INR)',
+    language: 'Marathi / Hindi / English',
+    estimated_daily_budget: { budget: 35, mid: 90, luxury: 300 },
+    visa_summary:
+      'US passport holders: e-Visa required (approximately $25, apply online at least 4 days before travel).',
+    top_experiences: [
+      {
+        name: 'Gateway of India & Taj Mahal Palace',
+        category: 'culture',
+        description:
+          'Stand before the 1924 basalt arch built to welcome King George V, then take high tea or cocktails at the legendary Taj Mahal Palace hotel directly behind it.',
+        estimated_cost: 5,
+      },
+      {
+        name: 'Dharavi Walking Tour',
+        category: 'culture',
+        description:
+          'Join a community-led tour through Dharavi to understand its extraordinary economy — visiting pottery kilns, leather workshops, recycling operations, and home bakeries.',
+        estimated_cost: 20,
+      },
+      {
+        name: 'Elephanta Caves',
+        category: 'culture',
+        description:
+          'Take the hour-long ferry from the Gateway of India to Elephanta Island, where 6th-century rock-cut caves contain magnificent Shiva sculptures and a massive three-faced Maheshmurti.',
+        estimated_cost: 12,
+      },
+      {
+        name: 'Chhatrapati Shivaji Maharaj Terminus',
+        category: 'culture',
+        description:
+          'Marvel at this UNESCO-listed Victorian Gothic railway station — the busiest in India — where intricate stone carvings, pointed arches, and gargoyles create an improbable cathedral of commuters.',
+        estimated_cost: 0,
+      },
+      {
+        name: 'Dabbawala System Visit',
+        category: 'culture',
+        description:
+          "Witness Mumbai's legendary lunchbox delivery network in action at the Churchgate sorting station — a 130-year-old logistics operation that delivers 200,000 meals daily with Six Sigma efficiency.",
+        estimated_cost: 0,
+      },
+      {
+        name: 'Street Food Tour of Mohammed Ali Road',
+        category: 'food-wine',
+        description:
+          'Explore the lantern-lit street food stretch near Minara Masjid — seekh kebabs, malpua, phirni, and naan khatai from vendors who have traded the same spot for generations.',
+        estimated_cost: 15,
+      },
+      {
+        name: 'Haji Ali Dargah',
+        category: 'culture',
+        description:
+          "Walk the narrow causeway at low tide to reach this striking 15th-century mosque and dargah built on a rocky islet, one of Mumbai's most spiritually resonant sites.",
+        estimated_cost: 0,
+      },
+      {
+        name: 'Bollywood Studio Tour',
+        category: 'city',
+        description:
+          "Visit Film City in Goregaon to watch live sets being dressed, dance rehearsals in progress, and the extraordinary back lots where Bollywood's fantasy worlds are constructed.",
+        estimated_cost: 25,
+      },
+      {
+        name: 'Chowpatty Beach at Sunset',
+        category: 'city',
+        description:
+          "Join Mumbai's evening ritual on Chowpatty Beach — buy bhelpuri and pav bhaji from beach vendors, watch the sun sink into the Arabian Sea, and absorb the city's after-work energy.",
+        estimated_cost: 5,
+      },
+      {
+        name: 'Chor Bazaar Antique Market',
+        category: 'culture',
+        description:
+          "Browse Thieves' Market, a labyrinthine Dongri bazaar crammed with antique furniture, vintage Bollywood posters, colonial-era bric-a-brac, and items of mysterious provenance.",
+        estimated_cost: 10,
+      },
+    ],
+    dining_highlights: [
+      {
+        name: 'Trishna',
+        cuisine: 'Coastal Indian Seafood',
+        price_level: 3,
+        description:
+          'A Colaba institution since 1981, renowned for its butter-pepper-garlic crab and Mangalorean fish curry — book ahead, as this modest-looking room is perpetually full.',
+      },
+      {
+        name: 'Britannia & Co.',
+        cuisine: 'Irani Café / Parsi',
+        price_level: 1,
+        description:
+          'A Ballard Estate time capsule operating since 1923, serving legendary berry pulao with mutton and sali boti in a dining room that feels untouched since Independence.',
+      },
+      {
+        name: 'Bastian Worli',
+        cuisine: 'Modern Seafood',
+        price_level: 3,
+        description:
+          "The city's most fashionable seafood restaurant combines Indian coastal flavours with global technique — the lobster butter masala and fish tacos draw a stylish crowd nightly.",
+      },
+      {
+        name: 'Vada Pav at Ashok Vada Pav',
+        cuisine: 'Mumbai Street Food',
+        price_level: 1,
+        description:
+          'The definitive vada pav — spiced potato fritter in a pillowy bun with dry coconut chutney — from the stall at Dadar that many Mumbaikars consider the best in the city.',
+      },
+      {
+        name: 'Khyber',
+        cuisine: 'North Indian / Mughlai',
+        price_level: 2,
+        description:
+          'A grand Kala Ghoda institution with hunting-lodge décor and a menu of exceptional dal makhani, raan (whole roasted leg of lamb), and roomali rotis made to order.',
+      },
+    ],
+    neighborhoods: [
+      {
+        name: 'Colaba',
+        description:
+          "The southernmost tip of the peninsula is the historic heart of British Bombay and the first stop for most visitors. The Gateway of India, Taj Mahal Palace, the Colaba Causeway market, and a dense concentration of cafés and bars give it a tourist energy — but the side streets reveal old bungalows, hidden galleries, and some of the city's best seafood restaurants.",
+      },
+      {
+        name: 'Bandra West',
+        description:
+          "Mumbai's hippest neighbourhood sits on the western shore above Bandra-Worli Sea Link. Portuguese-era chapels, pavement book stalls, craft coffee shops, independent boutiques, and a thriving bar scene on Chapel Road and Pali Hill make it the city's most pleasant area for daytime exploration.",
+      },
+      {
+        name: 'Fort & Kala Ghoda',
+        description:
+          "The financial and cultural core of South Mumbai clusters galleries, heritage buildings, the iconic Chhatrapati Shivaji Maharaj Vastu Sangrahalaya museum, and excellent restaurants within a walkable Victorian streetscape. The Kala Ghoda Arts Festival held each February is India's largest multi-arts festival.",
+      },
+      {
+        name: 'Juhu',
+        description:
+          "The northern beach suburb is synonymous with Bollywood glamour — industry stars maintain bungalows here, and Juhu Beach's famous bhelpuri and pani puri stalls draw everyone from celebrities to schoolchildren at sunset. The ISKCON temple on Hare Krishna Hill is one of the most visited in the city.",
+      },
+    ],
+    weather: [
+      { month: 'January', high_c: 31, low_c: 19, rainfall_mm: 3 },
+      { month: 'February', high_c: 32, low_c: 20, rainfall_mm: 2 },
+      { month: 'March', high_c: 34, low_c: 24, rainfall_mm: 3 },
+      { month: 'April', high_c: 35, low_c: 26, rainfall_mm: 1 },
+      { month: 'May', high_c: 34, low_c: 28, rainfall_mm: 18 },
+      { month: 'June', high_c: 31, low_c: 27, rainfall_mm: 537 },
+      { month: 'July', high_c: 29, low_c: 26, rainfall_mm: 717 },
+      { month: 'August', high_c: 29, low_c: 26, rainfall_mm: 526 },
+      { month: 'September', high_c: 30, low_c: 26, rainfall_mm: 298 },
+      { month: 'October', high_c: 33, low_c: 25, rainfall_mm: 64 },
+      { month: 'November', high_c: 33, low_c: 22, rainfall_mm: 13 },
+      { month: 'December', high_c: 32, low_c: 20, rainfall_mm: 4 },
+    ],
+  },
 ];
 
 export function getDestinationBySlug(slug: string): Destination | undefined {
