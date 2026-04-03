@@ -21,18 +21,18 @@
   font-size: 26px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--accent);
+  color: var(--cta);
   transition: color var(--transition-fast);
 
   &:hover {
-    color: var(--accent-hover);
+    color: var(--cta-hover);
   }
 }
 
 .logoIcon {
   margin-left: 6px;
   vertical-align: -2px;
-  color: var(--accent);
+  color: var(--cta);
   transition: transform var(--transition-fast);
 
   .logo:hover & {

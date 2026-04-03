@@ -44,15 +44,14 @@ export function Header() {
     <header className={styles.header}>
       <div className={styles.inner}>
         <Link href='/' className={styles.logo}>
+          {APP_NAME}
           <svg
             className={styles.logoIcon}
-            width='28'
-            height='28'
+            width='24'
+            height='24'
             viewBox='0 0 28 28'
             aria-hidden='true'
-            style={{ color: 'var(--cta)' }}
           >
-            {/* Outer circle */}
             <circle
               cx='14'
               cy='14'
@@ -61,7 +60,6 @@ export function Header() {
               stroke='currentColor'
               strokeWidth='1.5'
             />
-            {/* N/S/E/W cardinal ticks */}
             <line
               x1='14'
               y1='2'
@@ -98,18 +96,14 @@ export function Header() {
               strokeWidth='1.5'
               strokeLinecap='round'
             />
-            {/* North needle (solid coral) */}
             <polygon points='14,5 16,14 14,13 12,14' fill='currentColor' />
-            {/* South needle (lighter) */}
             <polygon
               points='14,23 16,14 14,15 12,14'
               fill='currentColor'
               opacity='0.35'
             />
-            {/* Center dot */}
             <circle cx='14' cy='14' r='1.5' fill='currentColor' />
           </svg>
-          {APP_NAME}
         </Link>
         <nav className={styles.nav} aria-label='Main navigation'>
           {navLinks.map((link) => (
