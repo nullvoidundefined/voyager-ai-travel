@@ -30,6 +30,9 @@ In `chat.ts`, `tripContext.selected_car_rentals` is always `[]`. The `getTripWit
 ### B8: Duplicate city lookup tables
 `enrichment.ts` has `CITY_COORDS` and `destination.tool.ts` has `CITY_DATABASE` — same cities maintained in two places. Should consolidate into one shared dataset.
 
+### B9: Mobile Safari login fails with "Authentication required"
+Submitting valid credentials on mobile Safari returns "Authentication required." Works on desktop browsers and mobile Chrome. Safari's stricter third-party cookie policies (ITP) likely block the cross-origin session cookie between Vercel frontend and Railway backend.
+
 ---
 
 ## Resolved
