@@ -34,6 +34,7 @@ export async function runAgentLoop(
   toolContext?: ToolContext,
   enrichmentNodes?: ChatNode[],
   flowPosition?: FlowPosition,
+  promptOptions?: { hasCriticalAdvisory?: boolean },
 ): Promise<AgentResult> {
   // Emit enrichment nodes first so the frontend can render them immediately
   if (enrichmentNodes) {
@@ -48,6 +49,7 @@ export async function runAgentLoop(
       buildSystemPrompt(
         ctx as TripContext | undefined,
         pos as FlowPosition | undefined,
+        promptOptions,
       ),
     toolExecutor: (toolName, input, meta) =>
       executeTool(toolName, input, meta as ToolContext | undefined),

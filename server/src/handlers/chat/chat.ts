@@ -82,6 +82,8 @@ export async function chat(req: Request, res: Response) {
           activities: userPrefs.activities,
           travel_party: userPrefs.travel_party,
           budget_comfort: userPrefs.budget_comfort,
+          lgbtq_safety: userPrefs.lgbtq_safety ?? false,
+          gender: userPrefs.gender ?? null,
         }
       : undefined,
     selected_flights: (trip.flights ?? []).map((f) => ({
@@ -153,14 +155,20 @@ export async function chat(req: Request, res: Response) {
   let enrichmentNodes: ChatNode[] = [];
   if (trip.destination && isFirstMessage) {
     try {
-      enrichmentNodes = await getEnrichmentNodes(
-        trip.destination,
-        trip.origin ?? undefined,
-      );
+      enrichmentNodes =
+        (await getEnrichmentNodes(
+          trip.destination,
+          trip.origin ?? undefined,
+        )) ?? [];
     } catch (err) {
       logger.warn({ err, tripId }, 'Failed to fetch enrichment nodes');
     }
   }
+
+  const hasCriticalAdvisory = enrichmentNodes.some(
+    (n) =>
+      n.type === 'advisory' && 'severity' in n && n.severity === 'critical',
+  );
 
   // Typed SSE event emitter — flush after every write so each token is sent
   // immediately rather than buffered by Node.js or a reverse proxy.
@@ -211,6 +219,7 @@ export async function chat(req: Request, res: Response) {
       { tripId, userId },
       enrichmentNodes,
       flowPosition,
+      { hasCriticalAdvisory },
     );
 
     // After the agent loop (which may have called update_trip), reload the trip
@@ -267,7 +276,11 @@ export async function chat(req: Request, res: Response) {
             field_type: 'date',
             required: true,
           });
-        if (!updatedTrip.return_date)
+        // Only require return_date for round trips
+        const isOneWay =
+          (updatedTrip as unknown as Record<string, unknown>).trip_type ===
+          'one_way';
+        if (!isOneWay && !updatedTrip.return_date)
           missingFields.push({
             name: 'return_date',
             label: 'Return date',
@@ -277,9 +290,9 @@ export async function chat(req: Request, res: Response) {
         if (!updatedTrip.budget_total)
           missingFields.push({
             name: 'budget',
-            label: 'Total budget (USD)',
+            label: 'Total budget in USD (optional)',
             field_type: 'number',
-            required: true,
+            required: false,
           });
         if (!updatedTrip.travelers || updatedTrip.travelers < 1)
           missingFields.push({
