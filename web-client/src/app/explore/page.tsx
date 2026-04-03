@@ -30,6 +30,7 @@ function formatCategory(value: string): string {
 export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [heroIndex, setHeroIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -38,10 +39,13 @@ export default function ExplorePage() {
     return () => clearInterval(interval);
   }, []);
 
-  const filtered: Destination[] =
-    activeCategory === 'all'
-      ? DESTINATIONS
-      : DESTINATIONS.filter((d) => d.categories.includes(activeCategory));
+  const filtered: Destination[] = DESTINATIONS.filter((d) => {
+    const matchesCategory =
+      activeCategory === 'all' || d.categories.includes(activeCategory);
+    const matchesSearch =
+      !searchQuery || d.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className={styles.page}>
@@ -75,6 +79,14 @@ export default function ExplorePage() {
         className={styles.filtersSection}
         aria-label='Filter destinations by category'
       >
+        <input
+          type='text'
+          className={styles.searchInput}
+          placeholder='Search destinations...'
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label='Search destinations'
+        />
         <div className={styles.filters}>
           {CATEGORY_FILTERS.map((filter) => (
             <button

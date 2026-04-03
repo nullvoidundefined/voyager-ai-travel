@@ -3,8 +3,8 @@ import { formatCurrency } from '@/lib/format';
 import styles from './InlineBudgetBar.module.scss';
 
 interface InlineBudgetBarProps {
-  allocated: number;
-  total: number;
+  allocated: number | null | undefined;
+  total: number | null | undefined;
   currency: string;
 }
 
@@ -13,9 +13,12 @@ export function InlineBudgetBar({
   total,
   currency,
 }: InlineBudgetBarProps) {
-  const pct = Math.min((allocated / total) * 100, 100);
-  const overBudget = allocated > total;
-  const remaining = total - allocated;
+  const safeAllocated = allocated ?? 0;
+  const safeTotal = total ?? 0;
+  const pct =
+    safeTotal > 0 ? Math.min((safeAllocated / safeTotal) * 100, 100) : 0;
+  const overBudget = safeAllocated > safeTotal;
+  const remaining = safeTotal - safeAllocated;
 
   return (
     <div className={styles.wrapper}>
@@ -27,7 +30,7 @@ export function InlineBudgetBar({
       </div>
       <div className={styles.labels}>
         <span className={styles.allocated}>
-          {formatCurrency(allocated, currency)} allocated
+          {formatCurrency(safeAllocated, currency)} allocated
         </span>
         <span
           className={`${styles.remaining} ${overBudget ? styles.over : ''}`}

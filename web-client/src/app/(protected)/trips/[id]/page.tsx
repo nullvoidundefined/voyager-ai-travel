@@ -194,50 +194,15 @@ export default function TripDetailPage() {
         </div>
       </div>
 
-      {(flightTotal > 0 ||
-        hotelTotal > 0 ||
-        carRentalTotal > 0 ||
-        experienceTotal > 0) && (
-        <div className={styles.breakdown}>
-          <h2>Cost Breakdown</h2>
-          <div className={styles.costs}>
-            {flightTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Flights</span>
-                <span>{formatCurrency(flightTotal, trip.budget_currency)}</span>
-              </div>
-            )}
-            {hotelTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Hotels</span>
-                <span>{formatCurrency(hotelTotal, trip.budget_currency)}</span>
-              </div>
-            )}
-            {carRentalTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Car Rentals</span>
-                <span>
-                  {formatCurrency(carRentalTotal, trip.budget_currency)}
-                </span>
-              </div>
-            )}
-            {experienceTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Experiences</span>
-                <span>
-                  {formatCurrency(experienceTotal, trip.budget_currency)}
-                </span>
-              </div>
-            )}
-            {remaining != null && (
-              <div className={`${styles.costRow} ${styles.remaining}`}>
-                <span>Remaining</span>
-                <span>{formatCurrency(remaining, trip.budget_currency)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <div className={styles.chatSection}>
+        <h2>Chat with {APP_NAME}</h2>
+        <ChatBox
+          tripId={trip.id}
+          hasFlights={hasFlights}
+          tripStatus={trip.status}
+          onBookTrip={() => setShowConfirmation(true)}
+        />
+      </div>
 
       {trip.flights.length > 0 && (
         <div className={styles.itinerary}>
@@ -336,15 +301,50 @@ export default function TripDetailPage() {
           </div>
         )}
 
-      <div className={styles.chatSection}>
-        <h2>Chat with {APP_NAME}</h2>
-        <ChatBox
-          tripId={trip.id}
-          hasFlights={hasFlights}
-          tripStatus={trip.status}
-          onBookTrip={() => setShowConfirmation(true)}
-        />
-      </div>
+      {(flightTotal > 0 ||
+        hotelTotal > 0 ||
+        carRentalTotal > 0 ||
+        experienceTotal > 0) && (
+        <div className={styles.breakdown}>
+          <h2>Cost Breakdown</h2>
+          <div className={styles.costs}>
+            {flightTotal > 0 && (
+              <div className={styles.costRow}>
+                <span>Flights</span>
+                <span>{formatCurrency(flightTotal, trip.budget_currency)}</span>
+              </div>
+            )}
+            {hotelTotal > 0 && (
+              <div className={styles.costRow}>
+                <span>Hotels</span>
+                <span>{formatCurrency(hotelTotal, trip.budget_currency)}</span>
+              </div>
+            )}
+            {carRentalTotal > 0 && (
+              <div className={styles.costRow}>
+                <span>Car Rentals</span>
+                <span>
+                  {formatCurrency(carRentalTotal, trip.budget_currency)}
+                </span>
+              </div>
+            )}
+            {experienceTotal > 0 && (
+              <div className={styles.costRow}>
+                <span>Experiences</span>
+                <span>
+                  {formatCurrency(experienceTotal, trip.budget_currency)}
+                </span>
+              </div>
+            )}
+            {remaining != null && (
+              <div className={`${styles.costRow} ${styles.remaining}`}>
+                <span>Remaining</span>
+                <span>{formatCurrency(remaining, trip.budget_currency)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {showConfirmation && (
         <BookingConfirmation

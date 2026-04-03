@@ -87,6 +87,34 @@
   padding: 32px 0 8px;
 }
 
+.searchInput {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 24px;
+  display: block;
+  padding: 12px 20px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &::placeholder {
+    color: var(--foreground-muted);
+    opacity: 0.6;
+  }
+
+  &:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.1);
+  }
+}
+
 .filters {
   display: flex;
   flex-wrap: wrap;

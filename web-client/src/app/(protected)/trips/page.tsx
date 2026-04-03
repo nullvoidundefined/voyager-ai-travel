@@ -95,7 +95,11 @@ export default function TripsPage() {
           {trips.map((trip) => {
             const { url } = getDestinationImage(trip.destination);
             return (
-              <div key={trip.id} className={styles.tripCard}>
+              <Link
+                key={trip.id}
+                href={`/trips/${trip.id}`}
+                className={styles.tripCard}
+              >
                 {url ? (
                   <div className={styles.cardImage}>
                     <Image
@@ -109,7 +113,10 @@ export default function TripsPage() {
                       type='button'
                       className={styles.deleteBtn}
                       aria-label='Delete trip'
-                      onClick={() => deleteMutation.mutate(trip.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteMutation.mutate(trip.id);
+                      }}
                     >
                       &times;
                     </button>
@@ -121,13 +128,16 @@ export default function TripsPage() {
                       type='button'
                       className={styles.deleteBtn}
                       aria-label='Delete trip'
-                      onClick={() => deleteMutation.mutate(trip.id)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteMutation.mutate(trip.id);
+                      }}
                     >
                       &times;
                     </button>
                   </div>
                 )}
-                <Link href={`/trips/${trip.id}`} className={styles.tripLink}>
+                <div className={styles.tripLink}>
                   <div className={styles.tripInfo}>
                     <h2>{trip.destination}</h2>
                     <p className={styles.dates}>
@@ -142,8 +152,8 @@ export default function TripsPage() {
                       {statusLabel(trip.status)}
                     </span>
                   </div>
-                </Link>
-              </div>
+                </div>
+              </Link>
             );
           })}
         </div>

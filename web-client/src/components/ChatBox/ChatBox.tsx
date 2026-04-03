@@ -50,8 +50,28 @@ export function ChatBox({
     streamingText,
   } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
 
+  // Suppress booking actions when the most recent assistant message contains
+  // selectable tile nodes — the SelectableCardGroup "Confirm Selection" button
+  // serves as the confirmation mechanism in that case.
+  const lastAssistantMessage = serverMessages
+    ?.slice()
+    .reverse()
+    .find((m) => m.role === 'assistant');
+  const hasActiveTileSelection =
+    lastAssistantMessage?.nodes.some(
+      (n) =>
+        (n.type === 'flight_tiles' ||
+          n.type === 'hotel_tiles' ||
+          n.type === 'car_rental_tiles' ||
+          n.type === 'experience_tiles') &&
+        n.selectable,
+    ) ?? false;
+
   const showBookingActions =
-    hasFlights && tripStatus === 'planning' && !isSending;
+    hasFlights &&
+    tripStatus === 'planning' &&
+    !isSending &&
+    !hasActiveTileSelection;
   const isBooked = tripStatus === 'saved';
 
   const handleSend = useCallback(
