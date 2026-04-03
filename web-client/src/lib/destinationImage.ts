@@ -31,6 +31,9 @@ const CITY_IMAGES: Record<string, string> = {
   mumbai: '1531589767116-64a48779e523',
   auckland: '1534551039924-409372dd29c3',
   havana: '1509239767605-0703ef611f08',
+  cusco: '1544206709-5cdc63e3ed72',
+  maldives: '1637576308588-6647bf80944d',
+  naples: '1567202170721-bd01fbdea30a',
 };
 
 export function getDestinationImageUrl(
