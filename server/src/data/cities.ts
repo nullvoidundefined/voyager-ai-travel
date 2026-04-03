@@ -7,6 +7,7 @@ export interface CityData {
   timezone: string;
   currency: string;
   best_time_to_visit?: string;
+  unsplash_id?: string;
 }
 
 export const CITY_DATABASE: Record<string, CityData> = {
@@ -20,6 +21,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'America/New_York',
     currency: 'USD',
     best_time_to_visit: 'April to June, September to November',
+    unsplash_id: '1534430480872-3498386e7856',
   },
   'los angeles': {
     lat: 34.0522,
@@ -153,6 +155,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'America/Mexico_City',
     currency: 'MXN',
     best_time_to_visit: 'March to May',
+    unsplash_id: '1518659526054-e25d4cec600a',
   },
   cancun: {
     lat: 21.1619,
@@ -209,6 +212,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'HAV',
     timezone: 'America/Havana',
     currency: 'CUP',
+    unsplash_id: '1500759285222-a95626b934cb',
   },
   kingston: {
     lat: 17.997,
@@ -291,6 +295,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'LIM',
     timezone: 'America/Lima',
     currency: 'PEN',
+    unsplash_id: '1531968455002-3498ae6027a1',
   },
   'sao paulo': {
     lat: -23.5505,
@@ -309,6 +314,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'GIG',
     timezone: 'America/Sao_Paulo',
     currency: 'BRL',
+    unsplash_id: '1483729558449-99ef09a8c325',
   },
   brasilia: {
     lat: -15.7975,
@@ -393,6 +399,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/London',
     currency: 'GBP',
     best_time_to_visit: 'June to August',
+    unsplash_id: '1513635269975-59663e0ac1ad',
   },
   edinburgh: {
     lat: 55.9533,
@@ -412,6 +419,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Paris',
     currency: 'EUR',
     best_time_to_visit: 'April to June, September to October',
+    unsplash_id: '1502602898657-3e91760cbb34',
   },
   nice: {
     lat: 43.7102,
@@ -431,6 +439,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Madrid',
     currency: 'EUR',
     best_time_to_visit: 'May to June, September to October',
+    unsplash_id: '1583422409516-2895a77efded',
   },
   madrid: {
     lat: 40.4168,
@@ -460,6 +469,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Rome',
     currency: 'EUR',
     best_time_to_visit: 'April to June, September to October',
+    unsplash_id: '1552832230-c0197dd311b5',
   },
   milan: {
     lat: 45.4654,
@@ -525,6 +535,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Amsterdam',
     currency: 'EUR',
     best_time_to_visit: 'April to May, September to November',
+    unsplash_id: '1534351590666-13e3e96b5017',
   },
   brussels: {
     lat: 50.8503,
@@ -561,6 +572,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'VIE',
     timezone: 'Europe/Vienna',
     currency: 'EUR',
+    unsplash_id: '1516550893923-42d28e5677af',
   },
   lisbon: {
     lat: 38.7223,
@@ -571,6 +583,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Lisbon',
     currency: 'EUR',
     best_time_to_visit: 'March to May, September to October',
+    unsplash_id: '1555881400-74d7acaacd8b',
   },
   porto: {
     lat: 41.1579,
@@ -625,6 +638,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'KEF',
     timezone: 'Atlantic/Reykjavik',
     currency: 'ISK',
+    unsplash_id: '1504829857797-ddff29c27927',
   },
   dublin: {
     lat: 53.3498,
@@ -645,6 +659,17 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Athens',
     currency: 'EUR',
   },
+  santorini: {
+    lat: 36.3932,
+    lon: 25.4615,
+    country_code: 'GR',
+    country_name: 'Greece',
+    iata_code: 'JTR',
+    timezone: 'Europe/Athens',
+    currency: 'EUR',
+    best_time_to_visit: 'April to October',
+    unsplash_id: '1570077188670-e3a8d69ac5ff',
+  },
   prague: {
     lat: 50.0755,
     lon: 14.4378,
@@ -653,6 +678,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'PRG',
     timezone: 'Europe/Prague',
     currency: 'CZK',
+    unsplash_id: '1519677100203-a0e668c92439',
   },
   budapest: {
     lat: 47.4979,
@@ -662,6 +688,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'BUD',
     timezone: 'Europe/Budapest',
     currency: 'HUF',
+    unsplash_id: '1549923746-c502d488b3ea',
   },
   warsaw: {
     lat: 52.2297,
@@ -716,6 +743,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'DBV',
     timezone: 'Europe/Zagreb',
     currency: 'EUR',
+    unsplash_id: '1555990538-1e15a10e4c61',
   },
   belgrade: {
     lat: 44.7866,
@@ -781,6 +809,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Europe/Istanbul',
     currency: 'TRY',
     best_time_to_visit: 'April to May, September to November',
+    unsplash_id: '1524231757912-21f4fe3a7200',
   },
   ankara: {
     lat: 39.9334,
@@ -800,6 +829,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Dubai',
     currency: 'AED',
     best_time_to_visit: 'November to March',
+    unsplash_id: '1512453913961-1491d39ae3fc',
   },
   'abu dhabi': {
     lat: 24.4539,
@@ -954,6 +984,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'BOM',
     timezone: 'Asia/Kolkata',
     currency: 'INR',
+    unsplash_id: '1529253355930-ddbe423a2ac7',
   },
   delhi: {
     lat: 28.7041,
@@ -1092,6 +1123,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Tokyo',
     currency: 'JPY',
     best_time_to_visit: 'March to May, September to November',
+    unsplash_id: '1540959733332-eab848b19436',
   },
   osaka: {
     lat: 34.6937,
@@ -1110,6 +1142,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'ITM',
     timezone: 'Asia/Tokyo',
     currency: 'JPY',
+    unsplash_id: '1493976040374-85c8e12f0c0e',
   },
   'hong kong': {
     lat: 22.3193,
@@ -1148,6 +1181,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Seoul',
     currency: 'KRW',
     best_time_to_visit: 'April to June, September to November',
+    unsplash_id: '1517154421773-0529f29ea451',
   },
   busan: {
     lat: 35.1796,
@@ -1239,6 +1273,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Bangkok',
     currency: 'THB',
     best_time_to_visit: 'November to February',
+    unsplash_id: '1508009603885-50cf7c579365',
   },
   'chiang mai': {
     lat: 18.7061,
@@ -1330,6 +1365,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Asia/Singapore',
     currency: 'SGD',
     best_time_to_visit: 'February to April',
+    unsplash_id: '1525625293386-3f8f99389edd',
   },
   jakarta: {
     lat: -6.2088,
@@ -1348,6 +1384,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'DPS',
     timezone: 'Asia/Makassar',
     currency: 'IDR',
+    unsplash_id: '1537996194471-e657df975ab4',
   },
   ubud: {
     lat: -8.5069,
@@ -1386,6 +1423,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'Australia/Sydney',
     currency: 'AUD',
     best_time_to_visit: 'September to November, March to May',
+    unsplash_id: '1506973035872-a4ec16b8e8d9',
   },
   melbourne: {
     lat: -37.8136,
@@ -1440,6 +1478,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'AKL',
     timezone: 'Pacific/Auckland',
     currency: 'NZD',
+    unsplash_id: '1507699580474-99cf7c0cf42d',
   },
   queenstown: {
     lat: -45.0312,
@@ -1495,6 +1534,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'RAK',
     timezone: 'Africa/Casablanca',
     currency: 'MAD',
+    unsplash_id: '1489749798305-4fea3ae63d43',
   },
   casablanca: {
     lat: 33.5731,
@@ -1541,6 +1581,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     iata_code: 'CPT',
     timezone: 'Africa/Johannesburg',
     currency: 'ZAR',
+    unsplash_id: '1580060839134-75a5edca2e99',
   },
   johannesburg: {
     lat: -26.2041,
