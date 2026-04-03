@@ -5,11 +5,13 @@ import { loginSchema, registerSchema } from 'app/schemas/auth.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
+// Cookies are same-origin in production (Vercel rewrites proxy API requests)
+// so sameSite='lax' works everywhere, including Safari with ITP.
 const SESSION_COOKIE_OPTIONS = {
   httpOnly: true,
   maxAge: SESSION_TTL_MS,
   path: '/',
-  sameSite: (isProduction() ? 'none' : 'lax') as 'none' | 'lax',
+  sameSite: 'lax' as const,
   secure: isProduction(),
 };
 

@@ -1,5 +1,9 @@
+// In production, use the Vercel rewrite proxy (/api/) so cookies are same-origin
+// and not blocked by Safari ITP. In dev, hit the Express server directly.
 export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+  process.env.NODE_ENV === 'production'
+    ? '/api'
+    : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001');
 
 export class ApiError extends Error {
   constructor(

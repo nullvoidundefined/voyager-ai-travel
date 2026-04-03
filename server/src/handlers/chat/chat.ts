@@ -117,7 +117,16 @@ export async function chat(req: Request, res: Response) {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     Connection: 'keep-alive',
+    // Instruct Railway's reverse proxy not to buffer this response
+    'X-Accel-Buffering': 'no',
   });
+  // Flush the response headers immediately so the browser can start reading
+  // the stream without waiting for the first data chunk.
+  res.flushHeaders();
+  // The global request timeout (30 s) would kill the SSE stream mid-response
+  // for any agent loop that takes longer than 30 seconds. Disable it for this
+  // long-running SSE endpoint by resetting the socket timeout to 0 (unlimited).
+  res.setTimeout(0);
 
   // Persist user message with typed nodes
   const userNodes: ChatNode[] = [{ type: 'text', content: message }];
@@ -143,9 +152,13 @@ export async function chat(req: Request, res: Response) {
     }
   }
 
-  // Typed SSE event emitter
+  // Typed SSE event emitter — flush after every write so each token is sent
+  // immediately rather than buffered by Node.js or a reverse proxy.
   const onEvent = (event: SSEEvent) => {
     res.write(`event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
+    // res.flush() is available when compression middleware is active; calling it
+    // defensively here ensures chunks are pushed through any proxy buffering.
+    (res as unknown as { flush?: () => void }).flush?.();
   };
 
   const bookingState = normalizeBookingState(
@@ -271,11 +284,13 @@ export async function chat(req: Request, res: Response) {
     res.write(
       `event: done\ndata: ${JSON.stringify({ type: 'done', message: chatMessage })}\n\n`,
     );
+    (res as unknown as { flush?: () => void }).flush?.();
   } catch (err) {
     logger.error({ err, tripId }, 'Agent loop failed');
     res.write(
       `event: error\ndata: ${JSON.stringify({ type: 'error', error: 'Agent encountered an error' })}\n\n`,
     );
+    (res as unknown as { flush?: () => void }).flush?.();
   }
 
   res.end();

@@ -142,13 +142,18 @@ export function useSSEChat({ tripId, onComplete }: UseSSEChatOptions): UseSSECha
           // ignore cancel errors
         }
         abortControllerRef.current = null;
+        // Invalidate queries first so the refetched data is ready before we
+        // clear the streaming state. This prevents a blank-gap flash where the
+        // streaming message disappears but the persisted message has not yet
+        // loaded — especially noticeable on fast streams where tool_progress
+        // indicators would flash and vanish before the user could read them.
+        await queryClient.invalidateQueries({ queryKey: ['messages', tripId] });
+        queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
         setIsSending(false);
         setToolProgress([]);
         setStreamingNodes([]);
         setStreamingText('');
         onComplete?.();
-        await queryClient.invalidateQueries({ queryKey: ['messages', tripId] });
-        queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
