@@ -1,156 +1,30 @@
-// --- Minimal interface to avoid circular dependency with agent.service.ts ---
-
-interface AgentResultForAdvance {
-  tool_calls: Array<{ tool_name: string }>;
-  formatResponse?: { skip_category?: boolean } | null;
-}
-
-// --- State types ---
+// --- Types ---
 
 export type CategoryName = 'flights' | 'hotels' | 'car_rental' | 'experiences';
 
-export type CategoryStatus =
-  | 'idle'
-  | 'asking'
-  | 'presented'
-  | 'done'
-  | 'skipped';
+export type TrackerStatus = 'pending' | 'searching' | 'selected' | 'skipped';
 
-export interface CategoryState {
-  status: CategoryStatus;
-  meta?: Record<string, unknown>;
-}
-
-export interface BookingState {
+export interface CompletionTracker {
   version: number;
-  flights: CategoryState;
-  hotels: CategoryState;
-  car_rental: CategoryState;
-  experiences: CategoryState;
+  transport: 'pending' | 'flying' | 'driving';
+  flights: TrackerStatus;
+  hotels: TrackerStatus;
+  car_rental: TrackerStatus;
+  experiences: TrackerStatus;
+  turns_since_last_progress: number;
 }
 
-export const CURRENT_BOOKING_STATE_VERSION = 1;
+export const CURRENT_TRACKER_VERSION = 2;
 
-export const DEFAULT_BOOKING_STATE: BookingState = {
-  version: 1,
-  flights: { status: 'idle' },
-  hotels: { status: 'idle' },
-  car_rental: { status: 'idle' },
-  experiences: { status: 'idle' },
+export const DEFAULT_COMPLETION_TRACKER: CompletionTracker = {
+  version: CURRENT_TRACKER_VERSION,
+  transport: 'pending',
+  flights: 'pending',
+  hotels: 'pending',
+  car_rental: 'pending',
+  experiences: 'pending',
+  turns_since_last_progress: 0,
 };
-
-// --- Versioned normalization ---
-
-export function normalizeBookingState(raw: unknown): BookingState {
-  if (raw === null || raw === undefined) {
-    return { ...DEFAULT_BOOKING_STATE };
-  }
-
-  const obj = raw as Record<string, unknown>;
-
-  // No version field → treat as v0 (pre-versioning), fill missing categories
-  if (!('version' in obj) || obj.version === undefined) {
-    return {
-      version: CURRENT_BOOKING_STATE_VERSION,
-      flights: isValidCategoryState(obj.flights)
-        ? (obj.flights as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.flights },
-      hotels: isValidCategoryState(obj.hotels)
-        ? (obj.hotels as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.hotels },
-      car_rental: isValidCategoryState(obj.car_rental)
-        ? (obj.car_rental as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.car_rental },
-      experiences: isValidCategoryState(obj.experiences)
-        ? (obj.experiences as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.experiences },
-    };
-  }
-
-  // Current version — return as-is with missing categories filled
-  const version = obj.version as number;
-  if (version >= CURRENT_BOOKING_STATE_VERSION) {
-    return {
-      version: CURRENT_BOOKING_STATE_VERSION,
-      flights: isValidCategoryState(obj.flights)
-        ? (obj.flights as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.flights },
-      hotels: isValidCategoryState(obj.hotels)
-        ? (obj.hotels as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.hotels },
-      car_rental: isValidCategoryState(obj.car_rental)
-        ? (obj.car_rental as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.car_rental },
-      experiences: isValidCategoryState(obj.experiences)
-        ? (obj.experiences as CategoryState)
-        : { ...DEFAULT_BOOKING_STATE.experiences },
-    };
-  }
-
-  // Future: run migration functions v0→v1, v1→v2, etc.
-  // For now there's only v1, so any version < 1 gets default-filled
-  return {
-    version: CURRENT_BOOKING_STATE_VERSION,
-    flights: isValidCategoryState(obj.flights)
-      ? (obj.flights as CategoryState)
-      : { ...DEFAULT_BOOKING_STATE.flights },
-    hotels: isValidCategoryState(obj.hotels)
-      ? (obj.hotels as CategoryState)
-      : { ...DEFAULT_BOOKING_STATE.hotels },
-    car_rental: isValidCategoryState(obj.car_rental)
-      ? (obj.car_rental as CategoryState)
-      : { ...DEFAULT_BOOKING_STATE.car_rental },
-    experiences: isValidCategoryState(obj.experiences)
-      ? (obj.experiences as CategoryState)
-      : { ...DEFAULT_BOOKING_STATE.experiences },
-  };
-}
-
-function isValidCategoryState(val: unknown): val is CategoryState {
-  if (typeof val !== 'object' || val === null) return false;
-  const obj = val as Record<string, unknown>;
-  const validStatuses: CategoryStatus[] = [
-    'idle',
-    'asking',
-    'presented',
-    'done',
-    'skipped',
-  ];
-  return (
-    typeof obj.status === 'string' &&
-    validStatuses.includes(obj.status as CategoryStatus)
-  );
-}
-
-// --- Flow position ---
-
-export type FlowPosition =
-  | { phase: 'COLLECT_DETAILS' }
-  | { phase: 'CATEGORY'; category: CategoryName; status: CategoryStatus }
-  | { phase: 'CONFIRM' }
-  | { phase: 'COMPLETE' };
-
-export interface TripState {
-  destination: string;
-  origin: string | null;
-  departure_date: string | null;
-  return_date: string | null;
-  budget_total: number | null;
-  transport_mode: 'flying' | 'driving' | null;
-  trip_type?: 'round_trip' | 'one_way';
-  flights: Array<{ id: string }>;
-  hotels: Array<{ id: string }>;
-  car_rentals?: Array<{ id: string }>;
-  experiences: Array<{ id: string }>;
-  status: string;
-}
-
-export const CATEGORY_ORDER: CategoryName[] = [
-  'flights',
-  'hotels',
-  'car_rental',
-  'experiences',
-];
 
 export const SEARCH_TOOLS: Record<CategoryName, string> = {
   flights: 'search_flights',
@@ -169,9 +43,119 @@ export const SELECTION_KEYS: Record<
   experiences: 'experiences',
 };
 
+const SELECT_TOOLS: Record<string, CategoryName> = {
+  select_flight: 'flights',
+  select_hotel: 'hotels',
+  select_car_rental: 'car_rental',
+  select_experience: 'experiences',
+};
+
+// --- v1 → v2 migration helpers ---
+
+const V1_STATUS_MAP: Record<string, TrackerStatus> = {
+  idle: 'pending',
+  asking: 'pending',
+  presented: 'searching',
+  done: 'selected',
+  skipped: 'skipped',
+};
+
+function migrateV1Status(v1Category: unknown): TrackerStatus {
+  if (typeof v1Category === 'object' && v1Category !== null) {
+    const status = (v1Category as Record<string, unknown>).status;
+    if (typeof status === 'string' && status in V1_STATUS_MAP) {
+      return V1_STATUS_MAP[
+        status as keyof typeof V1_STATUS_MAP
+      ] as TrackerStatus;
+    }
+  }
+  return 'pending';
+}
+
+// --- Normalization ---
+
+const VALID_TRACKER_STATUSES: TrackerStatus[] = [
+  'pending',
+  'searching',
+  'selected',
+  'skipped',
+];
+
+const VALID_TRANSPORT = ['pending', 'flying', 'driving'];
+
+export function normalizeCompletionTracker(raw: unknown): CompletionTracker {
+  if (raw === null || raw === undefined) {
+    return { ...DEFAULT_COMPLETION_TRACKER };
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // v1 migration: BookingState with { status: 'idle' } objects
+  if (!('version' in obj) || (obj.version as number) < 2) {
+    return {
+      version: CURRENT_TRACKER_VERSION,
+      transport: 'pending',
+      flights: migrateV1Status(obj.flights),
+      hotels: migrateV1Status(obj.hotels),
+      car_rental: migrateV1Status(obj.car_rental),
+      experiences: migrateV1Status(obj.experiences),
+      turns_since_last_progress: 0,
+    };
+  }
+
+  // v2: current format — fill missing fields
+  const validStatus = (val: unknown): TrackerStatus =>
+    typeof val === 'string' &&
+    VALID_TRACKER_STATUSES.includes(val as TrackerStatus)
+      ? (val as TrackerStatus)
+      : 'pending';
+
+  return {
+    version: CURRENT_TRACKER_VERSION,
+    transport: VALID_TRANSPORT.includes(obj.transport as string)
+      ? (obj.transport as CompletionTracker['transport'])
+      : 'pending',
+    flights: validStatus(obj.flights),
+    hotels: validStatus(obj.hotels),
+    car_rental: validStatus(obj.car_rental),
+    experiences: validStatus(obj.experiences),
+    turns_since_last_progress:
+      typeof obj.turns_since_last_progress === 'number'
+        ? obj.turns_since_last_progress
+        : 0,
+  };
+}
+
+// --- Flow position ---
+
+export type FlowPosition =
+  | { phase: 'COLLECT_DETAILS' }
+  | { phase: 'PLANNING' }
+  | { phase: 'COMPLETE' }
+  // v1 backward-compat phases — never returned by getFlowPosition but kept so
+  // chat.ts (not yet migrated in Task 4) still compiles.
+  | { phase: 'CATEGORY'; category: CategoryName; status: CategoryStatus }
+  | { phase: 'CONFIRM' };
+
+export interface TripState {
+  destination: string;
+  origin: string | null;
+  departure_date: string | null;
+  return_date: string | null;
+  budget_total: number | null;
+  transport_mode: 'flying' | 'driving' | null;
+  trip_type?: 'round_trip' | 'one_way';
+  flights: Array<{ id: string }>;
+  hotels: Array<{ id: string }>;
+  car_rentals?: Array<{ id: string }>;
+  experiences: Array<{ id: string }>;
+  status: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getFlowPosition(
   trip: TripState,
-  bookingState: BookingState,
+  _legacyBookingState?: unknown,
 ): FlowPosition {
   if (trip.status !== 'planning') {
     return { phase: 'COMPLETE' };
@@ -186,89 +170,222 @@ export function getFlowPosition(
     return { phase: 'COLLECT_DETAILS' };
   }
 
-  // If transport_mode not set, flights category handles the flying/driving question
-  if (trip.transport_mode === null) {
-    return {
-      phase: 'CATEGORY',
-      category: 'flights',
-      status: bookingState.flights.status,
-    };
-  }
-
-  for (const cat of CATEGORY_ORDER) {
-    // Auto-skip flights when driving
-    if (cat === 'flights' && trip.transport_mode === 'driving') {
-      continue;
-    }
-
-    const catState = bookingState[cat];
-    if (catState.status !== 'done' && catState.status !== 'skipped') {
-      return { phase: 'CATEGORY', category: cat, status: catState.status };
-    }
-  }
-
-  return { phase: 'CONFIRM' };
+  return { phase: 'PLANNING' };
 }
 
-// --- State transitions ---
+// --- Tracker update ---
+
+interface AgentResultForTracker {
+  tool_calls: Array<{ tool_name: string }>;
+  formatResponse?: { skip_category?: CategoryName | boolean } | null;
+}
+
+const CATEGORIES: CategoryName[] = [
+  'flights',
+  'hotels',
+  'car_rental',
+  'experiences',
+];
+
+export function updateCompletionTracker(
+  tracker: CompletionTracker,
+  agentResult: AgentResultForTracker,
+  updatedTrip: TripState,
+): CompletionTracker {
+  const newTracker = { ...tracker };
+  let changed = false;
+
+  // 1. Transport mode
+  if (updatedTrip.transport_mode && newTracker.transport === 'pending') {
+    newTracker.transport = updatedTrip.transport_mode;
+    changed = true;
+    if (
+      updatedTrip.transport_mode === 'driving' &&
+      newTracker.flights === 'pending'
+    ) {
+      newTracker.flights = 'skipped';
+    }
+  }
+
+  // 2. Search tools → searching
+  for (const cat of CATEGORIES) {
+    const searchTool = SEARCH_TOOLS[cat];
+    if (agentResult.tool_calls.some((tc) => tc.tool_name === searchTool)) {
+      if (newTracker[cat] !== 'selected') {
+        newTracker[cat] = 'searching';
+        changed = true;
+      }
+    }
+  }
+
+  // 3. Select tools + trip record → selected
+  for (const [toolName, cat] of Object.entries(SELECT_TOOLS)) {
+    if (agentResult.tool_calls.some((tc) => tc.tool_name === toolName)) {
+      const selKey = SELECTION_KEYS[cat];
+      const selections =
+        selKey === 'car_rentals'
+          ? (updatedTrip.car_rentals ?? [])
+          : updatedTrip[selKey];
+      if (selections.length > 0) {
+        newTracker[cat] = 'selected';
+        changed = true;
+      }
+    }
+  }
+
+  // 4. Ground truth: trip record selections override tracker
+  for (const cat of CATEGORIES) {
+    const selKey = SELECTION_KEYS[cat];
+    const selections =
+      selKey === 'car_rentals'
+        ? (updatedTrip.car_rentals ?? [])
+        : updatedTrip[selKey];
+    if (selections.length > 0 && newTracker[cat] !== 'selected') {
+      newTracker[cat] = 'selected';
+      changed = true;
+    }
+  }
+
+  // 5. skip_category
+  const skipCat = agentResult.formatResponse?.skip_category;
+  if (
+    typeof skipCat === 'string' &&
+    CATEGORIES.includes(skipCat as CategoryName)
+  ) {
+    newTracker[skipCat as CategoryName] = 'skipped';
+    changed = true;
+  }
+
+  // 6. Progress counter
+  if (changed) {
+    newTracker.turns_since_last_progress = 0;
+  } else {
+    newTracker.turns_since_last_progress =
+      tracker.turns_since_last_progress + 1;
+  }
+
+  return newTracker;
+}
+
+// --- Nudge computation ---
+
+export function computeNudge(tracker: CompletionTracker): string | null {
+  if (tracker.turns_since_last_progress < 3) return null;
+
+  const pending: string[] = [];
+  for (const cat of CATEGORIES) {
+    if (tracker[cat] === 'pending') {
+      pending.push(cat.replace('_', ' '));
+    }
+  }
+
+  if (pending.length === 0) return null;
+
+  return `Note: you haven't discussed ${pending.join(', ')} with the user yet. Find a natural moment to bring this up.`;
+}
+
+// --- Empty itinerary check ---
+
+export function hasAnySelection(tracker: CompletionTracker): boolean {
+  return CATEGORIES.some((cat) => tracker[cat] === 'selected');
+}
+
+export function allCategoriesResolved(tracker: CompletionTracker): boolean {
+  return CATEGORIES.every(
+    (cat) => tracker[cat] === 'selected' || tracker[cat] === 'skipped',
+  );
+}
+
+// --- Temporary backward-compat exports (removed in Task 4) ---
+// These keep chat.ts and category-prompts.ts compiling without modification.
+// CategoryStatus includes v1 values for files not yet migrated.
+export type CategoryStatus =
+  | TrackerStatus
+  | 'idle'
+  | 'asking'
+  | 'presented'
+  | 'done';
+
+export interface CategoryState {
+  status: CategoryStatus;
+  meta?: Record<string, unknown>;
+}
+
+// v1 BookingState shape — used by chat.ts until Task 4 migrates it
+export interface BookingState {
+  version: number;
+  flights: CategoryState;
+  hotels: CategoryState;
+  car_rental: CategoryState;
+  experiences: CategoryState;
+}
+
+function trackerToCategoryState(status: TrackerStatus): CategoryState {
+  return { status };
+}
+
+function trackerToBookingState(tracker: CompletionTracker): BookingState {
+  return {
+    version: 1,
+    flights: trackerToCategoryState(tracker.flights),
+    hotels: trackerToCategoryState(tracker.hotels),
+    car_rental: trackerToCategoryState(tracker.car_rental),
+    experiences: trackerToCategoryState(tracker.experiences),
+  };
+}
+
+function bookingStateToTracker(bs: BookingState): CompletionTracker {
+  const map: Record<string, TrackerStatus> = {
+    idle: 'pending',
+    asking: 'pending',
+    presented: 'searching',
+    done: 'selected',
+    skipped: 'skipped',
+    pending: 'pending',
+    searching: 'searching',
+    selected: 'selected',
+  };
+  const toTracker = (s: CategoryStatus): TrackerStatus =>
+    (map[s as string] ?? 'pending') as TrackerStatus;
+  return {
+    ...DEFAULT_COMPLETION_TRACKER,
+    flights: toTracker(bs.flights.status),
+    hotels: toTracker(bs.hotels.status),
+    car_rental: toTracker(bs.car_rental.status),
+    experiences: toTracker(bs.experiences.status),
+  };
+}
+
+export const CURRENT_BOOKING_STATE_VERSION = 1;
+
+export const DEFAULT_BOOKING_STATE: BookingState = {
+  version: 1,
+  flights: { status: 'idle' },
+  hotels: { status: 'idle' },
+  car_rental: { status: 'idle' },
+  experiences: { status: 'idle' },
+};
+
+export function normalizeBookingState(raw: unknown): BookingState {
+  const tracker = normalizeCompletionTracker(raw);
+  return trackerToBookingState(tracker);
+}
+
+export const CATEGORY_ORDER: CategoryName[] = [
+  'flights',
+  'hotels',
+  'car_rental',
+  'experiences',
+];
 
 export function advanceBookingState(
   bookingState: BookingState,
-  category: CategoryName | string,
-  currentStatus: CategoryStatus,
-  agentResult: AgentResultForAdvance,
+  _category: CategoryName | string,
+  _currentStatus: CategoryStatus,
+  agentResult: AgentResultForTracker,
   updatedTrip: TripState,
 ): BookingState {
-  const cat = category as CategoryName;
-  const newState = structuredClone(bookingState);
-
-  // Check if skip_category was set
-  const skipCategory = agentResult.formatResponse?.skip_category === true;
-
-  if (skipCategory) {
-    newState[cat] = { ...newState[cat], status: 'skipped' };
-    return newState;
-  }
-
-  const searchTool = SEARCH_TOOLS[cat];
-  const searchCalled = agentResult.tool_calls.some(
-    (tc) => tc.tool_name === searchTool,
-  );
-  const selectionKey = SELECTION_KEYS[cat];
-  const tripSelections =
-    selectionKey === 'car_rentals'
-      ? (updatedTrip.car_rentals ?? [])
-      : updatedTrip[selectionKey];
-  const hasSelection = tripSelections.length > 0;
-
-  switch (currentStatus) {
-    case 'idle':
-      newState[cat] = { ...newState[cat], status: 'asking' };
-      break;
-
-    case 'asking':
-      if (searchCalled) {
-        newState[cat] = { ...newState[cat], status: 'presented' };
-      }
-      break;
-
-    case 'presented':
-      if (hasSelection) {
-        newState[cat] = { ...newState[cat], status: 'done' };
-      }
-      // If search called again (re-search), stay in presented
-      break;
-
-    case 'done':
-      // Category undo: if user re-searches a completed category, reset to presented
-      if (searchCalled) {
-        newState[cat] = { ...newState[cat], status: 'presented' };
-      }
-      break;
-
-    default:
-      break;
-  }
-
-  return newState;
+  const tracker = bookingStateToTracker(bookingState);
+  const updated = updateCompletionTracker(tracker, agentResult, updatedTrip);
+  return trackerToBookingState(updated);
 }
