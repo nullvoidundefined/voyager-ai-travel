@@ -53,6 +53,8 @@ const normalizedPrefs: UserPreferences = {
   travel_party: 'solo',
   budget_comfort: 'value-seeker',
   completed_steps: ['accommodation', 'travel_pace'],
+  lgbtq_safety: false,
+  gender: null,
 };
 
 describe('userPreferences handlers', () => {

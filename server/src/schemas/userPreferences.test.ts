@@ -45,6 +45,8 @@ describe('userPreferences schema', () => {
         travel_party: 'romantic-partner',
         budget_comfort: 'comfort-first',
         completed_steps: ['accommodation', 'travel_pace', 'dining'],
+        lgbtq_safety: false,
+        gender: null,
       };
       const result = normalizePreferences(input);
       expect(result).toEqual(input);
@@ -87,6 +89,28 @@ describe('userPreferences schema', () => {
       expect(normalizePreferences({ social: 'solo' }).travel_party).toBe(
         'solo',
       );
+    });
+
+    it('should normalize v1 data with lgbtq_safety and gender fields', () => {
+      const result = normalizePreferences({
+        version: 1,
+        accommodation: 'budget',
+        lgbtq_safety: true,
+        gender: 'woman',
+      });
+      expect(result.lgbtq_safety).toBe(true);
+      expect(result.gender).toBe('woman');
+    });
+
+    it('should default lgbtq_safety to false and gender to null', () => {
+      const result = normalizePreferences({ version: 1 });
+      expect(result.lgbtq_safety).toBe(false);
+      expect(result.gender).toBeNull();
+    });
+
+    it('should include lgbtq_safety and gender in DEFAULT_PREFERENCES', () => {
+      expect(DEFAULT_PREFERENCES.lgbtq_safety).toBe(false);
+      expect(DEFAULT_PREFERENCES.gender).toBeNull();
     });
   });
 

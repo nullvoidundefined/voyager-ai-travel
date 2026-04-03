@@ -169,6 +169,8 @@ export interface UserPreferences {
     | 'no-concerns'
     | null;
   completed_steps: string[];
+  lgbtq_safety: boolean;
+  gender: 'prefer_not_to_say' | 'woman' | 'man' | 'non_binary' | null;
 }
 
 export const CURRENT_PREFERENCES_VERSION = 1;
@@ -183,6 +185,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   travel_party: null,
   budget_comfort: null,
   completed_steps: [],
+  lgbtq_safety: false,
+  gender: null,
 };
 
 // --- Legacy value mapping ---
@@ -240,5 +244,7 @@ export function normalizePreferences(raw: unknown): UserPreferences {
     completed_steps: Array.isArray(data.completed_steps)
       ? (data.completed_steps as string[])
       : [],
+    lgbtq_safety: data.lgbtq_safety === true,
+    gender: (data.gender as UserPreferences['gender']) ?? null,
   };
 }

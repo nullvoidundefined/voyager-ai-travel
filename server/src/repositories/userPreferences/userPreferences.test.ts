@@ -53,6 +53,8 @@ describe('userPreferences repository', () => {
     travel_party: 'solo',
     budget_comfort: 'value-seeker',
     completed_steps: ['accommodation'],
+    lgbtq_safety: false,
+    gender: null,
   };
 
   beforeEach(() => {
@@ -132,6 +134,8 @@ describe('userPreferences repository', () => {
         travel_party: null,
         budget_comfort: null,
         completed_steps: [],
+        lgbtq_safety: false,
+        gender: null,
       };
       mockQuery.mockResolvedValueOnce(
         mockResult([{ ...newRow, preferences: normalizedNew }]),

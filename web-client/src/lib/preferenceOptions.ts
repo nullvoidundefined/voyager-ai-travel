@@ -120,6 +120,13 @@ export const BUDGET_COMFORT_OPTIONS = [
   },
 ] as const;
 
+export const GENDER_OPTIONS = [
+  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+  { value: 'woman', label: 'Woman' },
+  { value: 'man', label: 'Man' },
+  { value: 'non_binary', label: 'Non-binary' },
+] as const;
+
 export const WIZARD_STEPS = [
   { id: 'accommodation', label: 'Accommodation' },
   { id: 'travel_pace', label: 'Travel Pace' },
@@ -139,4 +146,6 @@ export interface UserPreferences {
   travel_party: string | null;
   budget_comfort: string | null;
   completed_steps: string[];
+  lgbtq_safety: boolean;
+  gender: string | null;
 }
