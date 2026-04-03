@@ -1,0 +1,424 @@
+/* —————————— Hero —————————— */
+
+.page {
+  min-height: 100vh;
+}
+
+.hero {
+  position: relative;
+  height: 300px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.heroFallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--cta) 100%);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  padding: 32px 48px;
+  color: #ffffff;
+}
+
+.heroTitle {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.heroCountry {
+  font-size: 18px;
+  font-weight: 400;
+  opacity: 0.9;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* —————————— Quick Stats —————————— */
+
+.statsBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 20px 48px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* —————————— Content Container —————————— */
+
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* —————————— Sections —————————— */
+
+.section {
+  padding: 40px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-of-type {
+    border-bottom: none;
+  }
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  color: var(--foreground);
+}
+
+/* —————————— About —————————— */
+
+.paragraph {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--foreground);
+  margin-bottom: 16px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* —————————— Top 10 Experiences —————————— */
+
+.experienceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.experienceCard {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: box-shadow var(--transition-fast);
+
+  &:hover {
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+.experienceHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.experienceName {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.categoryBadge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--accent-light);
+  color: var(--accent-text);
+  white-space: nowrap;
+}
+
+.experienceDesc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--foreground-muted);
+  margin-bottom: 8px;
+}
+
+.experienceCost {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* —————————— Dining Highlights —————————— */
+
+.diningList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.diningItem {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.diningHeader {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.diningName {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.diningMeta {
+  font-size: 13px;
+  color: var(--foreground-muted);
+}
+
+.diningDesc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--foreground-muted);
+}
+
+/* —————————— Neighborhoods —————————— */
+
+.neighborhoodList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.neighborhoodItem {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.neighborhoodName {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.neighborhoodDesc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--foreground-muted);
+}
+
+/* —————————— Weather —————————— */
+
+.weatherTable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.weatherRow {
+  display: grid;
+  grid-template-columns: 60px repeat(12, 1fr);
+  min-width: 700px;
+  border-bottom: 1px solid var(--border-light);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.weatherHeader {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 6px;
+  text-align: center;
+  color: var(--foreground-muted);
+  background: var(--surface-alt);
+}
+
+.weatherLabel {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 6px;
+  color: var(--foreground-muted);
+  display: flex;
+  align-items: center;
+}
+
+.weatherHigh {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 6px;
+  text-align: center;
+  color: var(--cta);
+}
+
+.weatherLow {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 6px;
+  text-align: center;
+  color: var(--accent);
+}
+
+.weatherRain {
+  font-size: 12px;
+  padding: 10px 6px;
+  text-align: center;
+  color: var(--foreground-muted);
+}
+
+/* —————————— Travel Advisories —————————— */
+
+.advisory {
+  background: var(--surface-alt);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.advisoryLabel {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+/* —————————— CTA —————————— */
+
+.ctaSection {
+  text-align: center;
+  padding: 60px 24px;
+  margin: 40px 0;
+  background: var(--surface-alt);
+  border-radius: var(--radius-lg);
+}
+
+.ctaTitle {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.ctaSubtitle {
+  font-size: 16px;
+  color: var(--foreground-muted);
+  margin-bottom: 28px;
+}
+
+.ctaButton {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 14px 36px;
+  background: var(--cta);
+  color: var(--cta-text);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--cta-hover);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* —————————— Responsive —————————— */
+
+@media (max-width: 600px) {
+  .heroTitle {
+    font-size: 32px;
+  }
+
+  .heroContent {
+    padding: 24px;
+  }
+
+  .statsBar {
+    padding: 16px 24px;
+    gap: 16px;
+  }
+
+  .content {
+    padding: 0 16px;
+  }
+
+  .sectionTitle {
+    font-size: 24px;
+  }
+
+  .ctaSection {
+    padding: 40px 16px;
+  }
+
+  .ctaTitle {
+    font-size: 26px;
+  }
+
+  .ctaButton {
+    font-size: 16px;
+    padding: 12px 28px;
+  }
+}
