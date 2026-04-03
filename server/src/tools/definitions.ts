@@ -370,9 +370,10 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
           required: ['severity', 'title', 'body'],
         },
         skip_category: {
-          type: 'boolean',
+          type: 'string',
+          enum: ['flights', 'hotels', 'car_rental', 'experiences'],
           description:
-            'Set to true when the user declines the current category (e.g., "No, I don\'t need a hotel"). The system will skip this category and move to the next.',
+            'Set to the category name when the user declines it (e.g., "car_rental" when the user says "No, I don\'t need a car"). The system will mark this category as skipped.',
         },
       },
       required: ['text'],
