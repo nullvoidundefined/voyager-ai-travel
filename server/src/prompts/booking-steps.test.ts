@@ -1,238 +1,371 @@
+import { describe, it, expect } from 'vitest';
 import {
-  getBookingStep,
-  getStepPrompt,
-  type BookingStep,
+  getFlowPosition,
+  advanceBookingState,
+  normalizeBookingState,
+  DEFAULT_BOOKING_STATE,
+  CURRENT_BOOKING_STATE_VERSION,
+  type BookingState,
   type TripState,
-} from 'app/prompts/booking-steps.js';
-import { describe, expect, it } from 'vitest';
+} from './booking-steps.js';
 
-function makeTripState(
-  overrides: Partial<TripState> = {},
-): TripState {
+// Helper to build a trip state
+function trip(overrides: Record<string, unknown> = {}): TripState {
   return {
-    destination: 'Barcelona',
-    origin: 'SFO',
+    destination: 'Tokyo',
+    origin: 'JFK',
     departure_date: '2026-07-01',
-    return_date: '2026-07-06',
-    budget_total: 3000,
-    transport_mode: 'flying',
-    flights: [{ id: 'f1' }],
-    hotels: [{ id: 'h1' }],
-    car_rentals: [{ id: 'c1' }],
-    experiences: [{ id: 'e1' }],
+    return_date: '2026-07-10',
+    budget_total: 5000,
+    transport_mode: null as 'flying' | 'driving' | null,
+    flights: [] as Array<{ id: string }>,
+    hotels: [] as Array<{ id: string }>,
+    car_rentals: [] as Array<{ id: string }>,
+    experiences: [] as Array<{ id: string }>,
     status: 'planning',
     ...overrides,
   };
 }
 
-describe('booking-steps', () => {
-  describe('getBookingStep', () => {
-    it('returns COMPLETE when status is not planning', () => {
-      expect(
-        getBookingStep(makeTripState({ status: 'saved' })),
-      ).toBe('COMPLETE');
-    });
+function bs(overrides: Partial<BookingState> = {}): BookingState {
+  return { ...DEFAULT_BOOKING_STATE, ...overrides };
+}
 
-    it('returns COLLECT_DETAILS when budget_total is null', () => {
-      expect(
-        getBookingStep(makeTripState({ budget_total: null })),
-      ).toBe('COLLECT_DETAILS');
-    });
+// Minimal mock matching AgentResultForAdvance shape
+function mockResult(
+  toolNames: string[] = [],
+  skipCategory = false,
+) {
+  return {
+    tool_calls: toolNames.map((name) => ({ tool_name: name })),
+    formatResponse: skipCategory
+      ? { skip_category: true }
+      : null,
+  };
+}
 
-    it('returns COLLECT_DETAILS when departure_date is null', () => {
-      expect(
-        getBookingStep(
-          makeTripState({ departure_date: null }),
-        ),
-      ).toBe('COLLECT_DETAILS');
-    });
+describe('normalizeBookingState', () => {
+  it('returns DEFAULT_BOOKING_STATE for null input', () => {
+    const result = normalizeBookingState(null);
+    expect(result).toEqual(DEFAULT_BOOKING_STATE);
+  });
 
-    it('returns COLLECT_DETAILS when return_date is null', () => {
-      expect(
-        getBookingStep(makeTripState({ return_date: null })),
-      ).toBe('COLLECT_DETAILS');
-    });
+  it('returns DEFAULT_BOOKING_STATE for undefined input', () => {
+    const result = normalizeBookingState(undefined);
+    expect(result).toEqual(DEFAULT_BOOKING_STATE);
+  });
 
-    it('returns COLLECT_DETAILS when origin is null', () => {
-      expect(
-        getBookingStep(makeTripState({ origin: null })),
-      ).toBe('COLLECT_DETAILS');
-    });
+  it('adds version field to v0 data (no version)', () => {
+    const v0 = {
+      flights: { status: 'done' },
+      hotels: { status: 'asking' },
+      car_rental: { status: 'idle' },
+      experiences: { status: 'idle' },
+    };
+    const result = normalizeBookingState(v0);
+    expect(result.version).toBe(CURRENT_BOOKING_STATE_VERSION);
+    expect(result.flights.status).toBe('done');
+    expect(result.hotels.status).toBe('asking');
+  });
 
-    it('returns TRANSPORT when transport_mode is null', () => {
-      expect(
-        getBookingStep(
-          makeTripState({ transport_mode: null }),
-        ),
-      ).toBe('TRANSPORT');
-    });
+  it('fills missing categories from defaults for v0 data', () => {
+    const v0 = {
+      flights: { status: 'done' },
+    };
+    const result = normalizeBookingState(v0);
+    expect(result.version).toBe(CURRENT_BOOKING_STATE_VERSION);
+    expect(result.flights.status).toBe('done');
+    expect(result.hotels.status).toBe('idle');
+    expect(result.car_rental.status).toBe('idle');
+    expect(result.experiences.status).toBe('idle');
+  });
 
-    it('returns TRANSPORT when flying but no flights selected', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            transport_mode: 'flying',
-            flights: [],
-          }),
-        ),
-      ).toBe('TRANSPORT');
-    });
+  it('passes through current version data', () => {
+    const current: BookingState = {
+      version: 1,
+      flights: { status: 'presented' },
+      hotels: { status: 'done' },
+      car_rental: { status: 'skipped' },
+      experiences: { status: 'asking' },
+    };
+    const result = normalizeBookingState(current);
+    expect(result).toEqual(current);
+  });
 
-    it('returns LODGING when driving (no flights needed)', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            transport_mode: 'driving',
-            flights: [],
-            hotels: [],
-          }),
-        ),
-      ).toBe('LODGING');
-    });
+  it('fills missing categories even at current version', () => {
+    const partial = {
+      version: 1,
+      flights: { status: 'done' },
+    };
+    const result = normalizeBookingState(partial);
+    expect(result.version).toBe(1);
+    expect(result.flights.status).toBe('done');
+    expect(result.hotels.status).toBe('idle');
+    expect(result.car_rental.status).toBe('idle');
+    expect(result.experiences.status).toBe('idle');
+  });
 
-    it('returns LODGING when flights selected but no hotel', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            transport_mode: 'flying',
-            flights: [{ id: 'f1' }],
-            hotels: [],
-          }),
-        ),
-      ).toBe('LODGING');
-    });
+  it('handles invalid category state by using default', () => {
+    const bad = {
+      version: 1,
+      flights: 'not-an-object',
+      hotels: { status: 'done' },
+      car_rental: { status: 'idle' },
+      experiences: { status: 'idle' },
+    };
+    const result = normalizeBookingState(bad);
+    expect(result.flights.status).toBe('idle');
+    expect(result.hotels.status).toBe('done');
+  });
+});
 
-    it('returns CAR_RENTAL when hotel selected but no car rentals', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            hotels: [{ id: 'h1' }],
-            car_rentals: [],
-          }),
-        ),
-      ).toBe('CAR_RENTAL');
-    });
+describe('getFlowPosition', () => {
+  it('returns COLLECT_DETAILS when budget is missing', () => {
+    const pos = getFlowPosition(
+      trip({ budget_total: null }),
+      bs(),
+    );
+    expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
+  });
 
-    it('returns CAR_RENTAL when car_rentals is undefined', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            hotels: [{ id: 'h1' }],
-            car_rentals: undefined,
-          }),
-        ),
-      ).toBe('CAR_RENTAL');
-    });
+  it('returns COLLECT_DETAILS when origin is missing', () => {
+    const pos = getFlowPosition(
+      trip({ origin: null }),
+      bs(),
+    );
+    expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
+  });
 
-    it('returns EXPERIENCES when car rentals present but no experiences', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            car_rentals: [{ id: 'c1' }],
-            experiences: [],
-          }),
-        ),
-      ).toBe('EXPERIENCES');
-    });
+  it('returns COLLECT_DETAILS when departure_date is missing', () => {
+    const pos = getFlowPosition(
+      trip({ departure_date: null }),
+      bs(),
+    );
+    expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
+  });
 
-    it('returns CONFIRM when all selections made and status is planning', () => {
-      expect(getBookingStep(makeTripState())).toBe(
-        'CONFIRM',
-      );
-    });
+  it('returns COLLECT_DETAILS when return_date is missing', () => {
+    const pos = getFlowPosition(
+      trip({ return_date: null }),
+      bs(),
+    );
+    expect(pos).toEqual({ phase: 'COLLECT_DETAILS' });
+  });
 
-    it('returns COMPLETE for saved status even with incomplete data', () => {
-      expect(
-        getBookingStep(
-          makeTripState({
-            status: 'saved',
-            flights: [],
-            hotels: [],
-          }),
-        ),
-      ).toBe('COMPLETE');
+  it('returns flights/idle when transport_mode is null', () => {
+    const pos = getFlowPosition(trip(), bs());
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'idle',
     });
   });
 
-  describe('getStepPrompt', () => {
-    const allSteps: BookingStep[] = [
-      'COLLECT_DETAILS',
-      'TRANSPORT',
-      'LODGING',
-      'CAR_RENTAL',
-      'EXPERIENCES',
-      'CONFIRM',
-      'COMPLETE',
-    ];
-
-    it.each(allSteps)(
-      '%s prompt contains format_response',
-      (step) => {
-        expect(getStepPrompt(step)).toContain(
-          'format_response',
-        );
-      },
+  it('returns flights with its current status from booking_state', () => {
+    const pos = getFlowPosition(
+      trip({ transport_mode: 'flying' }),
+      bs({ flights: { status: 'asking' } }),
     );
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'asking',
+    });
+  });
 
-    it.each(allSteps)(
-      '%s prompt includes brevity instruction',
-      (step) => {
-        expect(getStepPrompt(step)).toContain(
-          '1-2 sentences',
-        );
-      },
+  it('returns flights/presented when browsing', () => {
+    const pos = getFlowPosition(
+      trip({ transport_mode: 'flying' }),
+      bs({ flights: { status: 'presented' } }),
     );
-
-    it('COLLECT_DETAILS mentions form', () => {
-      expect(
-        getStepPrompt('COLLECT_DETAILS'),
-      ).toContain('form');
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: 'presented',
     });
+  });
 
-    it('TRANSPORT mentions flying and driving', () => {
-      const prompt = getStepPrompt('TRANSPORT');
-      expect(prompt).toContain('flying');
-      expect(prompt).toContain('driving');
+  it('skips flights when driving, goes to hotels', () => {
+    const pos = getFlowPosition(
+      trip({ transport_mode: 'driving' }),
+      bs(),
+    );
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'hotels',
+      status: 'idle',
     });
+  });
 
-    it('LODGING mentions hotel', () => {
-      expect(getStepPrompt('LODGING')).toContain('hotel');
+  it('returns hotels when flights are done', () => {
+    const pos = getFlowPosition(
+      trip({
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+      }),
+      bs({ flights: { status: 'done' } }),
+    );
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'hotels',
+      status: 'idle',
     });
+  });
 
-    it('CAR_RENTAL mentions rental car', () => {
-      expect(getStepPrompt('CAR_RENTAL')).toContain(
-        'rental car',
-      );
+  it('returns car_rental when hotels are done', () => {
+    const pos = getFlowPosition(
+      trip({
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+      }),
+      bs({
+        flights: { status: 'done' },
+        hotels: { status: 'done' },
+      }),
+    );
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'car_rental',
+      status: 'idle',
     });
+  });
 
-    it('EXPERIENCES mentions preferences', () => {
-      expect(getStepPrompt('EXPERIENCES')).toContain(
-        'preferences',
-      );
+  it('skips a category that is skipped', () => {
+    const pos = getFlowPosition(
+      trip({
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+      }),
+      bs({
+        flights: { status: 'done' },
+        hotels: { status: 'skipped' },
+      }),
+    );
+    expect(pos).toEqual({
+      phase: 'CATEGORY',
+      category: 'car_rental',
+      status: 'idle',
     });
+  });
 
-    it('CONFIRM mentions confirm or book', () => {
-      expect(getStepPrompt('CONFIRM')).toMatch(
-        /confirm|book/i,
-      );
-    });
+  it('returns CONFIRM when all categories done/skipped', () => {
+    const pos = getFlowPosition(
+      trip({
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+      }),
+      bs({
+        flights: { status: 'done' },
+        hotels: { status: 'done' },
+        car_rental: { status: 'skipped' },
+        experiences: { status: 'done' },
+      }),
+    );
+    expect(pos).toEqual({ phase: 'CONFIRM' });
+  });
 
-    it('COMPLETE mentions follow-up', () => {
-      expect(getStepPrompt('COMPLETE')).toContain(
-        'follow-up',
-      );
-    });
+  it('returns COMPLETE when status is not planning', () => {
+    const pos = getFlowPosition(
+      trip({ status: 'saved' }),
+      bs(),
+    );
+    expect(pos).toEqual({ phase: 'COMPLETE' });
+  });
+});
 
-    it('shared rules include max tool calls limit', () => {
-      expect(
-        getStepPrompt('COLLECT_DETAILS'),
-      ).toContain('15');
-    });
+describe('advanceBookingState', () => {
+  it('advances idle → asking', () => {
+    const result = advanceBookingState(
+      bs(),
+      'flights',
+      'idle',
+      mockResult(),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.flights.status).toBe('asking');
+  });
 
-    it('shared rules include update_trip instruction', () => {
-      expect(
-        getStepPrompt('COLLECT_DETAILS'),
-      ).toContain('update_trip');
-    });
+  it('advances asking → presented when search tool is called', () => {
+    const result = advanceBookingState(
+      bs({ flights: { status: 'asking' } }),
+      'flights',
+      'asking',
+      mockResult(['search_flights']),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.flights.status).toBe('presented');
+  });
+
+  it('advances asking → skipped when skip_category is true', () => {
+    const result = advanceBookingState(
+      bs({ hotels: { status: 'asking' } }),
+      'hotels',
+      'asking',
+      mockResult([], true),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.hotels.status).toBe('skipped');
+  });
+
+  it('advances presented → done when trip gains a selection', () => {
+    const result = advanceBookingState(
+      bs({ flights: { status: 'presented' } }),
+      'flights',
+      'presented',
+      mockResult(),
+      trip({
+        transport_mode: 'flying',
+        flights: [{ id: '1' }],
+      }),
+    );
+    expect(result.flights.status).toBe('done');
+  });
+
+  it('stays presented when no selection made', () => {
+    const result = advanceBookingState(
+      bs({ flights: { status: 'presented' } }),
+      'flights',
+      'presented',
+      mockResult(),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.flights.status).toBe('presented');
+  });
+
+  it('re-search: presented → presented when search tool called again', () => {
+    const result = advanceBookingState(
+      bs({ flights: { status: 'presented' } }),
+      'flights',
+      'presented',
+      mockResult(['search_flights']),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.flights.status).toBe('presented');
+  });
+
+  it('does not mutate other categories', () => {
+    const result = advanceBookingState(
+      bs({
+        flights: { status: 'asking' },
+        hotels: { status: 'idle' },
+      }),
+      'flights',
+      'asking',
+      mockResult(['search_flights']),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.hotels.status).toBe('idle');
+    expect(result.flights.status).toBe('presented');
+  });
+
+  it('preserves version field', () => {
+    const result = advanceBookingState(
+      bs(),
+      'flights',
+      'idle',
+      mockResult(),
+      trip({ transport_mode: 'flying' }),
+    );
+    expect(result.version).toBe(CURRENT_BOOKING_STATE_VERSION);
   });
 });

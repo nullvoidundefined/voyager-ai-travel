@@ -1,11 +1,138 @@
-export type BookingStep =
-  | 'COLLECT_DETAILS'
-  | 'TRANSPORT'
-  | 'LODGING'
-  | 'CAR_RENTAL'
-  | 'EXPERIENCES'
-  | 'CONFIRM'
-  | 'COMPLETE';
+// --- Minimal interface to avoid circular dependency with agent.service.ts ---
+
+interface AgentResultForAdvance {
+  tool_calls: Array<{ tool_name: string }>;
+  formatResponse?: { skip_category?: boolean } | null;
+}
+
+// --- State types ---
+
+export type CategoryName =
+  | 'flights'
+  | 'hotels'
+  | 'car_rental'
+  | 'experiences';
+
+export type CategoryStatus =
+  | 'idle'
+  | 'asking'
+  | 'presented'
+  | 'done'
+  | 'skipped';
+
+export interface CategoryState {
+  status: CategoryStatus;
+  meta?: Record<string, unknown>;
+}
+
+export interface BookingState {
+  version: number;
+  flights: CategoryState;
+  hotels: CategoryState;
+  car_rental: CategoryState;
+  experiences: CategoryState;
+}
+
+export const CURRENT_BOOKING_STATE_VERSION = 1;
+
+export const DEFAULT_BOOKING_STATE: BookingState = {
+  version: 1,
+  flights: { status: 'idle' },
+  hotels: { status: 'idle' },
+  car_rental: { status: 'idle' },
+  experiences: { status: 'idle' },
+};
+
+// --- Versioned normalization ---
+
+export function normalizeBookingState(raw: unknown): BookingState {
+  if (raw === null || raw === undefined) {
+    return { ...DEFAULT_BOOKING_STATE };
+  }
+
+  const obj = raw as Record<string, unknown>;
+
+  // No version field → treat as v0 (pre-versioning), fill missing categories
+  if (!('version' in obj) || obj.version === undefined) {
+    return {
+      version: CURRENT_BOOKING_STATE_VERSION,
+      flights: isValidCategoryState(obj.flights)
+        ? (obj.flights as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.flights },
+      hotels: isValidCategoryState(obj.hotels)
+        ? (obj.hotels as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.hotels },
+      car_rental: isValidCategoryState(obj.car_rental)
+        ? (obj.car_rental as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.car_rental },
+      experiences: isValidCategoryState(obj.experiences)
+        ? (obj.experiences as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.experiences },
+    };
+  }
+
+  // Current version — return as-is with missing categories filled
+  const version = obj.version as number;
+  if (version >= CURRENT_BOOKING_STATE_VERSION) {
+    return {
+      version: CURRENT_BOOKING_STATE_VERSION,
+      flights: isValidCategoryState(obj.flights)
+        ? (obj.flights as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.flights },
+      hotels: isValidCategoryState(obj.hotels)
+        ? (obj.hotels as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.hotels },
+      car_rental: isValidCategoryState(obj.car_rental)
+        ? (obj.car_rental as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.car_rental },
+      experiences: isValidCategoryState(obj.experiences)
+        ? (obj.experiences as CategoryState)
+        : { ...DEFAULT_BOOKING_STATE.experiences },
+    };
+  }
+
+  // Future: run migration functions v0→v1, v1→v2, etc.
+  // For now there's only v1, so any version < 1 gets default-filled
+  return {
+    version: CURRENT_BOOKING_STATE_VERSION,
+    flights: isValidCategoryState(obj.flights)
+      ? (obj.flights as CategoryState)
+      : { ...DEFAULT_BOOKING_STATE.flights },
+    hotels: isValidCategoryState(obj.hotels)
+      ? (obj.hotels as CategoryState)
+      : { ...DEFAULT_BOOKING_STATE.hotels },
+    car_rental: isValidCategoryState(obj.car_rental)
+      ? (obj.car_rental as CategoryState)
+      : { ...DEFAULT_BOOKING_STATE.car_rental },
+    experiences: isValidCategoryState(obj.experiences)
+      ? (obj.experiences as CategoryState)
+      : { ...DEFAULT_BOOKING_STATE.experiences },
+  };
+}
+
+function isValidCategoryState(val: unknown): val is CategoryState {
+  if (typeof val !== 'object' || val === null) return false;
+  const obj = val as Record<string, unknown>;
+  const validStatuses: CategoryStatus[] = [
+    'idle',
+    'asking',
+    'presented',
+    'done',
+    'skipped',
+  ];
+  return (
+    typeof obj.status === 'string' &&
+    validStatuses.includes(obj.status as CategoryStatus)
+  );
+}
+
+// --- Flow position ---
+
+export type FlowPosition =
+  | { phase: 'COLLECT_DETAILS' }
+  | { phase: 'CATEGORY'; category: CategoryName; status: CategoryStatus }
+  | { phase: 'CONFIRM' }
+  | { phase: 'COMPLETE' };
 
 export interface TripState {
   destination: string;
@@ -21,9 +148,36 @@ export interface TripState {
   status: string;
 }
 
-export function getBookingStep(trip: TripState): BookingStep {
+export const CATEGORY_ORDER: CategoryName[] = [
+  'flights',
+  'hotels',
+  'car_rental',
+  'experiences',
+];
+
+export const SEARCH_TOOLS: Record<CategoryName, string> = {
+  flights: 'search_flights',
+  hotels: 'search_hotels',
+  car_rental: 'search_car_rentals',
+  experiences: 'search_experiences',
+};
+
+export const SELECTION_KEYS: Record<
+  CategoryName,
+  'flights' | 'hotels' | 'car_rentals' | 'experiences'
+> = {
+  flights: 'flights',
+  hotels: 'hotels',
+  car_rental: 'car_rentals',
+  experiences: 'experiences',
+};
+
+export function getFlowPosition(
+  trip: TripState,
+  bookingState: BookingState,
+): FlowPosition {
   if (trip.status !== 'planning') {
-    return 'COMPLETE';
+    return { phase: 'COMPLETE' };
   }
 
   if (
@@ -32,57 +186,86 @@ export function getBookingStep(trip: TripState): BookingStep {
     trip.return_date === null ||
     trip.origin === null
   ) {
-    return 'COLLECT_DETAILS';
+    return { phase: 'COLLECT_DETAILS' };
   }
 
+  // If transport_mode not set, flights category handles the flying/driving question
   if (trip.transport_mode === null) {
-    return 'TRANSPORT';
+    return {
+      phase: 'CATEGORY',
+      category: 'flights',
+      status: bookingState.flights.status,
+    };
   }
 
-  if (trip.transport_mode === 'flying' && trip.flights.length === 0) {
-    return 'TRANSPORT';
+  for (const cat of CATEGORY_ORDER) {
+    // Auto-skip flights when driving
+    if (cat === 'flights' && trip.transport_mode === 'driving') {
+      continue;
+    }
+
+    const catState = bookingState[cat];
+    if (catState.status !== 'done' && catState.status !== 'skipped') {
+      return { phase: 'CATEGORY', category: cat, status: catState.status };
+    }
   }
 
-  if (trip.hotels.length === 0) {
-    return 'LODGING';
-  }
-
-  if (!trip.car_rentals || trip.car_rentals.length === 0) {
-    return 'CAR_RENTAL';
-  }
-
-  if (trip.experiences.length === 0) {
-    return 'EXPERIENCES';
-  }
-
-  return 'CONFIRM';
+  return { phase: 'CONFIRM' };
 }
 
-const SHARED_RULES = `
-Rules:
-- 1-2 sentences max text output. NEVER use numbered lists.
-- NEVER describe search results in text — the UI cards handle display.
-- Answer travel questions briefly, then redirect to current step.
-- Call update_trip when the user provides trip details.
-- Always call format_response as your LAST tool call.
-- Max 15 tool calls per turn.`.trim();
+// --- State transitions ---
 
-const STEP_PROMPTS: Record<BookingStep, string> = {
-  COLLECT_DETAILS: `A form is being shown to collect trip details. Acknowledge the destination in one sentence. Do NOT ask questions — the form handles it.`,
+export function advanceBookingState(
+  bookingState: BookingState,
+  category: CategoryName | string,
+  currentStatus: CategoryStatus,
+  agentResult: AgentResultForAdvance,
+  updatedTrip: TripState,
+): BookingState {
+  const cat = category as CategoryName;
+  const newState = structuredClone(bookingState);
 
-  TRANSPORT: `Ask: "Will you be flying or driving?" If flying, ask time preference, then search flights. If driving, call update_trip with transport_mode: "driving". Provide quick_replies: ["I'll be flying", "I'll drive"].`,
+  // Check if skip_category was set
+  const skipCategory =
+    agentResult.formatResponse?.skip_category === true;
 
-  LODGING: `Ask: "Do you need a hotel?" If yes, search hotels. Provide quick_replies: ["Yes, find me a hotel", "No, I have lodging"].`,
+  if (skipCategory) {
+    newState[cat] = { ...newState[cat], status: 'skipped' };
+    return newState;
+  }
 
-  CAR_RENTAL: `Ask: "Will you need a rental car?" If yes, search car rentals. If the user already declined in conversation history, skip. Provide quick_replies: ["Yes, find me a car", "No, I don't need one"].`,
+  const searchTool = SEARCH_TOOLS[cat];
+  const searchCalled = agentResult.tool_calls.some(
+    (tc) => tc.tool_name === searchTool,
+  );
+  const selectionKey = SELECTION_KEYS[cat];
+  const tripSelections =
+    selectionKey === 'car_rentals'
+      ? (updatedTrip.car_rentals ?? [])
+      : updatedTrip[selectionKey];
+  const hasSelection = tripSelections.length > 0;
 
-  EXPERIENCES: `Based on user preferences (dietary, intensity, social), suggest categories briefly. Search experiences. Provide quick_replies: ["Find dining options", "Show me adventures", "I'm all set"].`,
+  switch (currentStatus) {
+    case 'idle':
+      newState[cat] = { ...newState[cat], status: 'asking' };
+      break;
 
-  CONFIRM: `Summarize the trip briefly in markdown (destination, dates, selections, total cost). Ask "Ready to book?" Provide quick_replies: ["Confirm booking", "Make changes"].`,
+    case 'asking':
+      if (searchCalled) {
+        newState[cat] = { ...newState[cat], status: 'presented' };
+      }
+      break;
 
-  COMPLETE: `Trip is booked. Answer follow-up questions about the trip.`,
-};
+    case 'presented':
+      if (hasSelection) {
+        newState[cat] = { ...newState[cat], status: 'done' };
+      }
+      // If search called again (re-search), stay in presented
+      break;
 
-export function getStepPrompt(step: BookingStep): string {
-  return `${STEP_PROMPTS[step]}\n\n${SHARED_RULES}`;
+    default:
+      break;
+  }
+
+  return newState;
 }
