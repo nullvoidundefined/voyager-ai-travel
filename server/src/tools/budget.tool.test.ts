@@ -72,6 +72,19 @@ describe('budget.tool', () => {
       expect(result.remaining_percentage).toBe(100);
     });
 
+    it('should return no-budget-set response when total_budget is 0', () => {
+      const result = calculateRemainingBudget({
+        total_budget: 0,
+        flight_cost: 500,
+        hotel_total_cost: 300,
+        experience_costs: [100],
+      });
+      expect(result.no_budget_set).toBe(true);
+      expect(result.total_spent).toBe(900);
+      expect(result.remaining).toBe(0);
+      expect(result.over_budget).toBe(false);
+    });
+
     it('rounds amounts to 2 decimal places', () => {
       const result = calculateRemainingBudget({
         total_budget: 1000,
