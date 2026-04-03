@@ -133,8 +133,9 @@ export default function TripDetailPage() {
         <div>
           <h1>{trip.destination}</h1>
           <p className={styles.dates}>
-            {formatShortDate(trip.departure_date)} &ndash;{' '}
-            {formatShortDate(trip.return_date)}
+            {!trip.departure_date && !trip.return_date
+              ? 'Dates not set'
+              : `${formatShortDate(trip.departure_date)} \u2013 ${formatShortDate(trip.return_date)}`}
           </p>
         </div>
         <div className={styles.headerRight}>

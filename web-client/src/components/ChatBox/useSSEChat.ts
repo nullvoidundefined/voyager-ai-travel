@@ -150,7 +150,11 @@ export function useSSEChat({
         // loaded — especially noticeable on fast streams where tool_progress
         // indicators would flash and vanish before the user could read them.
         await queryClient.invalidateQueries({ queryKey: ['messages', tripId] });
-        queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
+        await queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
+        void queryClient.invalidateQueries({
+          queryKey: ['trips'],
+          exact: true,
+        });
         setIsSending(false);
         setToolProgress([]);
         setStreamingNodes([]);
@@ -158,7 +162,7 @@ export function useSSEChat({
         onComplete?.();
       }
     },
-    [tripId, queryClient, isSending],
+    [tripId, queryClient, isSending, onComplete],
   );
 
   return {

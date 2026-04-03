@@ -18,9 +18,15 @@ export function formatCurrency(
   return fmt.format(amount);
 }
 
-export function formatShortDate(dateStr: string | null): string {
-  if (!dateStr) return 'TBD';
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+export function formatShortDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return 'Not set';
+  // If the string already contains a time component (T or space-separated),
+  // parse it directly; otherwise append T00:00:00 to avoid timezone shift.
+  const date = dateStr.includes('T')
+    ? new Date(dateStr)
+    : new Date(dateStr + 'T00:00:00');
+  if (isNaN(date.getTime())) return 'Not set';
+  return date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

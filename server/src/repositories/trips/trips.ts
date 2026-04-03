@@ -90,6 +90,7 @@ export interface UpdateTripInput {
   return_date?: string;
   budget_total?: number;
   transport_mode?: 'flying' | 'driving';
+  status?: 'planning' | 'saved' | 'archived';
 }
 
 export async function updateTrip(

@@ -32,6 +32,7 @@ function createApp() {
   app.post('/trips', tripHandlers.createTrip);
   app.get('/trips', tripHandlers.listTrips);
   app.get('/trips/:id', tripHandlers.getTrip);
+  app.put('/trips/:id', tripHandlers.updateTrip);
   app.delete('/trips/:id', tripHandlers.deleteTrip);
   app.use(errorHandler);
   return app;
@@ -176,6 +177,66 @@ describe('trip handlers', () => {
       expect(res.body.trip.destination).toBe('Barcelona');
       expect(res.body.trip.flights).toEqual([]);
       expect(tripRepo.getTripWithDetails).toHaveBeenCalledWith(tripId, userId);
+    });
+  });
+
+  describe('PUT /trips/:id (updateTrip)', () => {
+    it('returns 400 when no fields provided', async () => {
+      const res = await request(app).put(`/trips/${tripId}`).send({});
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 404 when trip not found', async () => {
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ status: 'saved' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('NOT_FOUND');
+    });
+
+    it('updates trip status to saved', async () => {
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        status: 'saved',
+      });
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ status: 'saved' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.trip.status).toBe('saved');
+      expect(tripRepo.updateTrip).toHaveBeenCalledWith(
+        tripId,
+        userId,
+        expect.objectContaining({ status: 'saved' }),
+      );
+    });
+
+    it('updates trip dates', async () => {
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        departure_date: '2026-08-01',
+        return_date: '2026-08-10',
+      });
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ departure_date: '2026-08-01', return_date: '2026-08-10' });
+
+      expect(res.status).toBe(200);
+      expect(tripRepo.updateTrip).toHaveBeenCalledWith(
+        tripId,
+        userId,
+        expect.objectContaining({
+          departure_date: '2026-08-01',
+          return_date: '2026-08-10',
+        }),
+      );
     });
   });
 

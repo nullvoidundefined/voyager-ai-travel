@@ -10,6 +10,7 @@ tripRouter.use(requireAuth);
 tripRouter.post('/', tripHandlers.createTrip);
 tripRouter.get('/', tripHandlers.listTrips);
 tripRouter.get('/:id', tripHandlers.getTrip);
+tripRouter.put('/:id', tripHandlers.updateTrip);
 tripRouter.delete('/:id', tripHandlers.deleteTrip);
 
 tripRouter.post('/:id/chat', chatHandlers.chat);

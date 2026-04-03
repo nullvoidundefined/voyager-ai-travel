@@ -102,7 +102,7 @@ export default function TripsPage() {
                       src={url}
                       alt={trip.destination}
                       fill
-                      sizes='(max-width: 600px) 100vw, 50vw'
+                      sizes='(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw'
                       style={{ objectFit: 'cover' }}
                     />
                     <button

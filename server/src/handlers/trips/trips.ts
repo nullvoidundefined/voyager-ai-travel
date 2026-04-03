@@ -39,6 +39,49 @@ export async function getTrip(req: Request, res: Response): Promise<void> {
   res.json({ trip });
 }
 
+export async function updateTrip(req: Request, res: Response): Promise<void> {
+  const userId = req.user!.id;
+  const tripId = req.params.id as string;
+
+  const {
+    destination,
+    origin,
+    departure_date,
+    return_date,
+    budget_total,
+    transport_mode,
+    status,
+  } = req.body ?? {};
+  const input: Record<string, unknown> = {};
+  if (destination !== undefined) input.destination = destination;
+  if (origin !== undefined) input.origin = origin;
+  if (departure_date !== undefined) input.departure_date = departure_date;
+  if (return_date !== undefined) input.return_date = return_date;
+  if (budget_total !== undefined) input.budget_total = budget_total;
+  if (transport_mode !== undefined) input.transport_mode = transport_mode;
+  if (status !== undefined) input.status = status;
+
+  if (Object.keys(input).length === 0) {
+    res
+      .status(400)
+      .json({ error: 'VALIDATION_ERROR', message: 'No fields to update' });
+    return;
+  }
+
+  const trip = await tripRepo.updateTrip(
+    tripId,
+    userId,
+    input as tripRepo.UpdateTripInput,
+  );
+  if (!trip) {
+    res.status(404).json({ error: 'NOT_FOUND', message: 'Trip not found' });
+    return;
+  }
+
+  logger.info({ event: 'trip_updated', tripId, userId }, 'Trip updated');
+  res.json({ trip });
+}
+
 export async function deleteTrip(req: Request, res: Response): Promise<void> {
   const userId = req.user!.id;
   const tripId = req.params.id as string;

@@ -14,6 +14,12 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+
+  /* Break out of the .landing side padding to go edge-to-edge, capped at 1600px */
+  max-width: 1600px;
+  margin-left: -32px;
+  margin-right: -32px;
+  width: calc(100% + 64px);
 }
 
 .heroImage {
@@ -40,6 +46,7 @@
   position: relative;
   z-index: 2;
   color: var(--cta-text);
+  padding: 80px 48px 64px;
 }
 
 .eyebrow {
@@ -306,6 +313,9 @@
 
   .hero {
     min-height: 480px;
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
   }
 
   .heroContent {

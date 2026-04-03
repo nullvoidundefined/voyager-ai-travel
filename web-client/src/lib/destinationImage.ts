@@ -49,7 +49,7 @@ export function getDestinationImage(cityName: string): {
   const id = CITY_IMAGES[key] ?? null;
   return {
     url: id
-      ? `https://images.unsplash.com/photo-${id}?w=800&h=400&fit=crop&q=80`
+      ? `https://images.unsplash.com/photo-${id}?w=600&h=300&fit=crop&q=80`
       : null,
     unsplashId: id,
   };

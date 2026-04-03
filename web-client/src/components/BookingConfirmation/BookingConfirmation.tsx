@@ -87,7 +87,7 @@ export function BookingConfirmation({
                 src={url}
                 alt={destination}
                 fill
-                sizes='520px'
+                sizes='(max-width: 520px) 100vw, 520px'
                 style={{ objectFit: 'cover' }}
               />
             ) : (

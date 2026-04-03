@@ -8,7 +8,8 @@ const SHARED_RULES = `
 - Call update_trip when the user provides trip details.
 - Always call format_response as your LAST tool call.
 - Set skip_category: true in format_response if the user declines this category.
-- Max 15 tool calls per turn.`;
+- Max 15 tool calls per turn.
+- When the user explicitly names a specific option, honor that selection. Do not present alternatives.`;
 
 const CATEGORY_PROMPTS: Record<CategoryName, Record<string, string>> = {
   flights: {
@@ -18,7 +19,7 @@ Provide quick_replies: ["I'll be flying", "I'll drive"].`,
 
     asking: `The user is flying. Ask what time of day they prefer (morning, afternoon, or evening). Then search flights. The flight cards will show — do not describe them.`,
 
-    presented: `The user is browsing flight options. Do NOT re-describe the results — the cards are visible. If they ask about a flight, answer briefly. If they want different options, search again. Wait for their selection.`,
+    presented: `The user is browsing flight options. Do NOT re-describe the results — the cards are visible. If they ask about a flight, answer briefly. If they want different options, search again. Wait for their selection. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,
   },
 
   hotels: {
@@ -28,7 +29,7 @@ Provide quick_replies: ["Yes, find me a hotel", "No, I have lodging"].`,
     asking: `Ask: "Do you need a hotel?" If yes, search hotels. If no, acknowledge and set skip_category: true in format_response.
 Provide quick_replies: ["Yes, find me a hotel", "No, I have lodging"].`,
 
-    presented: `The user is browsing hotel options. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection.`,
+    presented: `The user is browsing hotel options. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,
   },
 
   car_rental: {
@@ -38,7 +39,7 @@ Provide quick_replies: ["Yes, find me a car", "No, I don't need one"].`,
     asking: `Ask: "Will you need a rental car?" If yes, search car rentals. If no, acknowledge and set skip_category: true in format_response.
 Provide quick_replies: ["Yes, find me a car", "No, I don't need one"].`,
 
-    presented: `The user is browsing car rental options. Don't describe the results — the cards are visible. Answer questions briefly. Wait for their selection.`,
+    presented: `The user is browsing car rental options. Don't describe the results — the cards are visible. Answer questions briefly. Wait for their selection. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,
   },
 
   experiences: {
@@ -48,7 +49,7 @@ Provide quick_replies: ["Find dining options", "Show me adventures", "I'm all se
     asking: `Based on the user's preferences, suggest relevant experience categories in one sentence. Then search experiences. The cards will show the results.
 Provide quick_replies: ["Find dining options", "Show me adventures", "I'm all set"].`,
 
-    presented: `The user is browsing experiences. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection. If they say they're done, set skip_category: true.`,
+    presented: `The user is browsing experiences. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection. If they say they're done, set skip_category: true. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,
   },
 };
 
