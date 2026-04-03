@@ -1,5 +1,6 @@
 import { query } from 'app/db/pool/pool.js';
 import * as prefsRepo from 'app/repositories/userPreferences/userPreferences.js';
+import type { UserPreferences } from 'app/schemas/userPreferences.js';
 import { mockResult } from 'app/utils/tests/mockResult.js';
 import { uuid } from 'app/utils/tests/uuids.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -20,14 +21,38 @@ describe('userPreferences repository', () => {
   const userId = uuid();
   const prefId = uuid();
 
-  const row = {
+  // A valid JSONB row as returned from the database
+  const preferencesJsonb: Record<string, unknown> = {
+    version: 1,
+    accommodation: 'mid-range',
+    travel_pace: 'moderate',
+    dietary: ['vegetarian', 'gluten-free'],
+    dining_style: 'casual',
+    activities: ['history-culture'],
+    travel_party: 'solo',
+    budget_comfort: 'value-seeker',
+    completed_steps: ['accommodation'],
+  };
+
+  const dbRow = {
     id: prefId,
     user_id: userId,
+    preferences: preferencesJsonb,
+    created_at: new Date('2025-01-01').toISOString(),
+    updated_at: new Date('2025-01-01').toISOString(),
+  };
+
+  // The normalized UserPreferences we expect findByUserId to return
+  const expectedPrefs: UserPreferences = {
+    version: 1,
+    accommodation: 'mid-range',
+    travel_pace: 'moderate',
     dietary: ['vegetarian', 'gluten-free'],
-    intensity: 'active',
-    social: 'couple',
-    created_at: new Date('2025-01-01'),
-    updated_at: new Date('2025-01-01'),
+    dining_style: 'casual',
+    activities: ['history-culture'],
+    travel_party: 'solo',
+    budget_comfort: 'value-seeker',
+    completed_steps: ['accommodation'],
   };
 
   beforeEach(() => {
@@ -35,12 +60,12 @@ describe('userPreferences repository', () => {
   });
 
   describe('findByUserId', () => {
-    it('returns preferences when found', async () => {
-      mockQuery.mockResolvedValueOnce(mockResult([row]));
+    it('returns normalized preferences when found', async () => {
+      mockQuery.mockResolvedValueOnce(mockResult([dbRow]));
 
       const result = await prefsRepo.findByUserId(userId);
 
-      expect(result).toEqual(row);
+      expect(result).toEqual(expectedPrefs);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('SELECT'),
         [userId],
@@ -57,24 +82,64 @@ describe('userPreferences repository', () => {
   });
 
   describe('upsert', () => {
-    it('inserts or updates preferences and returns the row', async () => {
-      mockQuery.mockResolvedValueOnce(mockResult([row]));
-
-      const input = {
-        dietary: ['vegetarian', 'gluten-free'] as (
-          | 'vegetarian'
-          | 'gluten-free'
-        )[],
-        intensity: 'active' as const,
-        social: 'couple' as const,
+    it('merges partial preferences with existing and returns normalized result', async () => {
+      const partial: Partial<UserPreferences> = {
+        accommodation: 'budget',
+        completed_steps: ['accommodation'],
       };
-      const result = await prefsRepo.upsert(userId, input);
 
-      expect(result).toEqual(row);
+      // First call: findByUserId (returns existing prefs)
+      mockQuery.mockResolvedValueOnce(mockResult([dbRow]));
+      // Second call: the INSERT ... ON CONFLICT (returns updated row)
+      const updatedRow = {
+        ...dbRow,
+        preferences: {
+          ...preferencesJsonb,
+          accommodation: 'budget',
+          completed_steps: ['accommodation'],
+        },
+      };
+      mockQuery.mockResolvedValueOnce(mockResult([updatedRow]));
+
+      const result = await prefsRepo.upsert(userId, partial);
+
+      expect(result.accommodation).toBe('budget');
+      expect(result.completed_steps).toEqual(['accommodation']);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('ON CONFLICT (user_id)'),
-        [userId, input.dietary, input.intensity, input.social],
+        expect.arrayContaining([userId]),
       );
+    });
+
+    it('handles upsert when no existing preferences (new user)', async () => {
+      const partial: Partial<UserPreferences> = { accommodation: 'upscale' };
+
+      // First call: findByUserId returns null (no existing row)
+      mockQuery.mockResolvedValueOnce(mockResult([]));
+      // Second call: INSERT returns the new row
+      const newRow = {
+        ...dbRow,
+        preferences: { version: 1, accommodation: 'upscale' },
+      };
+      // normalizePreferences fills in defaults, so the DB row just needs version + accommodation
+      const normalizedNew: UserPreferences = {
+        version: 1,
+        accommodation: 'upscale',
+        travel_pace: null,
+        dietary: [],
+        dining_style: null,
+        activities: [],
+        travel_party: null,
+        budget_comfort: null,
+        completed_steps: [],
+      };
+      mockQuery.mockResolvedValueOnce(
+        mockResult([{ ...newRow, preferences: normalizedNew }]),
+      );
+
+      const result = await prefsRepo.upsert(userId, partial);
+
+      expect(result.accommodation).toBe('upscale');
     });
   });
 

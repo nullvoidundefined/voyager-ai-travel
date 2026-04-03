@@ -1,33 +1,38 @@
-import * as prefsRepo from 'app/repositories/userPreferences/userPreferences.js';
-import { userPreferencesSchema } from 'app/schemas/userPreferences.js';
-import { logger } from 'app/utils/logs/logger.js';
+import {
+  findByUserId,
+  upsert,
+} from 'app/repositories/userPreferences/userPreferences.js';
 import type { Request, Response } from 'express';
 
-export async function getPreferences(
-  req: Request,
-  res: Response,
-): Promise<void> {
+export async function getPreferences(req: Request, res: Response) {
   const userId = req.user!.id;
-  const preferences = await prefsRepo.findByUserId(userId);
-  res.json({ preferences });
+  const prefs = await findByUserId(userId);
+  res.json({ preferences: prefs });
 }
 
-export async function upsertPreferences(
-  req: Request,
-  res: Response,
-): Promise<void> {
-  const parsed = userPreferencesSchema.safeParse(req.body);
-  if (!parsed.success) {
-    const message = parsed.error.issues.map((e) => e.message).join('; ');
-    res.status(400).json({ error: 'VALIDATION_ERROR', message });
-    return;
+export async function upsertPreferences(req: Request, res: Response) {
+  const userId = req.user!.id;
+  const input = req.body as Record<string, unknown>;
+
+  // Validate: only allow known preference fields
+  const allowedFields = [
+    'accommodation',
+    'travel_pace',
+    'dietary',
+    'dining_style',
+    'activities',
+    'travel_party',
+    'budget_comfort',
+    'completed_steps',
+    'version',
+  ];
+  const filtered: Record<string, unknown> = {};
+  for (const key of allowedFields) {
+    if (key in input) {
+      filtered[key] = input[key];
+    }
   }
 
-  const userId = req.user!.id;
-  const preferences = await prefsRepo.upsert(userId, parsed.data);
-  logger.info(
-    { event: 'preferences_upsert', userId },
-    'User preferences updated',
-  );
-  res.json({ preferences });
+  const result = await upsert(userId, filtered);
+  res.json({ preferences: result });
 }
