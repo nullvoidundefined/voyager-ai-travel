@@ -70,4 +70,31 @@ describe('category-prompts', () => {
       }
     }
   });
+
+  it('should include budget advisory in shared rules', () => {
+    const prompt = getCategoryPrompt('flights', 'asking');
+    expect(prompt).toContain('calculate_remaining_budget');
+    expect(prompt).toContain('over budget');
+  });
+
+  it('should include weather awareness in experiences idle prompt', () => {
+    const prompt = getCategoryPrompt('experiences', 'idle');
+    expect(prompt).toContain('weather forecast');
+  });
+
+  it('should include one-way trip instruction in hotels idle prompt', () => {
+    const prompt = getCategoryPrompt('hotels', 'idle');
+    expect(prompt).toContain('one-way trip');
+    expect(prompt).toContain('How many nights');
+  });
+
+  it('should include impossible requests guidance in shared rules', () => {
+    const prompt = getCategoryPrompt('flights', 'asking');
+    expect(prompt).toContain('Never fabricate options');
+  });
+
+  it('should include category undo instruction in shared rules', () => {
+    const prompt = getCategoryPrompt('hotels', 'presented');
+    expect(prompt).toContain('change a previous selection');
+  });
 });

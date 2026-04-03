@@ -9,7 +9,10 @@ const SHARED_RULES = `
 - Always call format_response as your LAST tool call.
 - Set skip_category: true in format_response if the user declines this category.
 - Max 15 tool calls per turn.
-- When the user explicitly names a specific option, honor that selection. Do not present alternatives.`;
+- When the user explicitly names a specific option, honor that selection. Do not present alternatives.
+- After each selection, call calculate_remaining_budget. If remaining is negative, tell the user how much they're over budget and ask if they want cheaper options or to continue.
+- If search results are empty or all options far exceed the budget, explain honestly why and suggest realistic alternatives. Never fabricate options.
+- If the user wants to change a previous selection, re-search that category and present new options.`;
 
 const CATEGORY_PROMPTS: Record<CategoryName, Record<string, string>> = {
   flights: {
@@ -23,10 +26,10 @@ Provide quick_replies: ["I'll be flying", "I'll drive"].`,
   },
 
   hotels: {
-    idle: `Ask: "Do you need a hotel?" If yes, search hotels. If no, acknowledge and set skip_category: true in format_response.
+    idle: `Ask: "Do you need a hotel?" If yes, search hotels. If the trip has no return date (one-way trip), ask "How many nights are you staying?" before searching. If no hotel needed, acknowledge and set skip_category: true in format_response.
 Provide quick_replies: ["Yes, find me a hotel", "No, I have lodging"].`,
 
-    asking: `Ask: "Do you need a hotel?" If yes, search hotels. If no, acknowledge and set skip_category: true in format_response.
+    asking: `Ask: "Do you need a hotel?" If yes, search hotels. If the trip has no return date (one-way trip), ask "How many nights are you staying?" before searching. If no hotel needed, acknowledge and set skip_category: true in format_response.
 Provide quick_replies: ["Yes, find me a hotel", "No, I have lodging"].`,
 
     presented: `The user is browsing hotel options. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection. When the user selects a hotel, call select_hotel with the hotel details to save their choice. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,
@@ -43,10 +46,10 @@ Provide quick_replies: ["Yes, find me a car", "No, I don't need one"].`,
   },
 
   experiences: {
-    idle: `Based on the user's preferences, suggest relevant experience categories in one sentence. Then search experiences. The cards will show the results.
+    idle: `Based on the user's preferences, suggest relevant experience categories in one sentence. Check the weather forecast in context — if rain or extreme temperatures are forecasted, mention it when suggesting activities. Then search experiences. The cards will show the results.
 Provide quick_replies: ["Find dining options", "Show me adventures", "I'm all set"].`,
 
-    asking: `Based on the user's preferences, suggest relevant experience categories in one sentence. Then search experiences. The cards will show the results.
+    asking: `Based on the user's preferences, suggest relevant experience categories in one sentence. Check the weather forecast in context — if rain or extreme temperatures are forecasted, mention it when suggesting activities. Then search experiences. The cards will show the results.
 Provide quick_replies: ["Find dining options", "Show me adventures", "I'm all set"].`,
 
     presented: `The user is browsing experiences. Do not describe the results — the cards are visible. Answer questions briefly. Wait for their selection. When the user selects an experience, call select_experience with the experience details to save their choice. If they say they're done, set skip_category: true. When the user names a specific option (e.g., a specific hotel, flight, car, or experience), confirm that exact selection immediately. Do NOT suggest alternatives unless the user asks for them or the specified option is unavailable.`,

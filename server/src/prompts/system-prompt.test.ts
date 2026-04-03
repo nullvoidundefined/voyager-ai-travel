@@ -97,5 +97,25 @@ describe('system-prompt', () => {
       const prompt = buildSystemPrompt();
       expect(prompt).toMatch(/1-2 sentences/i);
     });
+
+    it('should include guardrails in every prompt', () => {
+      const result = buildSystemPrompt();
+      expect(result).toContain('Guardrails');
+      expect(result).toContain('unrelated to travel planning');
+      expect(result).toContain('multi-city');
+    });
+
+    it('should include critical advisory warning when hasCriticalAdvisory is true', () => {
+      const result = buildSystemPrompt(undefined, undefined, {
+        hasCriticalAdvisory: true,
+      });
+      expect(result).toContain('CRITICAL TRAVEL ADVISORY');
+      expect(result).toContain('advises against all travel');
+    });
+
+    it('should not include critical advisory warning by default', () => {
+      const result = buildSystemPrompt();
+      expect(result).not.toContain('CRITICAL TRAVEL ADVISORY');
+    });
   });
 });
