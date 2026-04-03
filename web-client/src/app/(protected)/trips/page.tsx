@@ -1,8 +1,10 @@
 'use client';
 
 import { del, get } from '@/lib/api';
+import { getDestinationImage } from '@/lib/destinationImage';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
 import Link from 'next/link';
 
 import styles from './trips.module.scss';
@@ -89,35 +91,61 @@ export default function TripsPage() {
       )}
 
       {trips && trips.length > 0 && (
-        <div className={styles.tripList}>
-          {trips.map((trip) => (
-            <div key={trip.id} className={styles.tripCard}>
-              <Link href={`/trips/${trip.id}`} className={styles.tripLink}>
-                <div className={styles.tripInfo}>
-                  <h2>{trip.destination}</h2>
-                  <p className={styles.dates}>
-                    {formatDates(trip.departure_date, trip.return_date)}
-                  </p>
-                </div>
-                <div className={styles.tripMeta}>
-                  <span className={styles.budget}>
-                    {formatBudget(trip.budget_total, trip.budget_currency)}
-                  </span>
-                  <span className={`${styles.status} ${styles[trip.status]}`}>
-                    {statusLabel(trip.status)}
-                  </span>
-                </div>
-              </Link>
-              <button
-                type='button'
-                className={styles.deleteBtn}
-                aria-label='Delete trip'
-                onClick={() => deleteMutation.mutate(trip.id)}
-              >
-                &times;
-              </button>
-            </div>
-          ))}
+        <div className={styles.trips}>
+          {trips.map((trip) => {
+            const { url } = getDestinationImage(trip.destination);
+            return (
+              <div key={trip.id} className={styles.tripCard}>
+                {url ? (
+                  <div className={styles.cardImage}>
+                    <Image
+                      src={url}
+                      alt={trip.destination}
+                      fill
+                      sizes='(max-width: 600px) 100vw, 50vw'
+                      style={{ objectFit: 'cover' }}
+                    />
+                    <button
+                      type='button'
+                      className={styles.deleteBtn}
+                      aria-label='Delete trip'
+                      onClick={() => deleteMutation.mutate(trip.id)}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ) : (
+                  <div className={styles.cardImageFallback}>
+                    <span>{trip.destination}</span>
+                    <button
+                      type='button'
+                      className={styles.deleteBtn}
+                      aria-label='Delete trip'
+                      onClick={() => deleteMutation.mutate(trip.id)}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+                <Link href={`/trips/${trip.id}`} className={styles.tripLink}>
+                  <div className={styles.tripInfo}>
+                    <h2>{trip.destination}</h2>
+                    <p className={styles.dates}>
+                      {formatDates(trip.departure_date, trip.return_date)}
+                    </p>
+                  </div>
+                  <div className={styles.tripMeta}>
+                    <span className={styles.budget}>
+                      {formatBudget(trip.budget_total, trip.budget_currency)}
+                    </span>
+                    <span className={`${styles.status} ${styles[trip.status]}`}>
+                      {statusLabel(trip.status)}
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            );
+          })}
         </div>
       )}
 
