@@ -19,6 +19,34 @@
   }
 }
 
+/* — Destination hero — */
+
+.destinationHero {
+  position: relative;
+  height: 240px;
+  margin: -32px -32px 32px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.destinationHeroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+  display: flex;
+  align-items: flex-end;
+  padding: 24px 32px;
+}
+
+.destinationHeroTitle {
+  color: var(--cta-text);
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 /* — Header — */
 
 .header {
@@ -238,6 +266,16 @@
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 800px) {
+  .destinationHero {
+    height: 160px;
+  }
+
+  .destinationHeroTitle {
+    font-size: 28px;
   }
 }
 

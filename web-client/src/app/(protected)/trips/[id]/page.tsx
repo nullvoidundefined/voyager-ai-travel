@@ -6,8 +6,13 @@ import { BookingConfirmation } from '@/components/BookingConfirmation/BookingCon
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { get, put } from '@/lib/api';
 import { APP_NAME } from '@/lib/constants';
+import {
+  getDestinationImage,
+  getDestinationImageUrl,
+} from '@/lib/destinationImage';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
@@ -123,15 +128,34 @@ export default function TripDetailPage() {
 
   const hasFlights = trip.flights.length > 0;
 
+  const { url, unsplashId } = getDestinationImage(trip.destination);
+  const hasHero = url !== null && unsplashId !== null;
+
   return (
     <div className={styles.page}>
       <Link href='/trips' className={styles.back}>
         &larr; Back to trips
       </Link>
 
+      {hasHero && unsplashId && (
+        <div className={styles.destinationHero}>
+          <Image
+            src={getDestinationImageUrl(unsplashId, 1400, 400)}
+            alt={trip.destination}
+            fill
+            sizes='(max-width: 1200px) 100vw, 1200px'
+            style={{ objectFit: 'cover' }}
+            priority
+          />
+          <div className={styles.destinationHeroOverlay}>
+            <h1 className={styles.destinationHeroTitle}>{trip.destination}</h1>
+          </div>
+        </div>
+      )}
+
       <div className={styles.header}>
         <div>
-          <h1>{trip.destination}</h1>
+          {!hasHero && <h1>{trip.destination}</h1>}
           <p className={styles.dates}>
             {!trip.departure_date && !trip.return_date
               ? 'Dates not set'
