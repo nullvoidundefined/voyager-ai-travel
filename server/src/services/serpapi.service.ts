@@ -18,6 +18,7 @@ function getApiKey(): string {
 export async function serpApiGet(
   engine: string,
   params: Record<string, string | number | undefined>,
+  requestId?: string,
 ): Promise<unknown> {
   const apiKey = getApiKey();
 
@@ -30,7 +31,7 @@ export async function serpApiGet(
 
   const url = `https://serpapi.com/search.json?${query}`;
 
-  logger.debug({ engine, params }, 'SerpApi request');
+  logger.debug({ engine, params, requestId }, 'SerpApi request');
 
   return serpApiBreaker.call(async () => {
     const response = await fetch(url);
@@ -38,7 +39,7 @@ export async function serpApiGet(
     if (!response.ok) {
       const text = await response.text();
       logger.error(
-        { status: response.status, body: text },
+        { status: response.status, body: text, requestId },
         'SerpApi request failed',
       );
       throw new Error(`SerpApi error: ${response.status} ${text}`);

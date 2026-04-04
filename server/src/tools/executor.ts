@@ -31,6 +31,7 @@ import type { ZodError, ZodSchema } from "zod";
 export interface ToolContext {
   tripId: string;
   userId: string;
+  requestId?: string;
 }
 
 function formatZodError(error: ZodError): string {

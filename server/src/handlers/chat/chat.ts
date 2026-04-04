@@ -126,7 +126,7 @@ export async function chat(req: Request, res: Response) {
       tripContext,
       onEvent,
       conversation.id,
-      { tripId, userId },
+      { tripId, userId, requestId: req.id as string },
       enrichmentNodes,
       flowPosition,
       { hasCriticalAdvisory, nudge },
