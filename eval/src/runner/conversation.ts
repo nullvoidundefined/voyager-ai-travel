@@ -110,7 +110,23 @@ export async function runConversation(
     });
 
     // Get customer's next response
-    customerMessage = await getCustomerResponse(persona, transcript);
+    try {
+      customerMessage = await getCustomerResponse(persona, transcript);
+    } catch (err) {
+      return {
+        transcript,
+        turns: Math.ceil(transcript.length / 2),
+        completed: false,
+        error: `Customer agent error: ${err instanceof Error ? err.message : String(err)}`,
+        tool_calls: allToolCalls,
+        tripId,
+      };
+    }
+
+    if (!customerMessage || customerMessage.trim() === '') {
+      // Customer returned empty — retry once with a nudge
+      customerMessage = 'Can you help me with my trip?';
+    }
 
     if (customerMessage.includes('DONE')) {
       completed = true;

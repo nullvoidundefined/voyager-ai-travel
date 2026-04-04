@@ -54,13 +54,18 @@ Constraints: ${persona.constraints}`;
     messages: [
       {
         role: 'user',
-        content: `## Customer Persona\n\n${personaDesc}\n\n## Conversation Transcript\n\n${transcriptStr}`,
+        content: `## Customer Persona\n\n${personaDesc}\n\n## Conversation Transcript\n\n${transcriptStr}\n\nNow score the agent. Respond with ONLY the JSON object, no other text.`,
+      },
+      {
+        role: 'assistant',
+        content: '{',
       },
     ],
   });
 
-  const text =
-    response.content[0]?.type === 'text' ? response.content[0].text : '{}';
+  const rawText =
+    response.content[0]?.type === 'text' ? response.content[0].text : '';
+  const text = '{' + rawText;
 
   try {
     return JSON.parse(text) as JudgeScores;

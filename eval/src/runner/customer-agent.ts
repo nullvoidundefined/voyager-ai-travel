@@ -53,8 +53,10 @@ export async function getCustomerResponse(
   persona: Persona,
   transcript: TranscriptEntry[],
 ): Promise<string> {
+  // Swap roles: from the customer's perspective, the travel agent's messages
+  // are "user" (incoming) and the customer's own messages are "assistant" (outgoing)
   const messages = transcript.map((t) => ({
-    role: t.role as 'user' | 'assistant',
+    role: (t.role === 'user' ? 'assistant' : 'user') as 'user' | 'assistant',
     content: t.content,
   }));
 
