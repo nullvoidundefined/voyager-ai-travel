@@ -16,8 +16,10 @@ export async function photoProxyHandler(req: Request, res: Response) {
   }
 
   try {
-    const url = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=${maxwidth}&key=${GOOGLE_API_KEY}`;
-    const response = await fetch(url);
+    const url = `https://places.googleapis.com/v1/${ref}/media?maxWidthPx=${maxwidth}`;
+    const response = await fetch(url, {
+      headers: { 'X-Goog-Api-Key': GOOGLE_API_KEY },
+    });
 
     if (!response.ok) {
       res.status(response.status).json({ error: 'PHOTO_FETCH_FAILED' });
