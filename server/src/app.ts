@@ -99,7 +99,7 @@ app.use('/user-preferences', userPreferencesRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 3001;
 const HOST = '0.0.0.0';
 
 export function startServer(): void {
