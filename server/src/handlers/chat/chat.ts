@@ -32,6 +32,11 @@ import {
 // In-memory lock to prevent concurrent agent loops per conversation
 const activeConversations = new Set<string>();
 
+/** Returns the number of currently active agent loops (for health monitoring). */
+export function getActiveConversationCount(): number {
+  return activeConversations.size;
+}
+
 export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const userId = req.user!.id;

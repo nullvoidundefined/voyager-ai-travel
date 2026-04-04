@@ -82,12 +82,42 @@ app.get('/health', (_req, res) => {
 });
 
 app.get('/health/ready', async (_req, res) => {
+  let dbStatus = 'disconnected';
+  let cacheStatus = 'unavailable';
+
   try {
     await query('SELECT 1');
-    res.status(200).json({ status: 'ok', db: 'connected' });
+    dbStatus = 'connected';
   } catch {
-    res.status(503).json({ status: 'degraded', db: 'disconnected' });
+    // DB check failed
   }
+
+  try {
+    const { getRedis } = await import('app/services/cache.service.js');
+    const redis = getRedis();
+    if (redis) {
+      await redis.ping();
+      cacheStatus = 'connected';
+    }
+  } catch {
+    cacheStatus = 'degraded';
+  }
+
+  let activeConversations = 0;
+  try {
+    const { getActiveConversationCount } = await import(
+      'app/handlers/chat/chat.js'
+    );
+    activeConversations = getActiveConversationCount();
+  } catch {
+    // Module not loaded yet
+  }
+
+  const status = dbStatus === 'connected' ? 'ok' : 'degraded';
+  const statusCode = dbStatus === 'connected' ? 200 : 503;
+  res
+    .status(statusCode)
+    .json({ status, db: dbStatus, cache: cacheStatus, activeConversations });
 });
 
 app.use('/auth', authRouter);
