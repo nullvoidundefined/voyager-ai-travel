@@ -5,7 +5,14 @@ import {
 } from 'app/services/cache.service.js';
 import { generateMockExperiences } from 'app/tools/mock/experiences.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
+import { CircuitBreaker } from 'app/utils/CircuitBreaker.js';
 import { logger } from 'app/utils/logs/logger.js';
+
+const placesBreaker = new CircuitBreaker('GooglePlaces', {
+  failureThreshold: 3,
+  cooldownMs: 60_000,
+  isRetryable: (err) => !err.message.includes('400'),
+});
 
 const CACHE_TTL = 3600;
 const PLACES_API_URL = 'https://places.googleapis.com/v1/places:searchText';
@@ -97,25 +104,27 @@ export async function searchExperiences(
     input.categories.length > 0 ? input.categories.join(' ') + ' ' : '';
   const textQuery = `${categoryText}in ${input.location}`;
 
-  const response = await fetch(PLACES_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': apiKey,
-      'X-Goog-FieldMask': FIELD_MASK,
-    },
-    body: JSON.stringify({
-      textQuery,
-      maxResultCount: input.limit || 5,
-    }),
+  const data = await placesBreaker.call(async () => {
+    const response = await fetch(PLACES_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': FIELD_MASK,
+      },
+      body: JSON.stringify({
+        textQuery,
+        maxResultCount: input.limit || 5,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`Google Places API error: ${response.status} ${text}`);
+    }
+
+    return (await response.json()) as { places: GooglePlace[] };
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Google Places API error: ${response.status} ${text}`);
-  }
-
-  const data = (await response.json()) as { places: GooglePlace[] };
   const results = (data.places || []).map(normalizePlace);
 
   await cacheSet(cacheKey, results, CACHE_TTL);

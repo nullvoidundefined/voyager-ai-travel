@@ -1,4 +1,11 @@
+import { CircuitBreaker } from 'app/utils/CircuitBreaker.js';
 import { logger } from 'app/utils/logs/logger.js';
+
+const serpApiBreaker = new CircuitBreaker('SerpApi', {
+  failureThreshold: 3,
+  cooldownMs: 60_000,
+  isRetryable: (err) => !err.message.includes('400'),
+});
 
 function getApiKey(): string {
   const key = process.env.SERPAPI_API_KEY;
@@ -25,16 +32,18 @@ export async function serpApiGet(
 
   logger.debug({ engine, params }, 'SerpApi request');
 
-  const response = await fetch(url);
+  return serpApiBreaker.call(async () => {
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    const text = await response.text();
-    logger.error(
-      { status: response.status, body: text },
-      'SerpApi request failed',
-    );
-    throw new Error(`SerpApi error: ${response.status} ${text}`);
-  }
+    if (!response.ok) {
+      const text = await response.text();
+      logger.error(
+        { status: response.status, body: text },
+        'SerpApi request failed',
+      );
+      throw new Error(`SerpApi error: ${response.status} ${text}`);
+    }
 
-  return response.json();
+    return response.json();
+  });
 }
