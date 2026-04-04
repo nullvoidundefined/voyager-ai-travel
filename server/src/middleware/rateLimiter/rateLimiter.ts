@@ -26,7 +26,7 @@ export const chatRateLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => req.user?.id ?? req.ip ?? 'anonymous',
+  keyGenerator: (req) => req.user?.id ?? 'anonymous',
   message: {
     error: 'RATE_LIMITED',
     message: 'Please wait before sending another message.',

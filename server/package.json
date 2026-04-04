@@ -6,7 +6,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc && tsc-alias -p tsconfig.json",
+    "build": "tsc && tsc-alias -p tsconfig.json && mkdir -p dist/data && cp src/data/*.json dist/data/",
     "dev": "tsx watch src/index.ts",
     "format": "prettier --config ../prettier.config.bottomlessmargaritas.js --write .",
     "format:check": "prettier --config ../prettier.config.bottomlessmargaritas.js --check .",

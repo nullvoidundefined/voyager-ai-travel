@@ -31,6 +31,7 @@ COPY packages/shared-types/ packages/shared-types/
 RUN pnpm install --frozen-lockfile --filter agentic-travel-agent-server --ignore-scripts --prod
 
 COPY --from=base /app/server/dist server/dist
+COPY server/src/data/destinations.json server/dist/data/destinations.json
 COPY server/migrations server/migrations
 
 EXPOSE 3001
