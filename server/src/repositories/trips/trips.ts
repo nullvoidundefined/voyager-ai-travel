@@ -1,4 +1,4 @@
-import { query, withTransaction } from 'app/db/pool/pool.js';
+import { query, withTransaction } from "app/db/pool/pool.js";
 import type {
   CreateTripInput,
   Trip,
@@ -7,7 +7,7 @@ import type {
   TripFlight,
   TripHotel,
   TripWithDetails,
-} from 'app/schemas/trips.js';
+} from "app/schemas/trips.js";
 
 export async function createTrip(
   userId: string,
@@ -31,7 +31,7 @@ export async function createTrip(
     ],
   );
   const row = result.rows[0];
-  if (!row) throw new Error('Insert returned no row');
+  if (!row) throw new Error("Insert returned no row");
   return row;
 }
 
@@ -90,9 +90,9 @@ export interface UpdateTripInput {
   return_date?: string;
   budget_total?: number;
   travelers?: number;
-  transport_mode?: 'flying' | 'driving';
-  trip_type?: 'round_trip' | 'one_way';
-  status?: 'planning' | 'saved' | 'archived';
+  transport_mode?: "flying" | "driving";
+  trip_type?: "round_trip" | "one_way";
+  status?: "planning" | "saved" | "archived";
 }
 
 export async function updateTrip(
@@ -116,30 +116,46 @@ export async function updateTrip(
 
   values.push(tripId, userId);
   const result = await query<Trip>(
-    `UPDATE trips SET ${setClauses.join(', ')} WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING *`,
+    `UPDATE trips SET ${setClauses.join(", ")} WHERE id = $${paramIndex} AND user_id = $${paramIndex + 1} RETURNING *`,
     values,
   );
   return result.rows[0] ?? null;
+}
+
+/** Generic helper for inserting a trip selection row with `selected = true`. */
+async function insertTripSelection(
+  table: string,
+  tripId: string,
+  columns: string[],
+  input: Record<string, unknown>,
+): Promise<void> {
+  const allCols = ["trip_id", ...columns, "selected"];
+  const values = [tripId, ...columns.map((c) => input[c] ?? null), true];
+  const placeholders = allCols.map((_, i) => `$${i + 1}`).join(", ");
+  await query(
+    `INSERT INTO ${table} (${allCols.join(", ")}) VALUES (${placeholders})`,
+    values,
+  );
 }
 
 export async function insertTripFlight(
   tripId: string,
   input: Record<string, unknown>,
 ): Promise<void> {
-  await query(
-    `INSERT INTO trip_flights (trip_id, airline, flight_number, origin, destination, departure_time, arrival_time, price, currency, selected)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
+  await insertTripSelection(
+    "trip_flights",
+    tripId,
     [
-      tripId,
-      input.airline,
-      input.flight_number,
-      input.origin,
-      input.destination,
-      input.departure_time ?? null,
-      input.arrival_time ?? null,
-      input.price,
-      input.currency ?? 'USD',
+      "airline",
+      "flight_number",
+      "origin",
+      "destination",
+      "departure_time",
+      "arrival_time",
+      "price",
+      "currency",
     ],
+    input,
   );
 }
 
@@ -147,20 +163,20 @@ export async function insertTripHotel(
   tripId: string,
   input: Record<string, unknown>,
 ): Promise<void> {
-  await query(
-    `INSERT INTO trip_hotels (trip_id, name, city, star_rating, price_per_night, total_price, currency, check_in, check_out, selected)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)`,
+  await insertTripSelection(
+    "trip_hotels",
+    tripId,
     [
-      tripId,
-      input.name,
-      input.city ?? null,
-      input.star_rating ?? null,
-      input.price_per_night,
-      input.total_price,
-      input.currency ?? 'USD',
-      input.check_in ?? null,
-      input.check_out ?? null,
+      "name",
+      "city",
+      "star_rating",
+      "price_per_night",
+      "total_price",
+      "currency",
+      "check_in",
+      "check_out",
     ],
+    input,
   );
 }
 
@@ -168,18 +184,18 @@ export async function insertTripCarRental(
   tripId: string,
   input: Record<string, unknown>,
 ): Promise<void> {
-  await query(
-    `INSERT INTO trip_car_rentals (trip_id, provider, car_name, car_type, price_per_day, total_price, currency, selected)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true)`,
+  await insertTripSelection(
+    "trip_car_rentals",
+    tripId,
     [
-      tripId,
-      input.provider,
-      input.car_name,
-      input.car_type ?? null,
-      input.price_per_day ?? null,
-      input.total_price,
-      input.currency ?? 'USD',
+      "provider",
+      "car_name",
+      "car_type",
+      "price_per_day",
+      "total_price",
+      "currency",
     ],
+    input,
   );
 }
 
@@ -187,34 +203,29 @@ export async function insertTripExperience(
   tripId: string,
   input: Record<string, unknown>,
 ): Promise<void> {
-  await query(
-    `INSERT INTO trip_experiences (trip_id, name, category, estimated_cost, rating, selected)
-     VALUES ($1, $2, $3, $4, $5, true)`,
-    [
-      tripId,
-      input.name,
-      input.category ?? null,
-      input.estimated_cost,
-      input.rating ?? null,
-    ],
+  await insertTripSelection(
+    "trip_experiences",
+    tripId,
+    ["name", "category", "estimated_cost", "rating"],
+    input,
   );
 }
 
 export async function clearSelectionsForTrip(tripId: string): Promise<void> {
   await withTransaction(async (client) => {
     await query(
-      'DELETE FROM trip_flights WHERE trip_id = $1',
+      "DELETE FROM trip_flights WHERE trip_id = $1",
       [tripId],
       client,
     );
-    await query('DELETE FROM trip_hotels WHERE trip_id = $1', [tripId], client);
+    await query("DELETE FROM trip_hotels WHERE trip_id = $1", [tripId], client);
     await query(
-      'DELETE FROM trip_car_rentals WHERE trip_id = $1',
+      "DELETE FROM trip_car_rentals WHERE trip_id = $1",
       [tripId],
       client,
     );
     await query(
-      'DELETE FROM trip_experiences WHERE trip_id = $1',
+      "DELETE FROM trip_experiences WHERE trip_id = $1",
       [tripId],
       client,
     );
