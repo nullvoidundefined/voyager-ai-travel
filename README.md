@@ -1,10 +1,33 @@
-# Voyager — Full Application Description
+# Voyager
+
+> **Portfolio demo, not a commercial product.** Voyager is a technical demonstration of an agentic AI travel planning pattern, built as a portfolio piece to show engineering judgment, not to sell trips. No bookings happen. No payments flow. No user data is shared beyond the API calls required to fetch live search results. The business model, unit economics, and strategic weaknesses of the concept are analyzed honestly in the [2026-04-06 Criticism audit](./docs/audits/2026-04-06-criticism.md), which is published in this repo as a deliberate artifact, not hidden.
+
+**One-line stack:** Express 5 + TypeScript on Railway; Next.js 15 + React 19 on Vercel; Postgres on Neon; Redis on Railway; Claude Sonnet 4 via Anthropic SDK; SerpApi (Google Flights + Google Hotels) and Google Places for live travel data.
+
+## Audit trail
+
+I audited my own work on 2026-04-06 with a set of eight autonomous specialist reviewers (engineering, security, design, UX, marketing, financial, legal, criticism). The reports are in `docs/audits/` and are worth reading if you are evaluating this as a demo.
+
+- [Engineering (CTO)](./docs/audits/2026-04-06-engineering.md) — architecture, test coverage, operational basics, bug-fix discipline retrospective
+- [Security (CISO)](./docs/audits/2026-04-06-security.md) — auth, LLM key handling, prompt injection surface, dependency CVEs
+- [Design (CDO)](./docs/audits/2026-04-06-design.md) — visual system, typography, components, motion, responsive
+- [UX (CXO)](./docs/audits/2026-04-06-ux.md) — user story coverage table, destructive action guardrails, accessibility
+- [Marketing (CMO)](./docs/audits/2026-04-06-marketing.md) — positioning, competitive analysis, copy quality
+- [Financial (CFO)](./docs/audits/2026-04-06-financial.md) — unit economics, spending caps, burn rate, blast radius
+- [Legal & Compliance](./docs/audits/2026-04-06-legal.md) — missing documents checklist, DPA status, marketing claim substantiation
+- [Criticism (Devil's Advocate)](./docs/audits/2026-04-06-criticism.md) — the brutal truth about whether this thing should exist
+
+Consolidated triage with severity and fix queue: [`docs/audits/2026-04-06-triage.md`](./docs/audits/2026-04-06-triage.md). Rolling log of deferred issues: [`ISSUES.md`](./ISSUES.md).
+
+## What the Criticism audit actually says
+
+Quoting the Brutal Truth section: Voyager is a technically impressive demo of an agentic tool-use loop, wrapped around a product nobody needs and nobody will pay for as a standalone consumer service. The unit economics do not work without a booking path, the moat vs. ChatGPT-plus-browsing does not exist, and there are already a dozen well-funded agentic travel startups chasing the same space. This is not hidden; it is the honest assessment, published in the repo, because the point of the demo is to show strong engineering taste, not to pretend the business case is strong.
 
 ## Overview
 
-Voyager is a full-stack AI-powered travel planning application that demonstrates **agentic tool-use loops** — the capstone pattern in a portfolio of eight progressive AI applications. Users describe a trip in natural language (destination, dates, budget, preferences), and an AI agent autonomously searches live flight, hotel, and experience APIs, reasons about budget constraints between each step, and assembles a complete itinerary — all streamed to the frontend in real time.
+Voyager is a full-stack application that demonstrates **agentic tool-use loops** — the capstone pattern in a portfolio of eight progressive AI applications. Users describe a trip in natural language (destination, dates, budget, preferences), and an AI agent autonomously searches live flight, hotel, and experience APIs, reasons about budget constraints between each step, and assembles a complete itinerary, all streamed to the frontend in real time.
 
-Unlike simple chatbot wrappers, the agent makes **3–8 sequential tool calls per turn**, examining results, adjusting strategy, and proactively suggesting alternatives when a selection exceeds the budget. This is the key differentiator: the AI is not just answering questions — it is _acting_ on the user's behalf across multiple external systems.
+Unlike simple chatbot wrappers, the agent makes **3 to 8 sequential tool calls per turn**, examining results, adjusting strategy, and proactively suggesting alternatives when a selection exceeds the budget. This is the key differentiator: the AI is not just answering questions; it is _acting_ on the user's behalf across multiple external systems.
 
 ---
 
