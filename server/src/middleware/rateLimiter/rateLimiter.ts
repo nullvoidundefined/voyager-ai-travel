@@ -60,6 +60,18 @@ function getRedisClient(): Redis | null {
   }
 }
 
+/**
+ * Returns true when the request should bypass rate limiting.
+ * E2E suites set E2E_BYPASS_RATE_LIMITS=1 because they seed
+ * dozens of users and trips per run from a single IP and would
+ * otherwise hit the 10-per-15-min auth limit immediately. The
+ * unit and integration tests do NOT set this flag, so they
+ * still exercise the limiter behavior.
+ */
+function shouldBypass(): boolean {
+  return process.env.E2E_BYPASS_RATE_LIMITS === '1';
+}
+
 function makeStore(prefix: string): Store | undefined {
   const client = getRedisClient();
   if (!client) {
@@ -83,6 +95,7 @@ export const rateLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypass,
   store: makeStore('global'),
 });
 
@@ -101,6 +114,7 @@ export const chatRateLimiter = rateLimit({
     error: 'RATE_LIMITED',
     message: 'Please wait before sending another message.',
   },
+  skip: shouldBypass,
   store: makeStore('chat'),
 });
 
@@ -110,5 +124,6 @@ export const authRateLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypass,
   store: makeStore('auth'),
 });

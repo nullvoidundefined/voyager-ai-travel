@@ -63,6 +63,12 @@ export default defineConfig({
         // and burns no tokens. The orchestrator falls back to
         // the real client when this is unset.
         E2E_MOCK_ANTHROPIC: '1',
+        // The 35 story specs each call /auth/register from the
+        // same IP. Without bypassing the auth rate limit (10 per
+        // 15 min) the run would 429 after the 10th test. Unit
+        // and integration tests do NOT set this flag and still
+        // exercise the limiter behavior.
+        E2E_BYPASS_RATE_LIMITS: '1',
       },
     },
     {
