@@ -8,12 +8,13 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Playwright loads this config via CommonJS, so __dirname is
+// available natively and points to the directory of this file.
+const ROOT_DIR = __dirname;
 
 export default defineConfig({
-  testDir: path.resolve(__dirname, 'e2e/real-apis'),
+  testDir: path.resolve(ROOT_DIR, 'e2e/real-apis'),
   timeout: 180_000,
   retries: 1,
   workers: 1,

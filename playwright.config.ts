@@ -1,14 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Playwright loads this config via CommonJS so __dirname is the
+// directory of this file regardless of CWD. We use it to keep
+// the testDir absolute, which lets the config work whether
+// invoked from the monorepo root or from inside web-client
+// (where the @playwright/test binary lives).
+const ROOT_DIR = __dirname;
 
 export default defineConfig({
-  // Absolute path so this config works whether invoked from the
-  // monorepo root or from within web-client (which is where the
-  // @playwright/test binary lives).
-  testDir: path.resolve(__dirname, 'e2e'),
+  testDir: path.resolve(ROOT_DIR, 'e2e'),
   // The nightly real-API smoke suite lives at e2e/real-apis/ and
   // must NOT run in the main mocked suite. The e2e-real-apis.yml
   // workflow points at it explicitly with --grep or by passing the
