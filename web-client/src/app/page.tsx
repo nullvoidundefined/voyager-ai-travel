@@ -150,23 +150,25 @@ export default function Home() {
         ))}
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>AI Travel Concierge</p>
+          <p className={styles.eyebrow}>Portfolio demo</p>
           <h1 className={styles.title}>
-            Your next journey,
+            An agentic trip planner,
             <br />
-            <span className={styles.titleAccent}>planned by AI.</span>
+            <span className={styles.titleAccent}>
+              built as a portfolio piece.
+            </span>
           </h1>
           <p className={styles.subtitle}>
-            Describe your dream trip. Our agent searches real flights, hotels,
-            and experiences — then assembles a complete, budget-aware itinerary
-            in seconds.
+            Multi-step Claude tool loop. Real Google Flights and Hotels data via
+            SerpApi. Budget-aware itinerary assembly. Full source and audit
+            trail linked below.
           </p>
           <div className={styles.ctas}>
             <Link href='/register' className={styles.primaryCta}>
-              Start Planning
+              Try the chat demo
             </Link>
             <Link href='/faq' className={styles.secondaryCta}>
-              How it Works
+              How it works
             </Link>
           </div>
         </div>
