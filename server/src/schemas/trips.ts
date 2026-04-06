@@ -40,7 +40,6 @@ export interface Trip {
 export interface TripFlight {
   id: string;
   trip_id: string;
-  amadeus_offer_id: string | null;
   origin: string;
   destination: string;
   departure_time: Date | null;
@@ -58,7 +57,6 @@ export interface TripFlight {
 export interface TripHotel {
   id: string;
   trip_id: string;
-  amadeus_hotel_id: string | null;
   name: string | null;
   address: string | null;
   city: string | null;

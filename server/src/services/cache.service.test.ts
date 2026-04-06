@@ -118,12 +118,12 @@ describe('cache.service', () => {
 
   describe('normalizeCacheKey', () => {
     it('generates a deterministic key from sorted params', () => {
-      const key1 = cacheService.normalizeCacheKey('amadeus', 'flight-offers', {
+      const key1 = cacheService.normalizeCacheKey('serpapi', 'flight-offers', {
         origin: 'SFO',
         destination: 'BCN',
         date: '2026-07-01',
       });
-      const key2 = cacheService.normalizeCacheKey('amadeus', 'flight-offers', {
+      const key2 = cacheService.normalizeCacheKey('serpapi', 'flight-offers', {
         destination: 'BCN',
         date: '2026-07-01',
         origin: 'SFO',
@@ -132,10 +132,10 @@ describe('cache.service', () => {
     });
 
     it('normalizes string values to lowercase and trimmed', () => {
-      const key1 = cacheService.normalizeCacheKey('amadeus', 'flight-offers', {
+      const key1 = cacheService.normalizeCacheKey('serpapi', 'flight-offers', {
         origin: '  SFO  ',
       });
-      const key2 = cacheService.normalizeCacheKey('amadeus', 'flight-offers', {
+      const key2 = cacheService.normalizeCacheKey('serpapi', 'flight-offers', {
         origin: 'sfo',
       });
       expect(key1).toBe(key2);
@@ -153,7 +153,7 @@ describe('cache.service', () => {
     });
 
     it('preserves non-string values as-is', () => {
-      const key = cacheService.normalizeCacheKey('amadeus', 'flight-offers', {
+      const key = cacheService.normalizeCacheKey('serpapi', 'flight-offers', {
         adults: 2,
         max: 5,
       });
