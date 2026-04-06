@@ -40,6 +40,12 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-15] Evaluate test suite for bloat and thinness
+
+- **Source:** Plan B / option B follow-up (2026-04-06)
+- **Severity:** P2 · **Effort:** M · **Category:** testing / quality
+- **Notes:** Run a research subagent (after option B merges so the CI baseline is green) that produces `docs/audits/YYYY-MM-DD-test-suite-evaluation.md`. Goal: smallest set of tests that catches the bugs that matter. Bloat signals: redundant assertions, coverage delta of zero when a test is removed, test:source LoC ratio outliers, runtime per assertion, tests that have never failed in CI history. Thinness signals: files with no tests, branch coverage gaps, fix commits without paired tests (cross-ref the fix-commit-gate violations), user stories without real E2E coverage (the 10 current test.fixme markers are hidden gaps). Deliverable sections: per-package inventory (server, web-client, e2e), top 10 redundant clusters with deletion candidates, top 10 untested files with addition candidates, never-failed-in-CI list, coverage map by user story / audit ID / fix commit, concrete add/delete recommendations. Threshold for deletion: redundant AND source is stable AND removing it does not drop branch coverage. Three signals before touching anything.
+
 ### [ENG-14] E2E config has no fail-fast smoke check; misconfigurations burn CI time
 
 - **Source:** Plan B / option B follow-up (2026-04-06 incident)
