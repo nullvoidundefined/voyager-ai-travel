@@ -33,18 +33,22 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'cd server && npx tsx src/index.ts',
+      command: 'npx tsx src/index.ts',
+      cwd: path.resolve(ROOT_DIR, 'server'),
       port: 3001,
       timeout: 30_000,
       reuseExistingServer: false,
       env: {
+        ...(process.env as Record<string, string>),
         PORT: '3001',
         NODE_ENV: 'test',
-        // Note: no E2E_MOCK_TOOLS. Real-API mode is the point.
+        // Note: no E2E_MOCK_TOOLS or E2E_MOCK_ANTHROPIC.
+        // Real-API mode is the point.
       },
     },
     {
-      command: 'cd web-client && npx next dev --port 3000',
+      command: 'npx next dev --port 3000',
+      cwd: path.resolve(ROOT_DIR, 'web-client'),
       port: 3000,
       timeout: 60_000,
       reuseExistingServer: false,
