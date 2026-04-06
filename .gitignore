@@ -17,6 +17,7 @@ coverage/
 # Claude Code local settings
 .claude/*
 !.claude/bottomlessmargaritas/
+!.claude/commands/
 .DS_Store
 
 web-client/playwright-report/
