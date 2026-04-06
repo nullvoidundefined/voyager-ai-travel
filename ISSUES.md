@@ -40,6 +40,18 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-14] E2E config has no fail-fast smoke check; misconfigurations burn CI time
+
+- **Source:** Plan B / option B follow-up (2026-04-06 incident)
+- **Severity:** P2 · **Effort:** S · **Category:** testing / CI / DX
+- **Notes:** A 15-minute CI run failed because `CORS_ORIGIN` defaulted to the legacy `http://localhost:5173` (Vite) while Next.js dev runs on `:3000`. Every browser request from the test runner returned `net::ERR_FAILED` and Playwright dutifully retried each of 35 specs three times before reporting failure. The actual problem was a single env var. The lesson: any precondition that, if wrong, would invalidate every test, must be checked BEFORE Playwright spins up. Concrete fix: add a `scripts/e2e-smoke.sh` (or extend `e2e-precheck.sh`) that runs after the webServer is up and BEFORE the test step, hitting `GET /health` and `OPTIONS /auth/login` from `Origin: http://localhost:3000`, and exits non-zero with a clear message if either the server is down OR CORS is misconfigured. Wire it as a workflow step between `playwright install` and `pnpm test:e2e`. Same principle for any future "every test depends on X being true" precondition: assert it explicitly, fail fast, do not let Playwright discover it via 35 consecutive timeouts. Related class: any "legacy default" in a config file (Vite port, old project name, deprecated env var name) is a landmine; add a startup-time validation that flags suspicious defaults when `NODE_ENV=test` or `CI=true`.
+
+### [ENG-13] E2E suite runtime is slower than it should be
+
+- **Source:** Plan B / option B follow-up (2026-04-06)
+- **Severity:** P2 · **Effort:** M · **Category:** testing / CI
+- **Notes:** Voyager has ~42 Playwright tests with all externals mocked (SerpApi, Google Places, Anthropic via `MockAnthropicClient`). A healthy run at this size and config should land around 6 to 8 minutes; observed CI runs are sitting at 11+ minutes. Two concrete fixes: (1) bump `workers` from 1 to 2 or 4 in `playwright.config.ts` with per-worker test database isolation so the seedUser fixture does not collide. About 2x speedup. (2) Investigate retry frequency. With `retries: 2` a single flaky spec costs 3x its base time. If 10 percent of specs retry, that adds roughly 30 percent wall time. Goal: zero retries on a green run. Once the suite is below 5 minutes the `e2e-fast` lefthook hook can be promoted from warning to blocking.
+
 ### [ENG-10] Partial tool-call progress visibility lost at 15-call limit
 
 - **Source:** engineering §AgentOrchestrator

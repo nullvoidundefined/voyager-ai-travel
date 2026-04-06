@@ -69,6 +69,12 @@ export default defineConfig({
         // and integration tests do NOT set this flag and still
         // exercise the limiter behavior.
         E2E_BYPASS_RATE_LIMITS: '1',
+        // The corsConfig default is http://localhost:5173 (a
+        // legacy Vite port). Next.js dev runs on :3000, so
+        // without this override every browser request from the
+        // test runner is blocked with net::ERR_FAILED before it
+        // even reaches the auth handler.
+        CORS_ORIGIN: 'http://localhost:3000',
       },
     },
     {
