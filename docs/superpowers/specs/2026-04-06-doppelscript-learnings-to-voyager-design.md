@@ -31,15 +31,13 @@ Bring Voyager up to the quality bar established in Doppelscript by:
 | Q1 | Sequenced, parallel, or E2E-first? | **Sequenced.** Audits → triage → E2E → fixes. |
 | Q2 | Audit commands: copy, adapt, or rewrite? | **Heavy rewrite** tailored to Voyager's stack and agent loop. |
 | Q3 | Who runs the audits? | **I run all 6 in parallel subagents** using isolated worktrees. |
-| Q4 | E2E: per-story, per-file, flow-based, or hybrid? | **Hybrid.** 1 test per user story (named `US-N: ...`) plus 2–3 journey tests. |
+| Q4 | E2E: per-story, per-file, flow-based, or hybrid? | **Hybrid.** 1 test per user story (named `US-N: ...`) plus 3 journey tests. |
 | Q5 | E2E external APIs: real or mocked? | **Mocked in E2E**, separate nightly real-API smoke suite. |
 | Q6 | Local gate: pre-push, CI, or both? | **Both.** Pre-push fast lane (< 30s) + CI full suite on every push. |
 | Q7 | Scope of bug fixes from audits? | **Fix P0/P1 test-first; log P2/P3 to ISSUES.md.** |
-
-Doppelscript migration detail:
-
-- Move the 4 existing Doppelscript audit files into `docs/audits/`.
-- Use each file's **original git-history date** (first commit that added it), not today's date, for accurate provenance.
+| — | Fix branch topology? | **Single branch** `fix/audit-2026-04-06-p0p1`, one commit per fix, merged via PR with merge commit. |
+| — | Separate E2E Anthropic key? | **No.** Reuse the existing production key; revisit if billing becomes noticeable. |
+| — | Doppelscript audit migration? | **Out of scope for this effort.** Tracked as its own separate spec. |
 
 ## Global rules captured
 
@@ -60,7 +58,6 @@ Layer-specific convention files (`CLAUDE-BACKEND.md`, `CLAUDE-FRONTEND.md`, `CLA
 ## Architecture — 5 phases (sequenced)
 
 ```
-Phase 0: Standardize Doppelscript audits → docs/audits/ pattern
 Phase 1: Create Voyager audit commands (Voyager-tailored)
 Phase 2: Run Voyager audits in parallel (6 subagents, worktree isolation)
 Phase 3: Triage → docs/audits/2026-04-06-triage.md + ISSUES.md updates
@@ -70,28 +67,7 @@ Phase 5: Test gates + test-first P0/P1 fixes
 
 Each phase produces committed artifacts and has explicit exit criteria. The next phase does not start until the prior is complete.
 
----
-
-## Phase 0 — Standardize Doppelscript audits
-
-**Deliverable:** Doppelscript's existing audit files relocated into `docs/audits/` with dated filenames, and its audit commands updated to write to the new location.
-
-**Actions:**
-
-1. For each of `DESIGN_AUDIT.md`, `ENGINEERING_AUDIT.md`, `MARKETING_AUDIT.md`, `UX_AUDIT.md` at the Doppelscript repo root:
-   - Run `git log --diff-filter=A --follow --format=%cs -- <file>` to get the first-commit date (YYYY-MM-DD).
-   - `git mv <file> docs/audits/<first-commit-date>-<type>.md` where `<type>` is `engineering` / `design` / `ux` / `marketing`.
-2. Update all 6 Doppelscript audit commands in `.claude/commands/audit-*.md`:
-   - Change "create branch `audit/<type>-YYYY-MM-DD`" → "commit to the current branch".
-   - Change "generate `AUDIT_<TYPE>.md` at project root" → "generate `docs/audits/YYYY-MM-DD-<type>.md` (use current date)".
-3. Single commit: `refactor: move audits to docs/audits/ with dated history`.
-
-**Exit criteria:**
-
-- `ls doppelscript/docs/audits/` shows the 4 dated audit files.
-- `ls doppelscript/` shows no `*_AUDIT.md` files at root.
-- `grep -l "AUDIT_" doppelscript/.claude/commands/` returns nothing.
-- All 6 Doppelscript audit commands point to `docs/audits/YYYY-MM-DD-<type>.md`.
+**Out of scope (separate effort):** Standardizing Doppelscript's existing audit files into the dated `docs/audits/` pattern. This is tracked as its own design and will not be executed as part of this Voyager effort.
 
 ---
 
@@ -213,32 +189,34 @@ Agent 6 → criticism audit   → docs/audits/2026-04-06-criticism.md
 
 **Pre-work:** Verify `docs/USER_STORIES.md` is still accurate against the current implementation. Flag drift items for triage — do not silently rewrite stories to match code. The spec is the source of truth; if code diverges, that's an audit finding.
 
-**File layout:**
+**File layout (grouped by the actual sections in `docs/USER_STORIES.md`):**
 
 ```
 e2e/
 ├── fixtures/
-│   ├── mock-serpapi.ts           — fake flight + hotel responses (happy + edge cases)
-│   ├── mock-google-places.ts     — fake experience + restaurant results
-│   └── test-users.ts             — seeded user factories
+│   ├── mock-serpapi.ts            — fake flight + hotel responses (happy + edge cases)
+│   ├── mock-google-places.ts      — fake experience + restaurant results
+│   └── test-users.ts              — seeded user factories
 ├── helpers/
-│   ├── auth.ts                   — login / register / logout page objects
-│   ├── chat.ts                   — send message, assert tool-call indicator, read response
-│   └── trip.ts                   — create / load / save trip helpers
-├── public-pages.spec.ts          — US-1 through US-4
-├── auth.spec.ts                  — US-5 through US-7
-├── trip-creation.spec.ts         — US-8 through US-15
-├── trip-iteration.spec.ts        — US-16 through US-22
-├── trip-persistence.spec.ts      — US-23 through US-28
-├── settings-account.spec.ts      — US-29 through US-33
-├── error-states.spec.ts          — US-34, US-35
+│   ├── auth.ts                    — login / register / logout page objects
+│   ├── chat.ts                    — send message, assert tool-call indicator, read response
+│   └── trip.ts                    — create / load / save trip helpers
+├── public-pages.spec.ts           — US-1 to US-7   (home, browse, filter, detail, start-trip CTA, FAQ, nav)
+├── auth.spec.ts                   — US-8 to US-12  (register, login, failed login, logout, protected route)
+├── trip-management.spec.ts        — US-13 to US-17 (view trips, create, detail, delete, trip cards)
+├── chat-booking-flow.spec.ts      — US-18 to US-24 (welcome, form, message, response, tile cards, select tile, quick reply)
+├── checkout.spec.ts               — US-25 to US-28 (modal, breakdown, confirm, locked state)
+├── preferences.spec.ts            — US-29 to US-33 (wizard, wizard nav, edit, badge, view)
+├── account.spec.ts                — US-34, US-35   (account details, preference status)
 └── journeys/
-    ├── first-time-visitor.spec.ts — full Monterey plan happy path
-    ├── returning-iteration.spec.ts — load saved trip, iterate, re-save
-    └── error-recovery.spec.ts     — tool call fails mid-loop, user recovers
+    ├── happy-path-booking.spec.ts    — discover → register → wizard → create trip → chat → select tiles → checkout → confirm
+    ├── returning-user-iterates.spec.ts — login → view trips → open trip → follow-up message → select tile → save
+    └── failure-path.spec.ts          — protected route redirect (US-12) → failed login (US-10) → retry → success (US-9)
 ```
 
-**Note:** The area-based grouping above (public-pages, auth, trip-creation, etc.) is based on `docs/USER_STORIES.md` reading only the first 80 lines. Before implementing, verify story-to-area mapping by reading the full file — stories may not group exactly as assumed. Adjust file boundaries as needed; the rule is one test per story with story ID in the name, not any specific file partition.
+**Grouping note:** The area boundaries above exactly match the `## Section` headings in `docs/USER_STORIES.md` (Public Pages, Authentication, Trip Management, Chat & Booking Flow, Checkout & Booking Confirmation, User Preferences, Account). There is no "error-states" spec file because no error-state user stories exist in the documented set — error paths are tested within each story's individual test case (e.g., US-10 "Failed login" lives in `auth.spec.ts`) and in the `failure-path` journey.
+
+**Total test count:** 35 story tests (one per user story) + 3 journey tests = 38 tests.
 
 **No `mock-amadeus.ts`.** Amadeus is referenced in `docs/FULL_APPLICATION_SPEC.md`, `server/src/schemas/trips.ts` (nullable `amadeus_offer_id` / `amadeus_hotel_id` columns), and a handful of tests as a label string, but there is no actual Amadeus client in `server/src/`. This divergence between spec and implementation is itself a triage item.
 
@@ -261,9 +239,9 @@ test.describe('Public pages', () => {
 
 **Anthropic API cost handling:**
 
-- A separate E2E-only Anthropic API key (tracked separately in billing).
-- Key stored as GitHub Actions secret `ANTHROPIC_API_KEY_E2E`.
-- Local runs use the same key via `.env.e2e` (gitignored).
+- Reuses the existing production `ANTHROPIC_API_KEY` for E2E runs. (Decision: avoid the operational overhead of a separate E2E key for now; revisit if E2E-driven cost becomes noticeable in billing.)
+- Key is already stored as a GitHub Actions secret and in local `.env` files.
+- If billing separation becomes desirable later, the swap is a single env-var name change across Playwright's `webServer` config, `lefthook.yml`, and the CI workflow — small effort, deferred until there's a reason.
 
 **Exit criteria (Phase 4):**
 
@@ -288,7 +266,7 @@ test.describe('Public pages', () => {
 2. Tag tests with `@fast` in their name:
    - The smoke test.
    - All of `auth.spec.ts` (US-5, US-6, US-7).
-   - `e2e/journeys/first-time-visitor.spec.ts`.
+   - `e2e/journeys/happy-path-booking.spec.ts`.
    Target combined runtime: < 30 seconds.
 3. Update `lefthook.yml`:
    ```yaml
@@ -325,18 +303,21 @@ test.describe('Public pages', () => {
 
 ### Part D — P0/P1 fix loop (test-first, strict)
 
-For every P0 and P1 item in `docs/audits/2026-04-06-triage.md`, processed P0 before P1, and within each severity by effort (S → M → L):
+All P0/P1 fixes land on a **single branch** `fix/audit-2026-04-06-p0p1`, with **one commit per fix**. The branch is then merged to `main` as one PR containing many commits (preserving individual fix history). Fixes are processed P0 before P1, and within each severity by effort (S → M → L).
 
-1. Create branch `fix/<triage-id>-<short-description>`.
-2. Write a test reproducing the issue at the appropriate layer (unit, integration, or E2E). **Run it. Confirm it fails.**
-3. Write the minimal fix.
-4. Run the test again. **Confirm it passes.**
-5. Run the full verification chain:
+For every P0 and P1 item in `docs/audits/2026-04-06-triage.md`:
+
+1. On the `fix/audit-2026-04-06-p0p1` branch, write a test reproducing the issue at the appropriate layer (unit, integration, or E2E). **Run it. Confirm it fails.**
+2. Write the minimal fix.
+3. Run the test again. **Confirm it passes.**
+4. Run the full verification chain:
    `pnpm format:check && pnpm lint && pnpm test && pnpm test:e2e:fast && pnpm build`
-6. Commit with message `fix(<triage-id>): <description>`.
-7. Merge to `main` (fast-forward or squash; squash preferred for cleanliness).
+5. Commit with message `fix(<triage-id>): <description>` — one commit containing both the new test and the fix.
+6. Move to the next triage item; repeat.
 
-No skipping step 2. No deploying to production to check whether the fix works. No `--no-verify`.
+After all P0/P1 items are committed on the branch, open one PR against `main` titled `fix: audit 2026-04-06 P0/P1 findings`. The PR body lists each triage ID and commit SHA. Merge with a merge commit (not squash) so individual fix commits remain in history.
+
+No skipping step 1. No deploying to production to check whether a fix works. No `--no-verify`.
 
 ### Exit criteria (Phase 5)
 
@@ -355,12 +336,12 @@ No skipping step 2. No deploying to production to check whether the fix works. N
 | Risk | Mitigation |
 |------|------------|
 | Audit subagents produce generic, template-feeling reports | Each command's closing line explicitly demands specific files, functions, line numbers. If a report is generic, it is rejected and rerun with stricter wording. |
-| Amadeus removal surfaces hidden dependencies | Phase 4 drops Amadeus mocks but does not remove Amadeus references from docs or schema. Removal is a separate triage item processed in Phase 5 if it lands in P0/P1. |
-| Anthropic API costs during E2E exceed expectations | Dedicated E2E API key with usage alerts; Playwright's `--project=chromium` limits runs to a single browser; `@fast`-tagged subset reduces pre-push cost to a handful of turns. |
-| `USER_STORIES.md` is out of date | Phase 4 pre-work verifies the file. Drift is flagged for triage, not silently corrected. |
-| Tool executor does not currently support adapter injection | Phase 1 engineering audit flags this; it becomes a P1 prerequisite fix in Phase 5. |
+| Amadeus references in docs/schema surface as hidden dependencies | Phase 4 drops Amadeus mocks entirely (they're unused). Removing Amadeus references from docs / schema / tests is a separate triage item processed in Phase 5 if it lands in P0/P1. |
+| Anthropic API costs during E2E exceed expectations | Playwright's `--project=chromium` limits runs to a single browser; `@fast`-tagged subset reduces pre-push cost to a handful of turns; monitor billing; separate E2E key remains an option if costs spike. |
+| `USER_STORIES.md` is out of date against current implementation | Phase 4 pre-work verifies the file. Drift is flagged for triage, not silently corrected. The grouping boundaries in this spec match the current `## Section` headings in the file (verified 2026-04-06). |
+| Tool executor does not currently support adapter injection | Phase 1 engineering audit flags this; it becomes a P1 prerequisite fix in Phase 5 before E2E gates can go live. |
 | Pre-push fast lane pushes 30s over budget | If runtime exceeds 45s consistently, drop the journey test from the fast lane and rely on CI to catch journey failures. The fast lane exists to catch gross breakage, not every regression. |
-| `USER_STORIES.md` story-to-area grouping doesn't match Phase 4's assumed file layout | Pre-work reads the full file and adjusts file boundaries. The rule is one test per story with story ID in the name — file partitioning is an implementation detail. |
+| Single fix branch grows too large to review | If the P0/P1 fix count exceeds ~20 commits, consider splitting into two PRs (P0s merged first, P1s merged second). Decision point lives at the end of Phase 3 when the triage count is known. |
 
 ## Non-goals
 
