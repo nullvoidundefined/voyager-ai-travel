@@ -26,4 +26,14 @@ describe('FAQ page content', () => {
   it('data sharing answer does not route queries to Amadeus', () => {
     expect(faqSource).not.toMatch(/queries to Amadeus/);
   });
+
+  it('does not advertise a phantom Pro plan at any price', () => {
+    expect(faqSource).not.toMatch(/\$9.*Pro plan|Pro plan.*\$9/);
+    expect(faqSource).not.toContain('unlimited trips');
+    expect(faqSource).not.toContain('priority API access');
+  });
+
+  it('frames pricing honestly as a free demo without a commercial tier', () => {
+    expect(faqSource).toContain('free to use');
+  });
 });
