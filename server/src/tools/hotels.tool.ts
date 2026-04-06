@@ -3,12 +3,17 @@ import {
   cacheSet,
   normalizeCacheKey,
 } from 'app/services/cache.service.js';
-import { serpApiGet } from 'app/services/serpapi.service.js';
+import {
+  SerpApiQuotaExceededError,
+  serpApiGet,
+} from 'app/services/serpapi.service.js';
 import { generateMockHotels } from 'app/tools/mock/hotels.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
-const CACHE_TTL = 3600;
+// FIN-07: extended from 1h to 6h on 2026-04-06. See flights.tool.ts
+// for rationale. Hotel prices are even less volatile than flights.
+const CACHE_TTL = 21600; // 6 hours
 
 export interface HotelSearchInput {
   city: string;
@@ -121,10 +126,22 @@ export async function searchHotels(
     hl: 'en',
   };
 
-  const response = (await serpApiGet(
-    'google_hotels',
-    params,
-  )) as SerpApiHotelsResponse;
+  let response: SerpApiHotelsResponse;
+  try {
+    response = (await serpApiGet(
+      'google_hotels',
+      params,
+    )) as SerpApiHotelsResponse;
+  } catch (err) {
+    if (err instanceof SerpApiQuotaExceededError) {
+      logger.warn(
+        { city: input.city },
+        'Hotel search unavailable: SerpApi monthly cap reached',
+      );
+      return [];
+    }
+    throw err;
+  }
 
   let results = (response.properties ?? []).map((h, i) =>
     normalizeHotel(h, i, input),
