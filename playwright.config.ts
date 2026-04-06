@@ -18,6 +18,11 @@ export default defineConfig({
       env: {
         PORT: '3001',
         NODE_ENV: 'test',
+        // Plan B (2026-04-06): force the server to use mock tool
+        // adapters so E2E runs do not burn real SerpApi / Google
+        // Places quota. The real-API smoke suite in e2e/real-apis/
+        // runs in a separate nightly workflow with this flag unset.
+        E2E_MOCK_TOOLS: '1',
       },
     },
     {
