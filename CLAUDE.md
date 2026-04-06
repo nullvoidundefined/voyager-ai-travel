@@ -26,12 +26,12 @@ Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about re
 
 ## Critical implementation note
 
-The agent loop runs synchronously on the API server. The agent needs immediate results to reason. Cache SerpApi responses aggressively — 250 searches/month on free tier.
+The agent loop runs synchronously on the API server. The agent needs immediate results to reason. Cache SerpApi responses aggressively. The free tier is 250 searches/month.
 
 ## Frontend conventions
 
-- Use **TanStack Query** (React Query) for all server state — data fetching, caching, mutations, and optimistic updates. No raw useEffect + fetch patterns.
-- Use **Toast** component for API/server errors — never show raw error messages or stack traces inline. Keep inline `{error}` only for form validation messages.
+- Use **TanStack Query** (React Query) for all server state: data fetching, caching, mutations, and optimistic updates. No raw useEffect + fetch patterns.
+- Use **Toast** component for API/server errors. Never show raw error messages or stack traces inline. Keep inline `{error}` only for form validation messages.
 
 ## Deployment
 
@@ -42,7 +42,7 @@ cd web-client && npx vercel --prod
 ```
 
 - Vercel project `agentic-travel-agent`, domain `interviewiangreenough.xyz`
-- `.vercel/` link lives in `web-client/` — always deploy from there
+- `.vercel/` link lives in `web-client/`. Always deploy from there.
 - `web-client/vercel.json` sets `"framework": "nextjs"`
 - Do NOT set `outputFileTracingRoot` in `next.config.ts` (causes Vercel path doubling error)
 
@@ -60,10 +60,10 @@ railway up --detach
 ### Deploy pitfalls
 
 - **Wrong directory:** Railway must run from the monorepo root, not `server/`. Vercel must run from `web-client/`, not the root.
-- **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars — they override the Dockerfile.
+- **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars. They override the Dockerfile.
 - **Stale Railway link:** If build logs show the wrong directory, relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from the monorepo root.
 
-## Bug fix process — test first, not optimism
+## Bug fix process: test first, not optimism
 
 When fixing any breaking issue, follow this exact process:
 
@@ -79,12 +79,30 @@ Never claim something is fixed without a failing-then-passing test. Never deploy
 
 Lefthook hooks enforce `format:check`, `lint`, and `build` on every commit and push. If hooks aren't blocking bad code, check:
 
-- `git config --local core.hooksPath` — must not point to a stale directory
-- Run `npx lefthook install` to reinstall hooks if needed
+- `git config --local core.hooksPath`. Must not point to a stale directory.
+- Run `npx lefthook install` to reinstall hooks if needed.
+
+Voyager is fully trunk-based: 0 PRs, 0 merge commits in the first 246 commits of project history. The lefthook pre-push hook is the **only** code-review boundary. Never bypass it without explicit per-commit user authorization. After any hook bypass, the next commit on main must re-run `pnpm format:check && pnpm lint && pnpm test && pnpm build` in its body as evidence. If the hook is found to be failing spuriously, fix the hook that day, before the next feature commit. Source: 2026-04-06 process retrospective at `docs/audits/2026-04-06-process-retrospective.md`.
 
 ## Commit conventions
 
-- Make **separate commits** for unrelated tasks — do not bundle unrelated changes into one commit.
+- Make **separate commits** for unrelated tasks. Do not bundle unrelated changes into one commit.
+
+## docs/BUGS.md severity tagging
+
+Every entry in `docs/BUGS.md` must tag its first line with `severity: P0|P1|P2|P3` and `effort: S|M|L`. Anything P0 or P1 must also be mirrored into the current `docs/audits/YYYY-MM-DD-triage.md`. The 2026-04-06 process retrospective found B14 (tile selections do not persist) sitting in the "Open" section as a P0 with no urgency signal, and four cases where P0 fixes were batched alongside P3 cosmetic items in a single commit (`5ab42753`, `15f86be5`, `8f7bae5b`, `047679bc`) precisely because the entries had no severity tags forcing the conversation. Without severity tags, BUGS.md becomes an unscoped bucket and the global "triage by severity" rule is bypassed.
+
+## ChatBox invariants
+
+Before landing any further fix to `web-client/src/components/ChatBox/`, write a `web-client/src/components/ChatBox/ChatBox.invariants.test.tsx` that enumerates the invariants the data model must hold:
+
+- Tool-result cards persist after the SSE stream ends.
+- Text nodes never duplicate when the agent re-emits text.
+- Empty state renders when the node list is empty.
+- Virtualizer layout is stable under append (no layout thrash on the last node).
+- QuickReplyChips render only after the final assistant message of a turn.
+
+Every subsequent ChatBox fix must extend this spec, not create a new ad-hoc test next to the file. The 2026-04-06 process retrospective found a 9-commit fix storm (`183eb289` through `9e2eab7d`) in 85 minutes touching `web-client/src/components/ChatBox/*` exclusively, with one `debug:` commit landing console.logs directly on main. Each fix patched a symptom without unifying the data model, so each new fix risked reintroducing an earlier symptom. The invariants spec exists to make those regressions impossible.
 
 ## Shared convention files
 

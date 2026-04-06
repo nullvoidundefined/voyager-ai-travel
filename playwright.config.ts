@@ -33,22 +33,53 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'cd server && npx tsx src/index.ts',
+      command: 'npx tsx src/index.ts',
+      // Run from the server package so dotenv finds server/.env
+      // and tsx resolves src/index.ts. Without this Playwright
+      // spawns from whatever CWD invoked it (web-client when
+      // running via `pnpm --dir web-client exec`) and the
+      // `cd server && ...` shell trick we previously used
+      // crashed in CI because web-client/server does not exist.
+      cwd: path.resolve(ROOT_DIR, 'server'),
       port: 3001,
       timeout: 15_000,
       reuseExistingServer: !process.env.CI,
       env: {
+        // Forward the parent process env so DATABASE_URL,
+        // REDIS_URL, and other server boot requirements survive.
+        // Without this spread Playwright replaces process.env
+        // wholesale and the server crashes with "DATABASE_URL is
+        // required" before any test runs.
+        ...(process.env as Record<string, string>),
         PORT: '3001',
         NODE_ENV: 'test',
-        // Plan B (2026-04-06): force the server to use mock tool
-        // adapters so E2E runs do not burn real SerpApi / Google
-        // Places quota. The real-API smoke suite in e2e/real-apis/
-        // runs in a separate nightly workflow with this flag unset.
+        // Plan B: force the server to use mock tool adapters so
+        // E2E runs do not burn real SerpApi / Google Places
+        // quota. The real-API smoke suite in e2e/real-apis/ runs
+        // in a separate nightly workflow with this flag unset.
         E2E_MOCK_TOOLS: '1',
+        // Option B (2026-04-06): swap the real Anthropic SDK for
+        // a deterministic stub so the suite needs no API key
+        // and burns no tokens. The orchestrator falls back to
+        // the real client when this is unset.
+        E2E_MOCK_ANTHROPIC: '1',
+        // The 35 story specs each call /auth/register from the
+        // same IP. Without bypassing the auth rate limit (10 per
+        // 15 min) the run would 429 after the 10th test. Unit
+        // and integration tests do NOT set this flag and still
+        // exercise the limiter behavior.
+        E2E_BYPASS_RATE_LIMITS: '1',
+        // The corsConfig default is http://localhost:5173 (a
+        // legacy Vite port). Next.js dev runs on :3000, so
+        // without this override every browser request from the
+        // test runner is blocked with net::ERR_FAILED before it
+        // even reaches the auth handler.
+        CORS_ORIGIN: 'http://localhost:3000',
       },
     },
     {
-      command: 'cd web-client && npx next dev --port 3000',
+      command: 'npx next dev --port 3000',
+      cwd: path.resolve(ROOT_DIR, 'web-client'),
       port: 3000,
       timeout: 30_000,
       reuseExistingServer: !process.env.CI,

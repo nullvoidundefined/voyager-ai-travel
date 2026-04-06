@@ -5,7 +5,7 @@ import {
 } from 'app/middleware/rateLimiter/rateLimiter.js';
 import express from 'express';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 function buildApp(
   limiter: ReturnType<typeof import('express-rate-limit').default>,
@@ -103,6 +103,44 @@ describe('authRateLimiter', () => {
       await request(app).get('/test');
     }
 
+    const blocked = await request(app).get('/test');
+    expect(blocked.status).toBe(429);
+  });
+});
+
+describe('E2E_BYPASS_RATE_LIMITS', () => {
+  // Note: the limiter's `skip` callback is evaluated per request,
+  // so toggling the env var between requests changes behavior
+  // without re-importing the module. The boot test uses a
+  // separate non-listening Redis URL; this suite stays in-memory.
+  const ORIGINAL = process.env.E2E_BYPASS_RATE_LIMITS;
+
+  afterEach(() => {
+    if (ORIGINAL === undefined) {
+      delete process.env.E2E_BYPASS_RATE_LIMITS;
+    } else {
+      process.env.E2E_BYPASS_RATE_LIMITS = ORIGINAL;
+    }
+  });
+
+  it('skips the auth limiter entirely when set to "1"', async () => {
+    process.env.E2E_BYPASS_RATE_LIMITS = '1';
+    const app = buildApp(authRateLimiter);
+
+    // Send well past the 10/15-min limit. None should 429.
+    for (let i = 0; i < 50; i++) {
+      const res = await request(app).get('/test');
+      expect(res.status).toBe(200);
+    }
+  });
+
+  it('does not skip when unset', async () => {
+    delete process.env.E2E_BYPASS_RATE_LIMITS;
+    const app = buildApp(authRateLimiter);
+
+    for (let i = 0; i < 10; i++) {
+      await request(app).get('/test');
+    }
     const blocked = await request(app).get('/test');
     expect(blocked.status).toBe(429);
   });

@@ -157,7 +157,19 @@ export function startServer(): void {
     process.exit(1);
   });
   process.on('unhandledRejection', (reason) => {
-    logger.fatal({ reason }, 'Unhandled rejection – shutting down');
+    // Pino's default serializer drops Error.message/stack from
+    // bare `reason` objects, leaving us with `{}` in CI logs.
+    // Normalize to a shape Pino will fully serialize.
+    const err =
+      reason instanceof Error
+        ? reason
+        : new Error(
+            typeof reason === 'string' ? reason : JSON.stringify(reason),
+          );
+    logger.fatal(
+      { err, reasonRaw: reason },
+      'Unhandled rejection - shutting down',
+    );
     logger.flush();
     process.exit(1);
   });

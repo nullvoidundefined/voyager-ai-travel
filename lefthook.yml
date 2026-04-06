@@ -6,16 +6,25 @@ pre-commit:
     lint:
       run: pnpm lint
 
-# Fix-commit discipline gate (warning mode).
+# Fix-commit discipline gate (BLOCKING mode).
 #
 # Rule: any commit whose subject starts with fix: / fix( / bug: / bugfix: /
 # hotfix: must include at least one test file in the same commit. This
 # catches "optimism-driven debugging". Pushing a fix without first writing
 # a failing test that reproduces the bug.
 #
-# Currently WARNING mode (exit 0 always). Will be promoted to BLOCKING after
-# it has proven not to produce false positives. See ~/.claude/CLAUDE.md
-# test-first bug fix rule.
+# Promoted from warning to BLOCKING on 2026-04-06 after a process
+# retrospective found a 68.6 percent violation rate across 51 fix
+# commits in the first 13 days of project history. Even after the rule
+# was explicitly codified in commit 27e41de2, the violation rate did
+# not change. Warning-mode hooks do not change behavior; only blocking
+# hooks do. See docs/audits/2026-04-06-process-retrospective.md and
+# the Test-first bug fixing section of ~/.claude/CLAUDE.md.
+#
+# Bypass: if the fix genuinely needs no test (e.g. a CI config change
+# mislabeled as fix), either rename the subject to chore:/docs:/style:,
+# OR use git commit --no-verify with explicit user authorization for
+# that specific commit.
 commit-msg:
   commands:
     fix-commit-gate:
@@ -24,22 +33,25 @@ commit-msg:
         SUBJECT=$(head -1 "$MSG_FILE")
         case "$SUBJECT" in
           fix:*|fix\(*|bug:*|bugfix:*|hotfix:*)
-            if ! git diff --cached --name-only | grep -qE '(\.test\.|\.spec\.|/e2e/|/__tests__/|/test/)'; then
+            if ! git diff --cached --name-only | grep -qE '(\.test\.|\.spec\.|(^|/)e2e/|(^|/)__tests__/|(^|/)test/)'; then
               echo ""
-              echo "⚠️  WARNING: fix-commit discipline check"
+              echo "BLOCKED: fix-commit discipline check"
               echo "   Commit subject: $SUBJECT"
               echo "   No test files are staged in this commit."
               echo ""
-              echo "   A bug-fix commit should include the failing test that"
+              echo "   A bug-fix commit MUST include the failing test that"
               echo "   reproduced the bug. Options:"
-              echo "   1. Add the reproducing test, then amend the commit"
-              echo "   2. Rename the commit to 'chore:' or 'docs:' if this is"
+              echo "   1. Add the reproducing test, then re-stage and re-commit"
+              echo "   2. Rename the commit to chore:/docs:/style: if this is"
               echo "      not actually a bug fix"
-              echo "   3. Continue anyway (warning mode. Not blocking)"
+              echo "   3. git commit --no-verify with explicit user authorization"
+              echo "      (record the authorization in the commit body)"
               echo ""
-              echo "   This check is in WARNING mode. See ~/.claude/CLAUDE.md"
-              echo "   test-first bug fix rule."
+              echo "   This check is BLOCKING. See ~/.claude/CLAUDE.md"
+              echo "   test-first bug fix rule and"
+              echo "   docs/audits/2026-04-06-process-retrospective.md."
               echo ""
+              exit 1
             fi
             ;;
         esac

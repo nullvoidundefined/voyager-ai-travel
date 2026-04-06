@@ -40,7 +40,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter voyager-server run migrate
+      - run: pnpm --filter voyager-server run migrate:up
         env:
           DATABASE_URL: postgres://postgres:test@localhost:5432/voyager_test
       - run: pnpm --dir web-client exec playwright install --with-deps chromium
@@ -49,7 +49,16 @@ jobs:
           DATABASE_URL: postgres://postgres:test@localhost:5432/voyager_test
           REDIS_URL: redis://localhost:6379
           E2E_MOCK_TOOLS: '1'
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # E2E_MOCK_ANTHROPIC=1 swaps the real SDK for the
+          # MockAnthropicClient stub so this workflow needs no
+          # API key and burns no tokens. The nightly real-API
+          # workflow leaves this unset.
+          E2E_MOCK_ANTHROPIC: '1'
+          E2E_BYPASS_RATE_LIMITS: '1'
+          # Override the legacy localhost:5173 (Vite) default in
+          # corsConfig so the Next.js dev server on :3000 can call
+          # the API on :3001.
+          CORS_ORIGIN: 'http://localhost:3000'
           NODE_ENV: test
       - uses: actions/upload-artifact@v4
         if: failure()

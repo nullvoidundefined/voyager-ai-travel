@@ -40,6 +40,46 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-15] Evaluate test suite for bloat, thinness, AND confidence theater
+
+- **Source:** Plan B / option B follow-up (2026-04-06), reinforced by the Doppelscript Haiku code-fence incident the same day
+- **Severity:** P2 · **Effort:** M · **Category:** testing / quality
+- **Notes:** Run a research subagent (after option B merges so the CI baseline is green) that produces `docs/audits/YYYY-MM-DD-test-suite-evaluation.md`. Goal: smallest set of tests that catches the bugs that matter, with zero confidence theater. Three failure modes to evaluate: bloat (redundant), thinness (gaps), confidence theater (passing tests that wouldn't catch real bugs).
+
+  **Bloat signals:** redundant assertions, coverage delta of zero when a test is removed, test:source LoC ratio outliers, runtime per assertion, tests that have never failed in CI history.
+
+  **Thinness signals:** files with no tests, branch coverage gaps, fix commits without paired tests (cross-ref the fix-commit-gate violations from the 2026-04-06 retrospective: 35 of 51 fix commits violate test-first), user stories without real E2E coverage (the 10 current test.fixme markers are hidden gaps).
+
+  **Confidence theater signals (per the no-confidence-theater rule in `~/.claude/CLAUDE.md`):**
+  1. Self-mock: `vi.mock('./foo')` inside `foo.test.ts`
+  2. Mocked dependency that IS the thing being tested (parser tested with pre-parsed input)
+  3. Mock-call assertions without behavior assertions (`toHaveBeenCalled` only)
+  4. Snapshot-only tests with no behavioral assertion
+  5. Mocking the integration boundary the test claims to cross (repository tests that mock the db pool)
+  6. Tautological assertions (assertion guaranteed by setup)
+  7. Loose-shape only assertions (`toBeDefined`, `toBeTruthy`, "no throw")
+  8. Skipped tests with no comment or triage reference
+  9. Always-failing tests that linger
+  10. LLM-consumer tests that hand-mock the model response shape instead of using a real captured fixture (the Doppelscript anchor incident: a Haiku markdown code-fence bug shipped because tests mocked the JSON the parser was supposed to consume; only a live calibration run caught it)
+
+  Deliverable sections: per-package inventory (server, web-client, e2e), top 10 bloat candidates, top 10 thinness gaps, top 10 confidence theater violations with file:line evidence, top 10 untested files with addition candidates, never-failed-in-CI list, coverage map by user story / audit ID / fix commit, concrete add/delete/rewrite recommendations.
+
+  **Deletion threshold:** redundant AND source is stable AND removing it does not drop branch coverage. Three signals before touching anything.
+
+  **Confidence-theater rewrite threshold:** any test that fails the "if I delete the implementation and throw, would this test fail?" check must be rewritten to assert behavior, not interactions. LLM-consumer tests must use a real captured fixture, not a hand-mock.
+
+### [ENG-14] E2E config has no fail-fast smoke check; misconfigurations burn CI time
+
+- **Source:** Plan B / option B follow-up (2026-04-06 incident)
+- **Severity:** P2 · **Effort:** S · **Category:** testing / CI / DX
+- **Notes:** A 15-minute CI run failed because `CORS_ORIGIN` defaulted to the legacy `http://localhost:5173` (Vite) while Next.js dev runs on `:3000`. Every browser request from the test runner returned `net::ERR_FAILED` and Playwright dutifully retried each of 35 specs three times before reporting failure. The actual problem was a single env var. The lesson: any precondition that, if wrong, would invalidate every test, must be checked BEFORE Playwright spins up. Concrete fix: add a `scripts/e2e-smoke.sh` (or extend `e2e-precheck.sh`) that runs after the webServer is up and BEFORE the test step, hitting `GET /health` and `OPTIONS /auth/login` from `Origin: http://localhost:3000`, and exits non-zero with a clear message if either the server is down OR CORS is misconfigured. Wire it as a workflow step between `playwright install` and `pnpm test:e2e`. Same principle for any future "every test depends on X being true" precondition: assert it explicitly, fail fast, do not let Playwright discover it via 35 consecutive timeouts. Related class: any "legacy default" in a config file (Vite port, old project name, deprecated env var name) is a landmine; add a startup-time validation that flags suspicious defaults when `NODE_ENV=test` or `CI=true`.
+
+### [ENG-13] E2E suite runtime is slower than it should be
+
+- **Source:** Plan B / option B follow-up (2026-04-06)
+- **Severity:** P2 · **Effort:** M · **Category:** testing / CI
+- **Notes:** Voyager has ~42 Playwright tests with all externals mocked (SerpApi, Google Places, Anthropic via `MockAnthropicClient`). A healthy run at this size and config should land around 6 to 8 minutes; observed CI runs are sitting at 11+ minutes. Two concrete fixes: (1) bump `workers` from 1 to 2 or 4 in `playwright.config.ts` with per-worker test database isolation so the seedUser fixture does not collide. About 2x speedup. (2) Investigate retry frequency. With `retries: 2` a single flaky spec costs 3x its base time. If 10 percent of specs retry, that adds roughly 30 percent wall time. Goal: zero retries on a green run. Once the suite is below 5 minutes the `e2e-fast` lefthook hook can be promoted from warning to blocking.
+
 ### [ENG-10] Partial tool-call progress visibility lost at 15-call limit
 
 - **Source:** engineering §AgentOrchestrator

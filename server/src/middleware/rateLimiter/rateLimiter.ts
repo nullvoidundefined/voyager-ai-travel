@@ -37,7 +37,18 @@ function getRedisClient(): Redis | null {
   try {
     redisClient = new Redis(url, {
       maxRetriesPerRequest: 3,
-      enableOfflineQueue: false,
+      // enableOfflineQueue MUST stay true (the ioredis default).
+      // rate-limit-redis's RedisStore constructor synchronously
+      // calls loadIncrementScript() which sendCommand()s the EVAL
+      // SHA before the TCP connection is established. With offline
+      // queue disabled, ioredis throws "Stream isn't writeable"
+      // and the unhandled rejection kills the server at boot.
+      // Regression test: rateLimiter.boot.test.ts
+      enableOfflineQueue: true,
+      // Make connection retries lazy so a momentarily-unreachable
+      // Redis at startup degrades gracefully into rate-limit
+      // failures instead of taking down the whole API server.
+      lazyConnect: false,
     });
     redisClient.on('error', (err: Error) => {
       logger.error({ err }, 'Redis connection error in rate limiter');
@@ -47,6 +58,18 @@ function getRedisClient(): Redis | null {
     logger.error({ err }, 'Failed to create Redis client for rate limiter');
     return null;
   }
+}
+
+/**
+ * Returns true when the request should bypass rate limiting.
+ * E2E suites set E2E_BYPASS_RATE_LIMITS=1 because they seed
+ * dozens of users and trips per run from a single IP and would
+ * otherwise hit the 10-per-15-min auth limit immediately. The
+ * unit and integration tests do NOT set this flag, so they
+ * still exercise the limiter behavior.
+ */
+function shouldBypass(): boolean {
+  return process.env.E2E_BYPASS_RATE_LIMITS === '1';
 }
 
 function makeStore(prefix: string): Store | undefined {
@@ -72,6 +95,7 @@ export const rateLimiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypass,
   store: makeStore('global'),
 });
 
@@ -90,6 +114,7 @@ export const chatRateLimiter = rateLimit({
     error: 'RATE_LIMITED',
     message: 'Please wait before sending another message.',
   },
+  skip: shouldBypass,
   store: makeStore('chat'),
 });
 
@@ -99,5 +124,6 @@ export const authRateLimiter = rateLimit({
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: shouldBypass,
   store: makeStore('auth'),
 });
