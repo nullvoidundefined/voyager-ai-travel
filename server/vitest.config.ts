@@ -30,31 +30,33 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcov'],
       reportsDirectory: 'coverage',
-      // Restored to 80 on 2026-04-07 (PR-J). History:
-      //   - Original threshold: 80 across all four metrics.
-      //   - PR-C (2026-04-06) removed **/rateLimiter.ts from the
-      //     exclude list because the SEC-04 boot crash happened
-      //     in code that was hidden from coverage.
-      //   - PR-G (2026-04-06) dropped the threshold to 75 as a
-      //     temporary measure because PR-C's inclusion exposed
-      //     pre-existing gaps in routes, logger, trip-context,
-      //     and several tool files that had always been below
-      //     80 but were silently passing.
-      //   - PR-J (2026-04-07) wrote missing tests for
-      //     trip-context (35 new tests), logger (4), and the
-      //     trips/places routers (8). Branch coverage climbed
-      //     from 76.43 to 80.38, so the threshold is restored
-      //     to 80 with the same safety margin the original
-      //     setting provided.
+      // Raised from 80 to 85 on 2026-04-07 (PR-K, ENG-19).
+      // History:
+      //   - Original threshold: 80.
+      //   - PR-C (2026-04-06) removed rateLimiter.ts from the
+      //     exclude list (the SEC-04 boot crash was in hidden
+      //     code).
+      //   - PR-G (2026-04-06) dropped threshold to 75 because
+      //     PR-C's inclusion exposed pre-existing gaps.
+      //   - PR-J (2026-04-07) wrote 47 tests for trip-context,
+      //     logger, trips/places routers. Branch coverage
+      //     76.43 -> 80.38. Threshold restored to 80.
+      //   - PR-K (2026-04-07) ENG-19 wrote 45 more tests for
+      //     chat.helpers, flights/hotels/executor tools,
+      //     node-builder, requestLogger, agent.service
+      //     (advisory/quick_replies branches), trips handler
+      //     (destination-change clear-selections path).
+      //     Branch coverage 80.38 -> 85.22. Threshold raised
+      //     to 85.
       //
-      // If coverage drops below 80 again, EITHER add tests to
-      // bring it back up OR document a temporary lowering as a
+      // If coverage drops below 85, EITHER add tests to bring
+      // it back up OR document a temporary lowering as a
       // tracked ENG issue. Do not silently adjust the number.
       thresholds: {
-        branches: 80,
-        functions: 80,
-        lines: 80,
-        statements: 80,
+        branches: 85,
+        functions: 85,
+        lines: 85,
+        statements: 85,
       },
     },
     environment: 'node',

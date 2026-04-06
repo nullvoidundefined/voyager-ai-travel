@@ -7,6 +7,10 @@ import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('app/repositories/trips/trips.js');
+vi.mock('app/repositories/conversations/conversations.js', () => ({
+  getOrCreateConversation: vi.fn().mockResolvedValue({ id: 'conv-1' }),
+  updateBookingState: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
@@ -239,6 +243,108 @@ describe('trip handlers', () => {
           return_date: '2026-08-10',
         }),
       );
+    });
+
+    it('rejects past departure dates with 400', async () => {
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ departure_date: '2020-01-01' });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('past');
+    });
+
+    it('rejects return_date before departure_date with 400', async () => {
+      const res = await request(app).put(`/trips/${tripId}`).send({
+        departure_date: '2026-09-01',
+        return_date: '2026-08-01',
+      });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('after');
+    });
+
+    it('clears selections when destination changes on a trip with selections', async () => {
+      const existingTrip = {
+        ...mockTrip,
+        destination: 'Barcelona',
+        flights: [{ id: 'f1' }],
+        hotels: [],
+        car_rentals: [],
+        experiences: [],
+      };
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        existingTrip as unknown as Awaited<
+          ReturnType<typeof tripRepo.getTripWithDetails>
+        >,
+      );
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        destination: 'Paris',
+      });
+      vi.mocked(tripRepo.clearSelectionsForTrip).mockResolvedValueOnce(
+        undefined,
+      );
+      // getOrCreateConversation + updateBookingState are side effects;
+      // the handler dynamically imports them. Tolerate failure by
+      // letting them call through (they would normally hit the DB,
+      // but we only care that clearSelectionsForTrip got called).
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ destination: 'Paris' });
+
+      expect(res.status).toBe(200);
+      expect(tripRepo.clearSelectionsForTrip).toHaveBeenCalledWith(tripId);
+    });
+
+    it('does not clear selections when destination is unchanged', async () => {
+      const existingTrip = {
+        ...mockTrip,
+        destination: 'Barcelona',
+        flights: [{ id: 'f1' }],
+      };
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        existingTrip as unknown as Awaited<
+          ReturnType<typeof tripRepo.getTripWithDetails>
+        >,
+      );
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        destination: 'Barcelona',
+      });
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ destination: 'Barcelona' });
+
+      expect(res.status).toBe(200);
+      expect(tripRepo.clearSelectionsForTrip).not.toHaveBeenCalled();
+    });
+
+    it('does not clear selections when destination changes but trip has none', async () => {
+      const existingTrip = {
+        ...mockTrip,
+        destination: 'Barcelona',
+        flights: [],
+        hotels: [],
+        car_rentals: [],
+        experiences: [],
+      };
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        existingTrip as unknown as Awaited<
+          ReturnType<typeof tripRepo.getTripWithDetails>
+        >,
+      );
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        destination: 'Paris',
+      });
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ destination: 'Paris' });
+
+      expect(res.status).toBe(200);
+      expect(tripRepo.clearSelectionsForTrip).not.toHaveBeenCalled();
     });
   });
 

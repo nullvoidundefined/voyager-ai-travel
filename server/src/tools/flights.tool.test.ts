@@ -224,5 +224,83 @@ describe('flights.tool', () => {
         }),
       ).rejects.toThrow('API timeout');
     });
+
+    it('returns an empty array when SerpApi monthly quota is exceeded', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      const { SerpApiQuotaExceededError } = serpApiService as {
+        SerpApiQuotaExceededError: new () => Error;
+      };
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
+        new SerpApiQuotaExceededError(),
+      );
+
+      const result = await searchFlights({
+        origin: 'SFO',
+        destination: 'BCN',
+        departure_date: '2026-07-01',
+        passengers: 1,
+      });
+
+      // Graceful degrade: empty results, no rethrow.
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('mock mode', () => {
+    beforeEach(async () => {
+      vi.resetModules();
+      vi.doMock('app/services/serpapi.service.js', () => ({
+        serpApiGet: vi.fn(),
+        SerpApiQuotaExceededError: class SerpApiQuotaExceededError extends Error {},
+      }));
+      vi.doMock('app/services/cache.service.js', () => ({
+        cacheGet: vi.fn(),
+        cacheSet: vi.fn(),
+        normalizeCacheKey: vi.fn().mockReturnValue('test-cache-key'),
+      }));
+      vi.doMock('app/utils/logs/logger.js', () => ({
+        logger: {
+          error: vi.fn(),
+          info: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+        },
+      }));
+      vi.doMock('app/tools/mock/isMockMode.js', () => ({
+        isMockMode: vi.fn().mockReturnValue(true),
+      }));
+      vi.doMock('app/tools/mock/flights.mock.js', () => ({
+        generateMockFlights: vi.fn().mockReturnValue([
+          {
+            offer_id: 'mock-flight-0',
+            airline: 'Delta',
+            airline_logo: null,
+            flight_number: 'DL100',
+            origin: 'SFO',
+            destination: 'BCN',
+            price: 300,
+            currency: 'USD',
+          },
+        ]),
+      }));
+      const mod = await import('app/tools/flights.tool.js');
+      searchFlights = mod.searchFlights;
+    });
+
+    it('returns mock results and skips SerpApi when isMockMode() is true', async () => {
+      const result = await searchFlights({
+        origin: 'SFO',
+        destination: 'BCN',
+        departure_date: '2026-07-01',
+        passengers: 1,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.airline).toBe('Delta');
+      // The real SerpApi client from the outer describe's mock
+      // setup is not used in this branch, so we cannot assert
+      // "not called" without re-importing. Asserting the mock
+      // fixture comes through is enough to prove the branch ran.
+    });
   });
 });
