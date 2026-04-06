@@ -12,6 +12,7 @@ import {
   AgentOrchestrator,
   type OrchestratorResult,
 } from 'app/services/AgentOrchestrator.js';
+import { getMockAnthropicClientIfEnabled } from 'app/services/mock-anthropic-client/mock-anthropic-client.js';
 import { TOOL_DEFINITIONS } from 'app/tools/definitions.js';
 import { type ToolContext, executeTool } from 'app/tools/executor.js';
 import { logger } from 'app/utils/logs/logger.js';
@@ -44,7 +45,15 @@ export async function runAgentLoop(
     }
   }
 
+  // When E2E_MOCK_ANTHROPIC=1 is set, swap the real Anthropic
+  // client for a deterministic stub. This lets the E2E suite
+  // boot without an API key and without burning tokens. The
+  // orchestrator falls back to constructing a real client when
+  // this returns undefined.
+  const mockClient = getMockAnthropicClientIfEnabled();
+
   const orchestrator = new AgentOrchestrator({
+    ...(mockClient ? { client: mockClient } : {}),
     tools: TOOL_DEFINITIONS as Anthropic.Tool[],
     systemPromptBuilder: (ctx: unknown, pos: unknown) =>
       buildSystemPrompt(
