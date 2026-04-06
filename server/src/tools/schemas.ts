@@ -4,9 +4,27 @@ const dateString = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD');
 
+// SEC-03 (2026-04-06 audit): allowlist for location-like fields.
+// Accepts unicode letters / numbers / spaces and the punctuation
+// legitimately used in place names (comma, period, hyphen,
+// apostrophe, parentheses). Rejects shell metachars, HTML / XSS
+// characters, URL-structure characters (?, #, /, =), control
+// characters, and anything longer than 100 chars. Length cap is
+// conservative: the longest real city name ("Krung Thep Maha
+// Nakhon..." 168 chars) does not fit, but the world does not need
+// Voyager to book trips to Bangkok's full ceremonial name.
+const locationAllowlist = z
+  .string()
+  .min(1)
+  .max(100)
+  .regex(
+    /^[\p{L}\p{N} ,.\-'()]+$/u,
+    'Must contain only letters, numbers, spaces, and common punctuation',
+  );
+
 export const searchFlightsSchema = z.object({
-  origin: z.string().min(1),
-  destination: z.string().min(1),
+  origin: locationAllowlist,
+  destination: locationAllowlist,
   departure_date: dateString,
   return_date: dateString.optional(),
   passengers: z.number().int().min(1),
@@ -18,7 +36,7 @@ export const searchFlightsSchema = z.object({
 });
 
 export const searchHotelsSchema = z.object({
-  city: z.string().min(1),
+  city: locationAllowlist,
   check_in: dateString,
   check_out: dateString,
   guests: z.number().int().min(1),
@@ -27,8 +45,8 @@ export const searchHotelsSchema = z.object({
 });
 
 export const searchExperiencesSchema = z.object({
-  location: z.string().min(1),
-  categories: z.array(z.string().min(1)).min(1),
+  location: locationAllowlist,
+  categories: z.array(z.string().min(1).max(50)).min(1),
   max_price_per_person: z.number().positive().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -41,12 +59,12 @@ export const calculateBudgetSchema = z.object({
 });
 
 export const getDestinationInfoSchema = z.object({
-  city_name: z.string().min(1),
+  city_name: locationAllowlist,
 });
 
 export const updateTripSchema = z.object({
-  destination: z.string().min(1).optional(),
-  origin: z.string().min(1).optional(),
+  destination: locationAllowlist.optional(),
+  origin: locationAllowlist.optional(),
   departure_date: dateString.optional(),
   return_date: dateString.optional(),
   budget_total: z.number().positive().optional(),
@@ -54,11 +72,11 @@ export const updateTripSchema = z.object({
 });
 
 export const searchCarRentalsSchema = z.object({
-  pickup_location: z.string().min(1),
+  pickup_location: locationAllowlist,
   pickup_date: dateString,
   dropoff_date: dateString,
-  dropoff_location: z.string().min(1).optional(),
-  car_type: z.string().optional(),
+  dropoff_location: locationAllowlist.optional(),
+  car_type: z.string().max(50).optional(),
 });
 
 export const selectFlightSchema = z.object({
