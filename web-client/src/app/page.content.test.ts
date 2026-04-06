@@ -40,4 +40,12 @@ describe('landing page content', () => {
   it('does not use the pre-audit "planned by AI" hero headline', () => {
     expect(pageSource).not.toContain('planned by AI.');
   });
+
+  it('does not claim "no hallucinated prices" (unsubstantiable)', () => {
+    expect(pageSource).not.toContain('No hallucinated prices');
+  });
+
+  it('uses a softer "grounded in live API data" phrasing instead', () => {
+    expect(pageSource).toContain('Grounded in live API data');
+  });
 });

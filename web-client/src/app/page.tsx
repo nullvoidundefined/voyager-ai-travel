@@ -207,7 +207,8 @@ export default function Home() {
       <section className={styles.features}>
         <h2 className={styles.sectionTitle}>Real data. Real decisions.</h2>
         <p className={styles.sectionSubtitle}>
-          No hallucinated prices. Every recommendation comes from live API data.
+          Grounded in live API data. Every recommendation is pulled from real
+          flight, hotel, and experience searches at the moment you ask.
         </p>
         <div className={styles.featureGrid}>
           {FEATURES.map((f) => (
