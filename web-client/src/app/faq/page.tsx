@@ -1,3 +1,4 @@
+import { DemoBanner } from '@/components/DemoBanner/DemoBanner';
 import { APP_NAME } from '@/lib/constants';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -37,7 +38,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
       {
         question: 'Where does the travel data come from?',
         answer:
-          'Flight and hotel data comes from the Amadeus API, the same data source used by major travel agencies worldwide. Experience and restaurant recommendations come from the Google Places API. All prices and availability are pulled in real time when you make a request.',
+          'Flight and hotel data comes from live Google Flights and Google Hotels results, fetched via SerpApi at the moment you search. Experience and restaurant recommendations come from the Google Places API. Every price you see is a real, searchable result, not a language-model guess.',
       },
       {
         question: 'How accurate are the prices?',
@@ -50,24 +51,19 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
     ],
   },
   {
-    heading: 'Pricing & Business Model',
+    heading: 'Pricing & Status',
     items: [
       {
         question: `Is ${APP_NAME} free to use?`,
-        answer: `${APP_NAME} offers a free tier that lets you plan up to 3 trips per month. Each trip includes full agent conversations with real flight, hotel, and experience searches.`,
-      },
-      {
-        question: 'What does the paid plan include?',
-        answer:
-          'The Pro plan ($9/month) gives you unlimited trips, priority API access for faster searches, the ability to save and share itineraries, and export to PDF or calendar formats.',
+        answer: `${APP_NAME} is a portfolio demo. It is free to use, there is no paid tier, and there is no intent to monetize it as a commercial product. Every API call the agent makes (Anthropic, SerpApi, Google Places) is paid for by the author as a technical demonstration.`,
       },
       {
         question: `How does ${APP_NAME} make money?`,
-        answer: `${APP_NAME} operates on a freemium subscription model. Free users get a generous planning allowance. Pro subscribers pay a monthly fee for unlimited access and premium features. We do not sell your data, show ads, or take affiliate commissions that bias our recommendations.`,
+        answer: `${APP_NAME} does not make money. It is a technical demonstration of an agentic AI travel planning pattern, built as a portfolio piece. There is no business model, no subscription, no affiliate commission, and no advertising. The per-trip cost structure is analyzed honestly in the published Criticism audit.`,
       },
       {
         question: 'Will recommendations be biased toward partners?',
-        answer: `No. ${APP_NAME} has no affiliate partnerships or pay-for-placement deals. The agent optimizes purely for your stated preferences and budget. What you see is what the APIs return, filtered by your criteria.`,
+        answer: `No. ${APP_NAME} has no partnerships, no affiliate links, and no pay-for-placement deals. The agent optimizes purely for your stated preferences and budget. What you see is what the APIs return, filtered by your criteria.`,
       },
     ],
   },
@@ -82,7 +78,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
       {
         question: 'Is my data shared with third parties?',
         answer:
-          "Your data is never sold. We send search queries to Amadeus and Google Places to fulfill your requests — those queries contain trip parameters (dates, destinations) but not your personal identity. Conversations are processed by Anthropic's Claude API under their data usage policies.",
+          "Your data is never sold. We send search queries to SerpApi (which aggregates Google Flights and Google Hotels) and to the Google Places API to fulfill your requests. Those queries contain trip parameters (dates, destinations) but not your personal identity. Conversations are processed by Anthropic's Claude API under their data usage policies.",
       },
       {
         question: 'Can I delete my account and data?',
@@ -143,6 +139,7 @@ export default function FaqPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className={styles.page}>
+        <DemoBanner />
         <header className={styles.hero}>
           <h1>Frequently Asked Questions</h1>
           <p>

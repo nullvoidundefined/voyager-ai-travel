@@ -3,12 +3,20 @@ import {
   cacheSet,
   normalizeCacheKey,
 } from 'app/services/cache.service.js';
-import { serpApiGet } from 'app/services/serpapi.service.js';
+import {
+  SerpApiQuotaExceededError,
+  serpApiGet,
+} from 'app/services/serpapi.service.js';
 import { generateMockFlights } from 'app/tools/mock/flights.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
-const CACHE_TTL = 3600; // 1 hour
+// FIN-07: extended from 1h to 6h on 2026-04-06. The SerpApi free
+// tier (250 searches/month) demands more aggressive caching. Flight
+// prices are not so volatile that a 6-hour staleness window harms
+// users significantly, and a longer TTL materially improves hit
+// rate under the 200-search cap enforced by serpApiQuota.
+const CACHE_TTL = 21600; // 6 hours
 
 export interface FlightSearchInput {
   origin: string;
@@ -133,10 +141,24 @@ export async function searchFlights(
     type: input.one_way ? '2' : undefined,
   };
 
-  const response = (await serpApiGet(
-    'google_flights',
-    params,
-  )) as SerpApiFlightsResponse;
+  let response: SerpApiFlightsResponse;
+  try {
+    response = (await serpApiGet(
+      'google_flights',
+      params,
+    )) as SerpApiFlightsResponse;
+  } catch (err) {
+    if (err instanceof SerpApiQuotaExceededError) {
+      logger.warn(
+        { origin: input.origin, destination: input.destination },
+        'Flight search unavailable: SerpApi monthly cap reached',
+      );
+      // Graceful degrade: return empty results with a hint that the
+      // agent can include in its user-facing response.
+      return [];
+    }
+    throw err;
+  }
 
   const allFlights = [
     ...(response.best_flights ?? []),

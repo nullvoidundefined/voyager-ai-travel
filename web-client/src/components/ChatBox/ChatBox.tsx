@@ -2,9 +2,10 @@
 
 import { type FormEvent, useCallback, useRef, useState } from 'react';
 
+import { Toast } from '@/components/Toast/Toast';
 import { get, put } from '@/lib/api';
-import type { ChatMessage } from '@agentic-travel-agent/shared-types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ChatMessage } from '@voyager/shared-types';
 
 import styles from './ChatBox.module.scss';
 import { VirtualizedChat } from './VirtualizedChat';
@@ -49,6 +50,8 @@ export function ChatBox({
     streamingNodes,
     toolProgress,
     streamingText,
+    error: sseError,
+    clearError: clearSseError,
   } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
 
   // Suppress booking actions when the most recent assistant message contains
@@ -177,6 +180,7 @@ export function ChatBox({
 
   return (
     <div className={styles.chatBox}>
+      {sseError && <Toast message={sseError} onClose={clearSseError} />}
       <VirtualizedChat
         messages={allMessages}
         streamingNodes={streamingNodes}

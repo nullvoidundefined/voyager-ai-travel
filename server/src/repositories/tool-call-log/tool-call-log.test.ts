@@ -60,7 +60,7 @@ describe('tool-call-log repository', () => {
         tool_result_json: null,
         latency_ms: 50,
         cache_hit: false,
-        error: 'Amadeus API timeout',
+        error: 'SerpApi timeout',
         created_at: new Date().toISOString(),
       };
       vi.mocked(query).mockResolvedValueOnce({
@@ -75,10 +75,10 @@ describe('tool-call-log repository', () => {
         tool_result_json: null,
         latency_ms: 50,
         cache_hit: false,
-        error: 'Amadeus API timeout',
+        error: 'SerpApi timeout',
       });
 
-      expect(result.error).toBe('Amadeus API timeout');
+      expect(result.error).toBe('SerpApi timeout');
     });
 
     it('accepts null conversation_id', async () => {

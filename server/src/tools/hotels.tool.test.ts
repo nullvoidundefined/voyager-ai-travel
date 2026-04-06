@@ -1,6 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('app/services/serpapi.service.js');
+vi.mock('app/services/serpapi.service.js', () => {
+  class SerpApiQuotaExceededError extends Error {
+    constructor() {
+      super('SerpApi monthly quota cap reached.');
+      this.name = 'SerpApiQuotaExceededError';
+    }
+  }
+  return {
+    serpApiGet: vi.fn(),
+    SerpApiQuotaExceededError,
+  };
+});
 vi.mock('app/services/cache.service.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
@@ -34,9 +45,18 @@ describe('hotels.tool', () => {
     vi.clearAllMocks();
     vi.resetModules();
 
-    vi.doMock('app/services/serpapi.service.js', () => ({
-      serpApiGet: vi.fn(),
-    }));
+    vi.doMock('app/services/serpapi.service.js', () => {
+      class SerpApiQuotaExceededError extends Error {
+        constructor() {
+          super('SerpApi monthly quota cap reached.');
+          this.name = 'SerpApiQuotaExceededError';
+        }
+      }
+      return {
+        serpApiGet: vi.fn(),
+        SerpApiQuotaExceededError,
+      };
+    });
     vi.doMock('app/services/cache.service.js', () => ({
       cacheGet: vi.fn(),
       cacheSet: vi.fn(),
@@ -128,7 +148,7 @@ describe('hotels.tool', () => {
       expect(cacheService.cacheSet).toHaveBeenCalledWith(
         'test-hotel-cache-key',
         expect.any(Array),
-        3600,
+        21600,
       );
     });
 

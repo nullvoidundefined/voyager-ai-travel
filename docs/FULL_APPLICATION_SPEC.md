@@ -1,7 +1,7 @@
-# App 8: Agentic Travel Agent
+# Voyager
 
-**Weeks 15-16 | Ships Jul 8**
-**Repo:** `agentic-travel-agent`
+**Portfolio demo of an agentic AI travel planning pattern**
+**Repo:** `voyager` (renamed from `agentic-travel-agent`; all package names and imports are fully unified to `@voyager/*` as of 2026-04-06)
 
 ## Product Summary
 

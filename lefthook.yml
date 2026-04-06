@@ -6,6 +6,45 @@ pre-commit:
     lint:
       run: pnpm lint
 
+# Fix-commit discipline gate (warning mode).
+#
+# Rule: any commit whose subject starts with fix: / fix( / bug: / bugfix: /
+# hotfix: must include at least one test file in the same commit. This
+# catches "optimism-driven debugging". Pushing a fix without first writing
+# a failing test that reproduces the bug.
+#
+# Currently WARNING mode (exit 0 always). Will be promoted to BLOCKING after
+# it has proven not to produce false positives. See ~/.claude/CLAUDE.md
+# test-first bug fix rule.
+commit-msg:
+  commands:
+    fix-commit-gate:
+      run: |
+        MSG_FILE="{1}"
+        SUBJECT=$(head -1 "$MSG_FILE")
+        case "$SUBJECT" in
+          fix:*|fix\(*|bug:*|bugfix:*|hotfix:*)
+            if ! git diff --cached --name-only | grep -qE '(\.test\.|\.spec\.|/e2e/|/__tests__/|/test/)'; then
+              echo ""
+              echo "⚠️  WARNING: fix-commit discipline check"
+              echo "   Commit subject: $SUBJECT"
+              echo "   No test files are staged in this commit."
+              echo ""
+              echo "   A bug-fix commit should include the failing test that"
+              echo "   reproduced the bug. Options:"
+              echo "   1. Add the reproducing test, then amend the commit"
+              echo "   2. Rename the commit to 'chore:' or 'docs:' if this is"
+              echo "      not actually a bug fix"
+              echo "   3. Continue anyway (warning mode. Not blocking)"
+              echo ""
+              echo "   This check is in WARNING mode. See ~/.claude/CLAUDE.md"
+              echo "   test-first bug fix rule."
+              echo ""
+            fi
+            ;;
+        esac
+        exit 0
+
 pre-push:
   commands:
     format:
@@ -13,4 +52,4 @@ pre-push:
     lint:
       run: pnpm lint
     build:
-      run: pnpm --filter agentic-travel-agent-server build
+      run: pnpm --filter voyager-server build

@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-
 import { getDestinationImage } from '@/lib/destinationImage';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import Image from 'next/image';
@@ -62,29 +60,11 @@ export function BookingConfirmation({
   onConfirm,
   onCancel,
 }: BookingConfirmationProps) {
-  const [stage, setStage] = useState<'review' | 'booking' | 'confirmed'>(
-    'review',
-  );
-
   const flightTotal = flights.reduce((s, f) => s + (f.price ?? 0), 0);
   const hotelTotal = hotels.reduce((s, h) => s + (h.total_price ?? 0), 0);
   const carRentalTotal = carRentals.reduce((s, c) => s + c.total_price, 0);
   const expTotal = experiences.reduce((s, e) => s + (e.estimated_cost ?? 0), 0);
   const grandTotal = flightTotal + hotelTotal + carRentalTotal + expTotal;
-
-  useEffect(() => {
-    if (stage === 'booking') {
-      const timer = setTimeout(() => setStage('confirmed'), 2200);
-      return () => clearTimeout(timer);
-    }
-  }, [stage]);
-
-  useEffect(() => {
-    if (stage === 'confirmed') {
-      const timer = setTimeout(onConfirm, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [stage, onConfirm]);
 
   return (
     <div className={styles.overlay}>
@@ -105,135 +85,121 @@ export function BookingConfirmation({
             );
           })()}
           <div className={styles.imageOverlay}>
-            <h2 className={styles.imageTitle}>
-              {stage === 'confirmed'
-                ? `You're going to`
-                : 'Confirm your trip to'}
-            </h2>
+            <h2 className={styles.imageTitle}>Save your itinerary for</h2>
             <p className={styles.imageDestination}>{destination}</p>
           </div>
         </div>
 
-        {stage === 'review' && (
-          <>
-            <h2 className={styles.title}>Confirm Your Trip to {destination}</h2>
-            <p className={styles.dates}>
-              {formatShortDate(departureDate)} &ndash;{' '}
-              {formatShortDate(returnDate)}
-            </p>
+        <>
+          <h2 className={styles.title}>
+            Save Your Itinerary for {destination}
+          </h2>
+          <p className={styles.dates}>
+            {formatShortDate(departureDate)} &ndash;{' '}
+            {formatShortDate(returnDate)}
+          </p>
 
-            <div className={styles.sections}>
-              {flights.length > 0 && (
-                <div className={styles.section}>
-                  <h3>Flights</h3>
-                  {flights.map((f, i) => (
-                    <div key={i} className={styles.item}>
-                      <span>
-                        {f.airline} {f.flight_number} &middot; {f.origin} &rarr;{' '}
-                        {f.destination}
-                      </span>
-                      <span className={styles.price}>
-                        {formatCurrency(f.price, f.currency)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {hotels.length > 0 && (
-                <div className={styles.section}>
-                  <h3>Hotels</h3>
-                  {hotels.map((h, i) => (
-                    <div key={i} className={styles.item}>
-                      <span>{h.name ?? 'Hotel'}</span>
-                      <span className={styles.price}>
-                        {formatCurrency(h.total_price, h.currency)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {carRentals.length > 0 && (
-                <div className={styles.section}>
-                  <h3>Car Rentals</h3>
-                  {carRentals.map((c, i) => (
-                    <div key={i} className={styles.item}>
-                      <span>
-                        {c.provider} &middot; {c.car_name}
-                      </span>
-                      <span className={styles.price}>
-                        {formatCurrency(c.total_price, c.currency)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {experiences.length > 0 && (
-                <div className={styles.section}>
-                  <h3>Experiences</h3>
-                  {experiences.map((e, i) => (
-                    <div key={i} className={styles.item}>
-                      <span>{e.name ?? 'Experience'}</span>
-                      <span className={styles.price}>
-                        ~{formatCurrency(e.estimated_cost)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className={styles.totalRow}>
-              <span>Total</span>
-              <span className={styles.totalAmount}>
-                {formatCurrency(grandTotal, budgetCurrency)}
-              </span>
-            </div>
-
-            {budgetTotal != null && (
-              <p className={styles.budgetNote}>
-                {grandTotal <= budgetTotal
-                  ? `Under budget by ${formatCurrency(budgetTotal - grandTotal, budgetCurrency)}`
-                  : `Over budget by ${formatCurrency(grandTotal - budgetTotal, budgetCurrency)}`}
-              </p>
+          <div className={styles.sections}>
+            {flights.length > 0 && (
+              <div className={styles.section}>
+                <h3>Flights</h3>
+                {flights.map((f, i) => (
+                  <div key={i} className={styles.item}>
+                    <span>
+                      {f.airline} {f.flight_number} &middot; {f.origin} &rarr;{' '}
+                      {f.destination}
+                    </span>
+                    <span className={styles.price}>
+                      {formatCurrency(f.price, f.currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
             )}
 
-            <div className={styles.actions}>
-              <button
-                type='button'
-                className={styles.confirmButton}
-                onClick={() => setStage('booking')}
-              >
-                Confirm Booking
-              </button>
-              <button
-                type='button'
-                className={styles.cancelButton}
-                onClick={onCancel}
-              >
-                Make Changes
-              </button>
-            </div>
-          </>
-        )}
+            {hotels.length > 0 && (
+              <div className={styles.section}>
+                <h3>Hotels</h3>
+                {hotels.map((h, i) => (
+                  <div key={i} className={styles.item}>
+                    <span>{h.name ?? 'Hotel'}</span>
+                    <span className={styles.price}>
+                      {formatCurrency(h.total_price, h.currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {stage === 'booking' && (
-          <div className={styles.bookingState}>
-            <div className={styles.spinner} />
-            <h2>Booking your trip...</h2>
-            <p>Confirming flights, hotels, and experiences</p>
-          </div>
-        )}
+            {carRentals.length > 0 && (
+              <div className={styles.section}>
+                <h3>Car Rentals</h3>
+                {carRentals.map((c, i) => (
+                  <div key={i} className={styles.item}>
+                    <span>
+                      {c.provider} &middot; {c.car_name}
+                    </span>
+                    <span className={styles.price}>
+                      {formatCurrency(c.total_price, c.currency)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {stage === 'confirmed' && (
-          <div className={styles.bookingState}>
-            <div className={styles.checkmark}>&#10003;</div>
-            <h2>Trip Booked!</h2>
-            <p>Your trip to {destination} has been confirmed.</p>
+            {experiences.length > 0 && (
+              <div className={styles.section}>
+                <h3>Experiences</h3>
+                {experiences.map((e, i) => (
+                  <div key={i} className={styles.item}>
+                    <span>{e.name ?? 'Experience'}</span>
+                    <span className={styles.price}>
+                      ~{formatCurrency(e.estimated_cost)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          <div className={styles.totalRow}>
+            <span>Total</span>
+            <span className={styles.totalAmount}>
+              {formatCurrency(grandTotal, budgetCurrency)}
+            </span>
+          </div>
+
+          {budgetTotal != null && (
+            <p className={styles.budgetNote}>
+              {grandTotal <= budgetTotal
+                ? `Under budget by ${formatCurrency(budgetTotal - grandTotal, budgetCurrency)}`
+                : `Over budget by ${formatCurrency(grandTotal - budgetTotal, budgetCurrency)}`}
+            </p>
+          )}
+
+          <p className={styles.demoDisclaimer}>
+            Nothing is actually booked. Voyager is a portfolio demo: this action
+            saves the itinerary to your trip history. You book each leg yourself
+            through the linked provider.
+          </p>
+
+          <div className={styles.actions}>
+            <button
+              type='button'
+              className={styles.confirmButton}
+              onClick={onConfirm}
+            >
+              Save itinerary
+            </button>
+            <button
+              type='button'
+              className={styles.cancelButton}
+              onClick={onCancel}
+            >
+              Make changes
+            </button>
+          </div>
+        </>
       </div>
     </div>
   );

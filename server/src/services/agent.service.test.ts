@@ -308,7 +308,7 @@ describe('agent.service', () => {
       );
 
       vi.mocked(executeTool).mockRejectedValueOnce(
-        new Error('Amadeus API timeout'),
+        new Error('SerpApi timeout'),
       );
 
       // Claude should get the error and respond
