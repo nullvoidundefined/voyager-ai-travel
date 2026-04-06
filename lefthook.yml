@@ -53,3 +53,7 @@ pre-push:
       run: pnpm lint
     build:
       run: pnpm --filter voyager-server build
+    e2e-precheck:
+      run: ./scripts/e2e-precheck.sh
+    e2e-fast:
+      run: pnpm test:e2e:fast

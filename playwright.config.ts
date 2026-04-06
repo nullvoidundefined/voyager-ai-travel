@@ -1,14 +1,35 @@
-import { defineConfig } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  testDir: './e2e',
+  // Absolute path so this config works whether invoked from the
+  // monorepo root or from within web-client (which is where the
+  // @playwright/test binary lives).
+  testDir: path.resolve(__dirname, 'e2e'),
+  // The nightly real-API smoke suite lives at e2e/real-apis/ and
+  // must NOT run in the main mocked suite. The e2e-real-apis.yml
+  // workflow points at it explicitly with --grep or by passing the
+  // path as an argument.
+  testIgnore: ['**/real-apis/**'],
   timeout: 30_000,
-  retries: 1,
+  retries: process.env.CI ? 2 : 1,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: process.env.CI ? 'html' : 'list',
   use: {
     baseURL: 'http://localhost:3000',
     headless: true,
     screenshot: 'only-on-failure',
+    trace: 'on-first-retry',
   },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
   webServer: [
     {
       command: 'cd server && npx tsx src/index.ts',
