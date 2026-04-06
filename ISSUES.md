@@ -40,11 +40,33 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
-### [ENG-15] Evaluate test suite for bloat and thinness
+### [ENG-15] Evaluate test suite for bloat, thinness, AND confidence theater
 
-- **Source:** Plan B / option B follow-up (2026-04-06)
+- **Source:** Plan B / option B follow-up (2026-04-06), reinforced by the Doppelscript Haiku code-fence incident the same day
 - **Severity:** P2 · **Effort:** M · **Category:** testing / quality
-- **Notes:** Run a research subagent (after option B merges so the CI baseline is green) that produces `docs/audits/YYYY-MM-DD-test-suite-evaluation.md`. Goal: smallest set of tests that catches the bugs that matter. Bloat signals: redundant assertions, coverage delta of zero when a test is removed, test:source LoC ratio outliers, runtime per assertion, tests that have never failed in CI history. Thinness signals: files with no tests, branch coverage gaps, fix commits without paired tests (cross-ref the fix-commit-gate violations), user stories without real E2E coverage (the 10 current test.fixme markers are hidden gaps). Deliverable sections: per-package inventory (server, web-client, e2e), top 10 redundant clusters with deletion candidates, top 10 untested files with addition candidates, never-failed-in-CI list, coverage map by user story / audit ID / fix commit, concrete add/delete recommendations. Threshold for deletion: redundant AND source is stable AND removing it does not drop branch coverage. Three signals before touching anything.
+- **Notes:** Run a research subagent (after option B merges so the CI baseline is green) that produces `docs/audits/YYYY-MM-DD-test-suite-evaluation.md`. Goal: smallest set of tests that catches the bugs that matter, with zero confidence theater. Three failure modes to evaluate: bloat (redundant), thinness (gaps), confidence theater (passing tests that wouldn't catch real bugs).
+
+  **Bloat signals:** redundant assertions, coverage delta of zero when a test is removed, test:source LoC ratio outliers, runtime per assertion, tests that have never failed in CI history.
+
+  **Thinness signals:** files with no tests, branch coverage gaps, fix commits without paired tests (cross-ref the fix-commit-gate violations from the 2026-04-06 retrospective: 35 of 51 fix commits violate test-first), user stories without real E2E coverage (the 10 current test.fixme markers are hidden gaps).
+
+  **Confidence theater signals (per the no-confidence-theater rule in `~/.claude/CLAUDE.md`):**
+  1. Self-mock: `vi.mock('./foo')` inside `foo.test.ts`
+  2. Mocked dependency that IS the thing being tested (parser tested with pre-parsed input)
+  3. Mock-call assertions without behavior assertions (`toHaveBeenCalled` only)
+  4. Snapshot-only tests with no behavioral assertion
+  5. Mocking the integration boundary the test claims to cross (repository tests that mock the db pool)
+  6. Tautological assertions (assertion guaranteed by setup)
+  7. Loose-shape only assertions (`toBeDefined`, `toBeTruthy`, "no throw")
+  8. Skipped tests with no comment or triage reference
+  9. Always-failing tests that linger
+  10. LLM-consumer tests that hand-mock the model response shape instead of using a real captured fixture (the Doppelscript anchor incident: a Haiku markdown code-fence bug shipped because tests mocked the JSON the parser was supposed to consume; only a live calibration run caught it)
+
+  Deliverable sections: per-package inventory (server, web-client, e2e), top 10 bloat candidates, top 10 thinness gaps, top 10 confidence theater violations with file:line evidence, top 10 untested files with addition candidates, never-failed-in-CI list, coverage map by user story / audit ID / fix commit, concrete add/delete/rewrite recommendations.
+
+  **Deletion threshold:** redundant AND source is stable AND removing it does not drop branch coverage. Three signals before touching anything.
+
+  **Confidence-theater rewrite threshold:** any test that fails the "if I delete the implementation and throw, would this test fail?" check must be rewritten to assert behavior, not interactions. LLM-consumer tests must use a real captured fixture, not a hand-mock.
 
 ### [ENG-14] E2E config has no fail-fast smoke check; misconfigurations burn CI time
 
