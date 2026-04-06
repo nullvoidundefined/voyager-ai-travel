@@ -39,7 +39,7 @@ export default defineConfig({
       env: {
         PORT: '3001',
         NODE_ENV: 'test',
-        // Note: no E2E_MOCK_TOOLS — real-API mode is the point.
+        // Note: no E2E_MOCK_TOOLS. Real-API mode is the point.
       },
     },
     {

@@ -21,7 +21,7 @@ Plan B builds the E2E test coverage backbone and wires it into pre-push and CI t
 
 ## Tests marked `test.fixme`
 
-Ten tests are marked `test.fixme` pending Plan C follow-up work. They establish the contract — when the underlying selectors stabilize, the markers can be removed.
+Ten tests are marked `test.fixme` pending Plan C follow-up work. They establish the contract. When the underlying selectors stabilize, the markers can be removed.
 
 | Spec                        | Test                                  | Reason                                 |
 | --------------------------- | ------------------------------------- | -------------------------------------- |

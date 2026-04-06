@@ -1,7 +1,7 @@
 /**
  * Test-side mirror of the server's SerpApi mock layer.
  *
- * The actual swap happens in server/src/tools/mock/* — when
+ * The actual swap happens in server/src/tools/mock/*. When
  * E2E_MOCK_TOOLS=1 is set, the server's flight and hotel tools
  * return deterministic data instead of calling SerpApi.
  *

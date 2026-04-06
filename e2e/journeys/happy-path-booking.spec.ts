@@ -4,7 +4,7 @@
  * Exercises US-1 -> US-2 -> US-5 -> US-8 -> US-29 -> US-14 -> US-20
  * -> US-22 -> US-23 -> US-25 -> US-27 in a single backbone test.
  *
- * Tagged @fast — this is the canonical smoke test that runs in
+ * Tagged @fast. This is the canonical smoke test that runs in
  * the pre-push lefthook fast lane.
  */
 import { expect, test } from '@playwright/test';
