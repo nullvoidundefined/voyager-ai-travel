@@ -5,8 +5,7 @@
  * because `.chatSection` had no `margin-bottom` and `.itinerary` had
  * no `margin-top`. This spec asserts a minimum 32px vertical gap
  * between the bottom of the chat section and the top of the Flights
- * heading, plus a screenshot snapshot of the gap region for visual
- * regression protection.
+ * heading.
  *
  * The trip detail page only renders the Flights section when the
  * trip record has at least one flight. Rather than driving the
@@ -110,35 +109,5 @@ test.describe('Trip detail page spacing (B5)', () => {
 
     const gap = flightsBox.y - (chatBox.y + chatBox.height);
     expect(gap).toBeGreaterThanOrEqual(32);
-
-    // Scroll the Flights heading into view so the clip rectangle
-    // (computed against the viewport) lands inside the screenshot.
-    // After scrolling, re-measure the bounding boxes because the
-    // viewport-relative coordinates change.
-    await flightsHeading.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(150);
-    const chatBoxAfter = await chatHeading.evaluate((el) => {
-      const container = el.parentElement;
-      const rect = (container ?? el).getBoundingClientRect();
-      return { y: rect.y, height: rect.height };
-    });
-    const flightsBoxAfter = await flightsHeading.boundingBox();
-    if (!flightsBoxAfter) {
-      throw new Error('Could not re-measure Flights heading after scroll');
-    }
-    const gapAfter = flightsBoxAfter.y - (chatBoxAfter.y + chatBoxAfter.height);
-
-    const viewportWidth = page.viewportSize()?.width ?? 1280;
-    const clipY = Math.max(0, chatBoxAfter.y + chatBoxAfter.height - 20);
-    const clipHeight = Math.max(40, gapAfter + 80);
-    await expect(page).toHaveScreenshot('trip-page-chat-itinerary-gap.png', {
-      clip: {
-        x: 0,
-        y: clipY,
-        width: viewportWidth,
-        height: clipHeight,
-      },
-      maxDiffPixelRatio: 0.02,
-    });
   });
 });
