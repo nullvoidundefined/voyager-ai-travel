@@ -10,11 +10,12 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 
 ### Engineering (tech debt)
 
-### [ENG-21] Pre-existing em dashes in `CLAUDE.md` violate the global em-dash rule
+### [ENG-21] Pre-existing em dashes in `CLAUDE.md` violate the global em-dash rule (RESOLVED, was already fixed when ENG-21 was logged)
 
 - **Source:** 2026-04-07 critic-guided meta-rule edit session audit
 - **Severity:** P3 · **Effort:** S · **Category:** docs / style
-- **Notes:** `CLAUDE.md` on main as of commit `22dda36` contains eight em-dash characters (U+2014) on lines 29, 33, 34, 45, 63, 66, 82, and 87 (line numbers may shift as the file evolves). The global em-dash ban in `~/.claude/CLAUDE.md` covers all markdown files including project CLAUDE.md files and was intentionally elevated to global scope to prevent exactly this drift. These instances pre-date the rule's elevation to global scope and were deliberately left untouched during the 2026-04-07 meta-rule edit session to keep that session's commits grouped by concern. Fix by replacing each em dash with the appropriate substitution from the global rule (period and new sentence, comma, semicolon, colon, parentheses, or line break depending on context) in a single dedicated `style:` commit. Do not batch with unrelated edits.
+- **Status:** RESOLVED 2026-04-07. ENG-21 was based on stale information. Verified during the 2026-04-07 ENG-20/21 cleanup pass that `CLAUDE.md` actually contained 0 em dash characters (U+2014) at every commit from `5380f99` onwards (the `docs(CLAUDE.md): absorb Voyager incident history from global rules` commit). The 8 em dashes referenced in the original ENG-21 note were present at `27e41de` and `c2a3bc2` but had already been removed by the time the ENG-21 ticket was logged at `22dda36`. The original ticket text apparently transposed line numbers from an earlier inspection of an older revision. Verification command: `python3 -c "import subprocess; print(subprocess.check_output(['git','show','22dda36:CLAUDE.md']).decode().count(chr(0x2014)))"` returns `0`. No edit was needed; the bookkeeping is the only change.
+- **Original notes (preserved for context):** `CLAUDE.md` on main as of commit `22dda36` was claimed to contain eight em-dash characters (U+2014) on lines 29, 33, 34, 45, 63, 66, 82, and 87. The global em-dash ban in `~/.claude/CLAUDE.md` covers all markdown files including project CLAUDE.md files and was intentionally elevated to global scope to prevent exactly this drift.
 
 ### [ENG-20] 13 orphaned git worktrees in `.claude/worktrees/` (RESOLVED 2026-04-07)
 
