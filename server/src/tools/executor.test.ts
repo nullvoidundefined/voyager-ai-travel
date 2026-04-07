@@ -128,6 +128,109 @@ describe('executeTool', () => {
         message: 'Flight selection saved',
       });
     });
+
+    it('accepts valid select_hotel', async () => {
+      const result = await executeTool(
+        'select_hotel',
+        {
+          name: 'Hotel Barcelona',
+          price_per_night: 150,
+          total_price: 750,
+          currency: 'USD',
+        },
+        ctx,
+      );
+      expect(result).toEqual({
+        success: true,
+        message: 'Hotel selection saved',
+      });
+    });
+
+    it('rejects select_hotel with missing required fields', async () => {
+      const result = await executeTool('select_hotel', { name: 'X' }, ctx);
+      expect(result).toHaveProperty('error');
+    });
+
+    it('throws when select_hotel lacks context', async () => {
+      await expect(
+        executeTool('select_hotel', {
+          name: 'X',
+          price_per_night: 1,
+          total_price: 1,
+          currency: 'USD',
+        }),
+      ).rejects.toThrow('requires trip context');
+    });
+
+    it('accepts valid select_car_rental', async () => {
+      const result = await executeTool(
+        'select_car_rental',
+        {
+          provider: 'Hertz',
+          car_name: 'Toyota Camry',
+          total_price: 180,
+          currency: 'USD',
+        },
+        ctx,
+      );
+      expect(result).toEqual({
+        success: true,
+        message: 'Car rental selection saved',
+      });
+    });
+
+    it('rejects select_car_rental with missing required fields', async () => {
+      const result = await executeTool(
+        'select_car_rental',
+        { provider: 'Hertz' },
+        ctx,
+      );
+      expect(result).toHaveProperty('error');
+    });
+
+    it('throws when select_car_rental lacks context', async () => {
+      await expect(
+        executeTool('select_car_rental', {
+          provider: 'Hertz',
+          car_name: 'Camry',
+          total_price: 1,
+          currency: 'USD',
+        }),
+      ).rejects.toThrow('requires trip context');
+    });
+
+    it('accepts valid select_experience', async () => {
+      const result = await executeTool(
+        'select_experience',
+        {
+          name: 'Bay Cruise',
+          estimated_cost: 75,
+        },
+        ctx,
+      );
+      expect(result).toEqual({
+        success: true,
+        message: 'Experience selection saved',
+      });
+    });
+
+    it('rejects select_experience with missing name', async () => {
+      const result = await executeTool(
+        'select_experience',
+        { estimated_cost: 50 },
+        ctx,
+      );
+      expect(result).toHaveProperty('error');
+    });
+
+    it('throws when select_experience lacks context', async () => {
+      await expect(
+        executeTool('select_experience', {
+          name: 'Tour',
+          estimated_cost: 50,
+        }),
+      ).rejects.toThrow('requires trip context');
+    });
   });
 
   describe('routing', () => {

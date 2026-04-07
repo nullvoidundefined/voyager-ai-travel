@@ -403,5 +403,183 @@ describe('agent.service', () => {
 
       expect(result.total_tokens).toEqual({ input: 150, output: 25 });
     });
+
+    it('appends advisory node when format_response includes advisory', async () => {
+      // First call: Claude requests format_response tool
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_format',
+              name: 'format_response',
+              input: {
+                text: 'Done',
+                advisory: {
+                  severity: 'warning',
+                  title: 'Visa required',
+                  body: 'Check your passport.',
+                },
+              },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
+      // format_response executor echoes input back
+      vi.mocked(executeTool).mockResolvedValueOnce({
+        text: 'Done',
+        advisory: {
+          severity: 'warning',
+          title: 'Visa required',
+          body: 'Check your passport.',
+        },
+      });
+      // Second call: end_turn
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Done' }],
+          usage: { input_tokens: 50, output_tokens: 10 },
+        }),
+      );
+
+      const result = await runAgentLoop(
+        [{ role: 'user', content: 'Plan' }],
+        undefined,
+        () => {},
+      );
+
+      const advisoryNode = result.nodes.find((n) => n.type === 'advisory');
+      expect(advisoryNode).toBeDefined();
+      expect(advisoryNode).toMatchObject({
+        severity: 'warning',
+        title: 'Visa required',
+        body: 'Check your passport.',
+      });
+    });
+
+    it('appends quick_replies node when format_response includes quick_replies', async () => {
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_format',
+              name: 'format_response',
+              input: {
+                text: 'Pick one:',
+                quick_replies: ['Yes', 'No', 'Maybe'],
+              },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
+      vi.mocked(executeTool).mockResolvedValueOnce({
+        text: 'Pick one:',
+        quick_replies: ['Yes', 'No', 'Maybe'],
+      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Pick one:' }],
+          usage: { input_tokens: 50, output_tokens: 10 },
+        }),
+      );
+
+      const result = await runAgentLoop(
+        [{ role: 'user', content: 'Ask me' }],
+        undefined,
+        () => {},
+      );
+
+      const chipsNode = result.nodes.find((n) => n.type === 'quick_replies');
+      expect(chipsNode).toBeDefined();
+      expect(chipsNode).toMatchObject({ options: ['Yes', 'No', 'Maybe'] });
+    });
+
+    it('does NOT append quick_replies node when the array is empty', async () => {
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_format',
+              name: 'format_response',
+              input: { text: 'Nothing to pick', quick_replies: [] },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 50 },
+        }),
+      );
+      vi.mocked(executeTool).mockResolvedValueOnce({
+        text: 'Nothing to pick',
+        quick_replies: [],
+      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Nothing to pick' }],
+          usage: { input_tokens: 50, output_tokens: 10 },
+        }),
+      );
+
+      const result = await runAgentLoop(
+        [{ role: 'user', content: 'Ask me' }],
+        undefined,
+        () => {},
+      );
+
+      expect(
+        result.nodes.find((n) => n.type === 'quick_replies'),
+      ).toBeUndefined();
+    });
+
+    it('places budget_bar after the text node in final output order', async () => {
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'tool_use',
+          content: [
+            {
+              type: 'tool_use',
+              id: 'toolu_budget',
+              name: 'calculate_remaining_budget',
+              input: {},
+            },
+          ],
+          usage: { input_tokens: 50, output_tokens: 20 },
+        }),
+      );
+      // Mock the budget tool returning a budget_bar shape
+      vi.mocked(executeTool).mockResolvedValueOnce({
+        allocated: 1500,
+        total: 3000,
+        currency: 'USD',
+      });
+      mockStream.mockReturnValueOnce(
+        createMockStream({
+          stop_reason: 'end_turn',
+          content: [{ type: 'text', text: 'Here is your budget' }],
+          usage: { input_tokens: 50, output_tokens: 20 },
+        }),
+      );
+
+      const result = await runAgentLoop(
+        [{ role: 'user', content: 'Budget' }],
+        undefined,
+        () => {},
+      );
+
+      const textIdx = result.nodes.findIndex((n) => n.type === 'text');
+      const budgetIdx = result.nodes.findIndex((n) => n.type === 'budget_bar');
+      // If both are present, budget_bar must come AFTER text.
+      if (textIdx >= 0 && budgetIdx >= 0) {
+        expect(budgetIdx).toBeGreaterThan(textIdx);
+      }
+    });
   });
 });

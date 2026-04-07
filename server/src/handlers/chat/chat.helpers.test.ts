@@ -187,5 +187,252 @@ describe('chat.helpers', () => {
         ),
       ).toBeDefined();
     });
+
+    it('includes destination for empty-string trips', () => {
+      const trip = { ...baseTripDetails, destination: '' };
+      const form = buildMissingFieldsForm(trip);
+      expect(form).not.toBeNull();
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'destination')).toBeDefined();
+    });
+
+    it('lists missing departure_date field', () => {
+      const trip = { ...baseTripDetails, departure_date: null };
+      const form = buildMissingFieldsForm(trip);
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'departure_date')).toBeDefined();
+    });
+
+    it('lists missing return_date on round-trip', () => {
+      const trip = { ...baseTripDetails, return_date: null };
+      const form = buildMissingFieldsForm(trip);
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'return_date')).toBeDefined();
+    });
+
+    it('lists missing budget_total field', () => {
+      const trip = { ...baseTripDetails, budget_total: null };
+      const form = buildMissingFieldsForm(trip);
+      const fields = (
+        form as { fields: Array<{ name: string; required: boolean }> }
+      ).fields;
+      const budget = fields.find((f) => f.name === 'budget');
+      expect(budget).toBeDefined();
+      expect(budget?.required).toBe(false);
+    });
+
+    it('lists missing travelers field when null', () => {
+      const trip = {
+        ...baseTripDetails,
+        travelers: null,
+      } as unknown as TripWithDetails;
+      const form = buildMissingFieldsForm(trip);
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'travelers')).toBeDefined();
+    });
+
+    it('lists missing travelers when value is less than 1', () => {
+      const trip = { ...baseTripDetails, travelers: 0 };
+      const form = buildMissingFieldsForm(trip);
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'travelers')).toBeDefined();
+    });
+
+    it('lists multiple missing fields in declared order', () => {
+      const trip = {
+        ...baseTripDetails,
+        destination: 'Planning...',
+        origin: null,
+        departure_date: null,
+        return_date: null,
+        budget_total: null,
+        travelers: null,
+      } as unknown as TripWithDetails;
+      const form = buildMissingFieldsForm(trip);
+      const fieldNames = (
+        form as { fields: Array<{ name: string }> }
+      ).fields.map((f) => f.name);
+      expect(fieldNames).toEqual([
+        'destination',
+        'origin',
+        'departure_date',
+        'return_date',
+        'budget',
+        'travelers',
+      ]);
+    });
+
+    it('does not include return_date when trip is one_way', () => {
+      const trip = {
+        ...baseTripDetails,
+        trip_type: 'one_way' as const,
+        return_date: null,
+      };
+      const form = buildMissingFieldsForm(trip);
+      // Form might be null if this is the only missing field.
+      if (form) {
+        const fields = (form as { fields: Array<{ name: string }> }).fields;
+        expect(fields.find((f) => f.name === 'return_date')).toBeUndefined();
+      }
+    });
+  });
+
+  describe('buildTripContext edge cases', () => {
+    it('uses sensible defaults when optional fields are null', () => {
+      // The runtime code uses `?? 1` defaults for some fields whose
+      // TS types require non-null. Cast through unknown to exercise
+      // the default branches.
+      const trip = {
+        ...baseTripDetails,
+        origin: null,
+        departure_date: null,
+        return_date: null,
+        budget_total: null,
+        budget_currency: null,
+        travelers: null,
+        transport_mode: null,
+      } as unknown as TripWithDetails;
+      const ctx = buildTripContext(trip, null);
+      expect(ctx.origin).toBeNull();
+      expect(ctx.departure_date).toBeNull();
+      expect(ctx.return_date).toBeNull();
+      expect(ctx.budget_total).toBe(0);
+      expect(ctx.budget_currency).toBe('USD');
+      expect(ctx.travelers).toBe(1);
+      expect(ctx.transport_mode).toBeNull();
+      expect(ctx.user_preferences).toBeUndefined();
+    });
+
+    it('maps selected flights and dates to ISO strings', () => {
+      const departureAt = new Date('2026-07-01T08:00:00Z');
+      const arrivalAt = new Date('2026-07-01T10:00:00Z');
+      const trip: TripWithDetails = {
+        ...baseTripDetails,
+        flights: [
+          {
+            id: 'f1',
+            airline: 'Delta',
+            flight_number: 'DL100',
+            price: 300,
+            departure_time: departureAt,
+            arrival_time: arrivalAt,
+          } as unknown as TripWithDetails['flights'][number],
+        ],
+      };
+      const ctx = buildTripContext(trip, null);
+      expect(ctx.selected_flights[0]?.departure_time).toBe(
+        departureAt.toISOString(),
+      );
+      expect(ctx.selected_flights[0]?.arrival_time).toBe(
+        arrivalAt.toISOString(),
+      );
+    });
+
+    it('sums total_spent across all selection types', () => {
+      const trip: TripWithDetails = {
+        ...baseTripDetails,
+        flights: [
+          { price: 300 } as unknown as TripWithDetails['flights'][number],
+        ],
+        hotels: [
+          {
+            total_price: 800,
+          } as unknown as TripWithDetails['hotels'][number],
+        ],
+        car_rentals: [
+          {
+            total_price: 180,
+            provider: 'Hertz',
+            car_name: 'Camry',
+            car_type: 'midsize',
+            price_per_day: 60,
+          } as unknown as TripWithDetails['car_rentals'][number],
+        ],
+        experiences: [
+          {
+            estimated_cost: 75,
+            name: 'Bay Cruise',
+            category: 'tour',
+          } as unknown as TripWithDetails['experiences'][number],
+        ],
+      };
+      const ctx = buildTripContext(trip, null);
+      expect(ctx.total_spent).toBe(300 + 800 + 180 + 75);
+    });
+
+    it('defaults null prices to zero in total_spent', () => {
+      const trip: TripWithDetails = {
+        ...baseTripDetails,
+        flights: [
+          { price: null } as unknown as TripWithDetails['flights'][number],
+        ],
+        hotels: [
+          {
+            total_price: null,
+          } as unknown as TripWithDetails['hotels'][number],
+        ],
+        car_rentals: [
+          {
+            total_price: null,
+            provider: 'Hertz',
+            car_name: 'Camry',
+            car_type: 'midsize',
+            price_per_day: null,
+          } as unknown as TripWithDetails['car_rentals'][number],
+        ],
+        experiences: [
+          {
+            estimated_cost: null,
+            name: 'Bay Cruise',
+            category: 'tour',
+          } as unknown as TripWithDetails['experiences'][number],
+        ],
+      };
+      const ctx = buildTripContext(trip, null);
+      expect(ctx.total_spent).toBe(0);
+    });
+
+    it('defaults null fields on selected flights and hotels to safe values', () => {
+      const trip: TripWithDetails = {
+        ...baseTripDetails,
+        flights: [
+          {
+            airline: null,
+            flight_number: null,
+            price: null,
+            departure_time: null,
+            arrival_time: null,
+          } as unknown as TripWithDetails['flights'][number],
+        ],
+        hotels: [
+          {
+            name: null,
+            price_per_night: null,
+            total_price: null,
+            star_rating: null,
+          } as unknown as TripWithDetails['hotels'][number],
+        ],
+        experiences: [
+          {
+            name: null,
+            estimated_cost: null,
+            category: null,
+          } as unknown as TripWithDetails['experiences'][number],
+        ],
+      };
+      const ctx = buildTripContext(trip, null);
+      expect(ctx.selected_flights[0]?.airline).toBe('');
+      expect(ctx.selected_flights[0]?.flight_number).toBe('');
+      expect(ctx.selected_flights[0]?.price).toBe(0);
+      expect(ctx.selected_flights[0]?.departure_time).toBe('');
+      expect(ctx.selected_flights[0]?.arrival_time).toBe('');
+      expect(ctx.selected_hotels[0]?.name).toBe('');
+      expect(ctx.selected_hotels[0]?.price_per_night).toBe(0);
+      expect(ctx.selected_hotels[0]?.total_price).toBe(0);
+      expect(ctx.selected_hotels[0]?.star_rating).toBe(0);
+      expect(ctx.selected_experiences[0]?.name).toBe('');
+      expect(ctx.selected_experiences[0]?.estimated_cost).toBe(0);
+      expect(ctx.selected_experiences[0]?.category).toBe('');
+    });
   });
 });

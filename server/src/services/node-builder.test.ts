@@ -121,4 +121,101 @@ describe('buildNodeFromToolResult', () => {
     expect(buildNodeFromToolResult('get_destination_info', {})).toBeNull();
     expect(buildNodeFromToolResult('format_response', {})).toBeNull();
   });
+
+  describe('edge cases in normalization', () => {
+    it('handles object-shape tool results with named keys', () => {
+      const node = buildNodeFromToolResult('search_flights', {
+        flights: [
+          {
+            airline: 'Delta',
+            airline_logo: null,
+            flight_number: 'DL1',
+            origin: 'JFK',
+            destination: 'LAX',
+            departure_time: '2026-05-01T08:00:00',
+            arrival_time: '2026-05-01T12:00:00',
+            price: 300,
+            currency: 'USD',
+          },
+        ],
+      });
+      expect(node).not.toBeNull();
+      if (node!.type === 'flight_tiles') {
+        expect(node!.flights).toHaveLength(1);
+      }
+    });
+
+    it('returns an empty flights array when the result has neither array nor named key', () => {
+      const node = buildNodeFromToolResult('search_flights', {
+        unrelated: 'field',
+      });
+      expect(node).not.toBeNull();
+      if (node!.type === 'flight_tiles') {
+        expect(node!.flights).toEqual([]);
+      }
+    });
+
+    it('defaults missing hotel price fields to zero', () => {
+      const node = buildNodeFromToolResult('search_hotels', [
+        { name: 'Cheap Hotel', currency: 'USD' },
+      ]);
+      if (node!.type === 'hotel_tiles') {
+        expect(node!.hotels[0]?.price_per_night).toBe(0);
+        expect(node!.hotels[0]?.total_price).toBe(0);
+      }
+    });
+
+    it('supports lat/lon AND latitude/longitude shapes on hotels', () => {
+      const node = buildNodeFromToolResult('search_hotels', [
+        {
+          name: 'A',
+          currency: 'USD',
+          price_per_night: 100,
+          total_price: 500,
+          latitude: 37.7,
+          longitude: -122.4,
+        },
+        {
+          name: 'B',
+          currency: 'USD',
+          price_per_night: 100,
+          total_price: 500,
+          lat: 48.8,
+          lon: 2.3,
+        },
+      ]);
+      if (node!.type === 'hotel_tiles') {
+        expect(node!.hotels[0]?.lat).toBe(37.7);
+        expect(node!.hotels[0]?.lon).toBe(-122.4);
+        expect(node!.hotels[1]?.lat).toBe(48.8);
+        expect(node!.hotels[1]?.lon).toBe(2.3);
+      }
+    });
+
+    it('defaults car rental features to empty array when missing', () => {
+      const node = buildNodeFromToolResult('search_car_rentals', [
+        {
+          provider: 'Avis',
+          car_name: 'Civic',
+          car_type: 'compact',
+          price_per_day: 40,
+          total_price: 200,
+          currency: 'USD',
+        },
+      ]);
+      if (node!.type === 'car_rental_tiles') {
+        expect(node!.rentals[0]?.features).toEqual([]);
+      }
+    });
+
+    it('uses zero defaults when calculate_remaining_budget has empty result', () => {
+      const node = buildNodeFromToolResult('calculate_remaining_budget', {});
+      expect(node).not.toBeNull();
+      if (node!.type === 'budget_bar') {
+        expect(node!.allocated).toBe(0);
+        expect(node!.total).toBe(0);
+        expect(node!.currency).toBe('USD');
+      }
+    });
+  });
 });

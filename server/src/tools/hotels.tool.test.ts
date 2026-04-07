@@ -227,5 +227,98 @@ describe('hotels.tool', () => {
 
       expect(result[0]!.star_rating).toBe(4);
     });
+
+    it('returns an empty array when SerpApi monthly quota is exceeded', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      const { SerpApiQuotaExceededError } = serpApiService as {
+        SerpApiQuotaExceededError: new () => Error;
+      };
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
+        new SerpApiQuotaExceededError(),
+      );
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result).toEqual([]);
+    });
+
+    it('rethrows non-quota errors', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
+        new Error('network timeout'),
+      );
+
+      await expect(
+        searchHotels({
+          city: 'Barcelona',
+          check_in: '2026-07-01',
+          check_out: '2026-07-06',
+          guests: 2,
+        }),
+      ).rejects.toThrow('network timeout');
+    });
+  });
+
+  describe('mock mode', () => {
+    beforeEach(async () => {
+      vi.resetModules();
+      vi.doMock('app/services/serpapi.service.js', () => ({
+        serpApiGet: vi.fn(),
+        SerpApiQuotaExceededError: class SerpApiQuotaExceededError extends Error {},
+      }));
+      vi.doMock('app/services/cache.service.js', () => ({
+        cacheGet: vi.fn(),
+        cacheSet: vi.fn(),
+        normalizeCacheKey: vi.fn().mockReturnValue('test-cache-key'),
+      }));
+      vi.doMock('app/utils/logs/logger.js', () => ({
+        logger: {
+          error: vi.fn(),
+          info: vi.fn(),
+          warn: vi.fn(),
+          debug: vi.fn(),
+        },
+      }));
+      vi.doMock('app/tools/mock/isMockMode.js', () => ({
+        isMockMode: vi.fn().mockReturnValue(true),
+      }));
+      vi.doMock('app/tools/mock/hotels.mock.js', () => ({
+        generateMockHotels: vi.fn().mockReturnValue([
+          {
+            offer_id: 'mock-hotel-0',
+            name: 'Test Boutique Hotel',
+            city: 'Barcelona',
+            star_rating: 4,
+            price_per_night: 220,
+            total_price: 660,
+            currency: 'USD',
+            check_in: '2026-07-01',
+            check_out: '2026-07-06',
+            image_url: null,
+            latitude: null,
+            longitude: null,
+          },
+        ]),
+      }));
+      const mod = await import('app/tools/hotels.tool.js');
+      searchHotels = mod.searchHotels;
+    });
+
+    it('returns mock results and skips SerpApi when isMockMode() is true', async () => {
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]?.name).toBe('Test Boutique Hotel');
+    });
   });
 });

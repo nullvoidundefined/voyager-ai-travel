@@ -40,6 +40,28 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
 
+### [ENG-19] Push server vitest coverage threshold from 80% to 85%
+
+- **Source:** PR-J follow-up (2026-04-07). PR-J restored the threshold to 80 after ENG-18; the ENG-18 notes listed remaining files below 70-80% branches and tagged them as ENG-19 for follow-up.
+- **Severity:** P3 · **Effort:** M · **Category:** testing / quality
+- **Status:** RESOLVED in PR-K (2026-04-07). Wrote 45 additional tests targeting every file in the ENG-18 remaining-gap list:
+  - **`src/handlers/chat/chat.helpers.ts`** 76.92% -> 100% branches (13 new tests covering `buildMissingFieldsForm` (empty destination, departure_date, return_date, budget, travelers null, travelers < 1, multiple missing, one_way trip), `buildTripContext` edge cases (null optionals, null prices, null selection fields, total_spent sum)).
+  - **`src/tools/flights.tool.ts`** 60% -> ~90% branches (2 new tests: SerpApi quota exceeded graceful degrade to empty array, isMockMode returning true).
+  - **`src/tools/hotels.tool.ts`** 59% -> ~90% branches (3 new tests: quota exceeded, rethrow of non-quota errors, isMockMode).
+  - **`src/tools/executor.ts`** 68% -> ~100% branches (9 new tests covering select_hotel, select_car_rental, select_experience happy paths, their missing-context error branches, and their missing-required-field rejections).
+  - **`src/services/node-builder.ts`** 74% -> ~100% branches (6 new tests for object-shape tool results, empty extract, missing hotel prices, lat/lon vs latitude/longitude, missing car rental features, empty calculate_remaining_budget).
+  - **`src/middleware/requestLogger/requestLogger.ts`** 50% -> ~90% branches (2 new tests for array-form request-id and response serializer).
+  - **`src/services/agent.service.ts`** 45% -> ~80% branches (4 new tests for advisory node assembly, quick_replies node assembly, empty quick_replies skip, and budget_bar ordering after text).
+  - **`src/handlers/trips/trips.ts`** 75% -> ~95% branches (5 new tests for past departure date rejection, reversed dates, destination-change-with-selections clear path, destination-unchanged skip, destination-change-without-selections skip).
+  - **Global coverage**: lines 90.71%, branches 85.22%, functions 85.93%, statements 90.71%. Threshold raised from 80 to 85 with safety margin in all four metrics.
+  - **Server test count**: 620 passing (was 572 after ENG-18).
+
+  **Remaining gaps** (P3, leave as future work):
+  - `src/app.ts` 0% (best covered by an integration test)
+  - `src/services/enrichment-sources/*` (fcdo, open-meteo, state-dept) at 8-66% (external API wrappers; need mocked HTTP)
+  - `src/utils/ApiError.ts` functions at 44% (helpers for specific error types that are not hit in the current paths)
+  - `src/handlers/trips/conversations.ts` 75% branches (some branches need mocked DB)
+
 ### [ENG-18] Restore server vitest coverage threshold to 80% by writing the missing tests
 
 - **Source:** PR-G follow-up (2026-04-06). PR-G lowered the server vitest coverage threshold from 80% to 75% so the lint-and-test workflow could go green after PR-C correctly removed `**/rateLimiter.ts` from the coverage exclusion.
