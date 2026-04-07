@@ -305,4 +305,74 @@ describe('ChatBox invariants', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('invariant 6: tool_progress nodes collapse into one progress bar', () => {
+    it('renders exactly one progressbar element when an assistant message has multiple tool_progress nodes', () => {
+      const assistantWithToolProgress = makeAssistantMessage('msg-1', [
+        {
+          type: 'tool_progress',
+          tool_name: 'search_flights',
+          tool_id: 't1',
+          status: 'done',
+        },
+        {
+          type: 'tool_progress',
+          tool_name: 'search_hotels',
+          tool_id: 't2',
+          status: 'done',
+        },
+        {
+          type: 'tool_progress',
+          tool_name: 'search_experiences',
+          tool_id: 't3',
+          status: 'running',
+        },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[assistantWithToolProgress]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending
+          onQuickReply={noop}
+        />,
+      );
+
+      expect(screen.getAllByRole('progressbar')).toHaveLength(1);
+      expect(screen.getByText(/Finding experiences/)).toBeInTheDocument();
+    });
+
+    it('renders the progressbar at 100% when all tool_progress nodes are done', () => {
+      const allDone = makeAssistantMessage('msg-1', [
+        {
+          type: 'tool_progress',
+          tool_name: 'search_flights',
+          tool_id: 't1',
+          status: 'done',
+        },
+        {
+          type: 'tool_progress',
+          tool_name: 'search_hotels',
+          tool_id: 't2',
+          status: 'done',
+        },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[allDone]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      const bar = screen.getByRole('progressbar');
+      expect(bar).toHaveAttribute('aria-valuenow', '100');
+    });
+  });
 });

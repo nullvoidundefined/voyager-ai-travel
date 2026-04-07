@@ -10,7 +10,6 @@ import { ExperienceTiles } from './nodes/ExperienceTiles';
 import { FlightTiles } from './nodes/FlightTiles';
 import { HotelTiles } from './nodes/HotelTiles';
 import { MarkdownText } from './nodes/MarkdownText';
-import { ToolProgressIndicator } from './nodes/ToolProgressIndicator';
 import { WeatherForecast } from './nodes/WeatherForecast';
 import { ItineraryTimeline } from './widgets/ItineraryTimeline';
 import { QuickReplyChips } from './widgets/QuickReplyChips';
@@ -113,7 +112,9 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
       );
 
     case 'tool_progress':
-      return <ToolProgressIndicator node={node} />;
+      // Rendered as part of a consolidated ChatProgressBar by VirtualizedChat.
+      // Returning null here prevents per-node chip rendering. See invariant 6.
+      return null;
 
     case 'travel_plan_form': {
       // Map FormField to TripField for the TripDetailsForm component
