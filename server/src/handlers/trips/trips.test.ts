@@ -493,6 +493,14 @@ describe('trip handlers', () => {
       experiences: [],
     } as unknown as Awaited<ReturnType<typeof tripRepo.getTripWithDetails>>;
 
+    it('returns 400 when data field is missing', async () => {
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'flight' });
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('data is required');
+    });
+
     it('returns 404 when trip is not owned by the caller', async () => {
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);
       const res = await request(app)
@@ -520,6 +528,39 @@ describe('trip handlers', () => {
       const res = await request(app)
         .post(`/trips/${tripId}/selections`)
         .send({ type: 'flight', data: { airline: 'Delta' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when hotel data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'hotel', data: { name: 'Arts' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when car_rental data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'car_rental', data: { provider: 'Hertz' } });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when experience data fails Zod validation', async () => {
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(
+        mockTripWithDetails,
+      );
+      const res = await request(app)
+        .post(`/trips/${tripId}/selections`)
+        .send({ type: 'experience', data: { category: 'museum' } });
       expect(res.status).toBe(400);
       expect(res.body.error).toBe('VALIDATION_ERROR');
     });
