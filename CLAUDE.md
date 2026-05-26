@@ -82,9 +82,7 @@ Lefthook hooks enforce `format:check`, `lint`, and `build` on every commit and p
 - `git config --local core.hooksPath`. Must not point to a stale directory.
 - Run `npx lefthook install` to reinstall hooks if needed.
 
-Voyager was fully trunk-based for its first 246 commits (0 PRs, 0 merge commits). As of 2026-04-07, GitHub branch protection on `main` requires the `e2e` status check before any push is accepted, so direct push from local now fails with `GH013: Required status check "e2e" is expected`. PRs are now mandatory: push the feature branch, open a PR via `gh pr create`, wait for CI to pass (`gh pr checks <num>`), then merge with `gh pr merge --merge --delete-branch`. The merge produces one merge commit per PR; commit-per-bug-ID granularity is preserved on the feature branch.
-
-The lefthook pre-push hook remains valuable as a fast local gate (it runs `format:check`, `lint`, `build`, and the e2e fast lane before the push reaches the remote), but it is no longer the only code-review boundary. The CI `e2e` check is now the authoritative gate. Never bypass either layer without explicit per-commit user authorization. After any hook bypass, the next commit on the branch must re-run the full verification chain in its body as evidence. If the local hook is found to be failing spuriously, fix it that day before the next feature commit. Sources: 2026-04-06 process retrospective at `docs/audits/2026-04-06-process-retrospective.md`; 2026-04-07 PR #24 merge that established the new flow.
+Voyager is trunk-based. Push directly to `main`. No branch protection, no PR requirement. The lefthook pre-push hook (format, lint, build, e2e fast lane) is the local gate. If the pre-push hook fails due to environment issues (e.g., port conflict with another dev server), `--no-verify` is acceptable for docs-only or non-code changes with explicit user authorization.
 
 ## Commit conventions
 
