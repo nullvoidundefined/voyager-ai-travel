@@ -4,6 +4,7 @@ import type { ChatNodeOfType } from '@voyager/shared-types';
 
 import { FlightCard } from '../widgets/FlightCard';
 import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
+import styles from './TileLayout.module.scss';
 
 interface FlightTilesProps {
   node: ChatNodeOfType<'flight_tiles'>;
@@ -40,7 +41,7 @@ export function FlightTiles({
 
   if (!node.selectable) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className={styles.verticalStack}>
         {node.flights.map((flight) => (
           <FlightCard
             key={flight.id}

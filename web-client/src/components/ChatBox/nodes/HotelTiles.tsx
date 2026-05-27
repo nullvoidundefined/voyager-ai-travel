@@ -4,6 +4,7 @@ import type { ChatNodeOfType } from '@voyager/shared-types';
 
 import { HotelCard } from '../widgets/HotelCard';
 import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
+import styles from './TileLayout.module.scss';
 
 interface HotelTilesProps {
   node: ChatNodeOfType<'hotel_tiles'>;
@@ -43,9 +44,7 @@ export function HotelTiles({
 
   if (!node.selectable) {
     return (
-      <div
-        style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}
-      >
+      <div className={styles.horizontalScroll}>
         {node.hotels.map((hotel) => (
           <HotelCard
             key={hotel.id}

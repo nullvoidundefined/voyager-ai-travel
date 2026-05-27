@@ -4,6 +4,7 @@ import type { ChatNodeOfType } from '@voyager/shared-types';
 
 import { ExperienceCard } from '../widgets/ExperienceCard';
 import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
+import styles from './TileLayout.module.scss';
 
 interface ExperienceTilesProps {
   node: ChatNodeOfType<'experience_tiles'>;
@@ -39,9 +40,7 @@ export function ExperienceTiles({
 
   if (!node.selectable) {
     return (
-      <div
-        style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}
-      >
+      <div className={styles.horizontalScroll}>
         {node.experiences.map((experience) => (
           <ExperienceCard
             key={experience.id}

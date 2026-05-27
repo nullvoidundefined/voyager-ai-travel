@@ -1,0 +1,12 @@
+.verticalStack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.horizontalScroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}

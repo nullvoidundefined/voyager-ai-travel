@@ -4,6 +4,7 @@ import type { ChatNodeOfType } from '@voyager/shared-types';
 
 import { SelectableCardGroup } from '../widgets/SelectableCardGroup';
 import { CarRentalCard } from './CarRentalCard';
+import styles from './TileLayout.module.scss';
 
 interface CarRentalTilesProps {
   node: ChatNodeOfType<'car_rental_tiles'>;
@@ -29,9 +30,7 @@ export function CarRentalTiles({
 
   if (!node.selectable) {
     return (
-      <div
-        style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}
-      >
+      <div className={styles.horizontalScroll}>
         {node.rentals.map((rental) => (
           <CarRentalCard key={rental.id} rental={rental} />
         ))}
