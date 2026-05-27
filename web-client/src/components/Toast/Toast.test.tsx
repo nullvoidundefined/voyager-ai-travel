@@ -36,6 +36,13 @@ describe('Toast', () => {
     vi.useRealTimers();
   });
 
+  it('has role="alert" and aria-live="assertive" for screen readers', () => {
+    render(<Toast message='Error occurred' onClose={vi.fn()} />);
+    const toast = screen.getByRole('alert');
+    expect(toast).toBeInTheDocument();
+    expect(toast).toHaveAttribute('aria-live', 'assertive');
+  });
+
   it('defaults to 5000ms duration', () => {
     vi.useFakeTimers();
     const onClose = vi.fn();

@@ -100,7 +100,11 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error && (
+            <p className={styles.error} role='alert'>
+              {error}
+            </p>
+          )}
 
           <button type='submit' className={styles.submit} disabled={isLoading}>
             {isLoading ? 'Signing in...' : 'Sign In'}

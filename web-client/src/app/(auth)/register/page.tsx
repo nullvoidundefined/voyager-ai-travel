@@ -141,7 +141,11 @@ export default function RegisterPage() {
                 />
               </label>
 
-              {error && <p className={styles.error}>{error}</p>}
+              {error && (
+                <p className={styles.error} role='alert'>
+                  {error}
+                </p>
+              )}
 
               <button
                 type='submit'

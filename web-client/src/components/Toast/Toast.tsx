@@ -17,7 +17,7 @@ export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
   }, [onClose, duration]);
 
   return (
-    <div className={styles.toast}>
+    <div className={styles.toast} role='alert' aria-live='assertive'>
       <span>{message}</span>
       <button
         type='button'
