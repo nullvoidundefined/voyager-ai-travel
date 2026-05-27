@@ -8,10 +8,10 @@ Apply the canonical Marketing role to Voyager with these project-specific inputs
 
 **Primary read targets:**
 
-- `web-client/src/app/page.tsx` and any landing-related components (hero carousel, feature cards, MockChatBox demo, CTAs)
-- `web-client/src/app/explore/`. Destination browse page (marketing as much as it is product)
-- `web-client/src/app/destinations/[slug]/`. Destination detail pages (thin SEO vs. real travel content)
-- `web-client/src/app/faq/`. FAQ page
+- `apps/client/web/src/app/page.tsx` and any landing-related components (hero carousel, feature cards, MockChatBox demo, CTAs)
+- `apps/client/web/src/app/explore/`. Destination browse page (marketing as much as it is product)
+- `apps/client/web/src/app/destinations/[slug]/`. Destination detail pages (thin SEO vs. real travel content)
+- `apps/client/web/src/app/faq/`. FAQ page
 - Meta tags, OG images, `layout.tsx` for SEO surface area
 - `README.md` for intended positioning
 

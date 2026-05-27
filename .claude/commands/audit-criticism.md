@@ -16,7 +16,7 @@ Apply the canonical Criticism role to Voyager. Your job is to evaluate whether t
   - **Do the unit economics work?** Show the math. If the free tier supports fewer than N trips per month before paid tiers kick in, flag it.
 - **Moat**: what prevents ChatGPT Plus with browsing from eating this category? What prevents Kayak or Expedia from adding "chat to plan a trip"? What does Voyager know or do that competitors cannot replicate in 6 months?
 - **Positioning drift**: the spec calls it an "Agentic Travel Agent" but the repo was renamed to "Voyager." Is the product's identity clear to the team? Clear to users?
-- **Dead code as signal**: the dead Amadeus references (in `server/src/schemas/trips.ts`, migrations, tests, docs) suggest a feature was planned, partially scoped, and abandoned without cleanup. What does this say about the team's decision discipline?
+- **Dead code as signal**: the dead Amadeus references (in `apps/server/src/schemas/trips.ts`, migrations, tests, docs) suggest a feature was planned, partially scoped, and abandoned without cleanup. What does this say about the team's decision discipline?
 - **Real bookings vs. research-only**: does Voyager actually book trips, or does it just generate itineraries? The difference is massive from a legal, business model, and trust standpoint. If it is research-only, why would a user pay for it vs. using ChatGPT?
 - **User story reality check**: do the 35 user stories in `docs/USER_STORIES.md` describe a product users would actually pay for, or do they describe a feature tour?
 

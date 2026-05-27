@@ -46,13 +46,13 @@ export default defineConfig({
   webServer: [
     {
       command: 'npx tsx src/index.ts',
-      // Run from the server package so dotenv finds server/.env
+      // Run from the server package so dotenv finds apps/server/.env
       // and tsx resolves src/index.ts. Without this Playwright
-      // spawns from whatever CWD invoked it (web-client when
-      // running via `pnpm --dir web-client exec`) and the
+      // spawns from whatever CWD invoked it (apps/client/web when
+      // running via `pnpm --dir apps/client/web exec`) and the
       // `cd server && ...` shell trick we previously used
-      // crashed in CI because web-client/server does not exist.
-      cwd: path.resolve(ROOT_DIR, 'server'),
+      // crashed in CI because apps/client/web/server does not exist.
+      cwd: path.resolve(ROOT_DIR, 'apps/server'),
       port: 3001,
       timeout: 15_000,
       reuseExistingServer: !process.env.CI,
@@ -102,7 +102,7 @@ export default defineConfig({
     },
     {
       command: 'npx next dev --port 3000',
-      cwd: path.resolve(ROOT_DIR, 'web-client'),
+      cwd: path.resolve(ROOT_DIR, 'apps/client/web'),
       port: 3000,
       timeout: 30_000,
       reuseExistingServer: !process.env.CI,

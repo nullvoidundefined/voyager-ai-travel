@@ -21,7 +21,7 @@ Apply the canonical Financial role to Voyager with these project-specific inputs
 - **Unit economics**: what is the projected cost per full trip plan (one end-to-end multi-turn agent conversation)? Anthropic tokens + SerpApi searches + Google Places calls + Postgres queries. Compare to any monetization model (currently: none visible. So every trip plan is subsidized cost with no revenue).
 - **Free-tier cliffs**: SerpApi 250/month is the most dangerous. What happens on search 251? Does the agent loop crash, degrade, or fall back? Is there a cache that reduces calls per search?
 - **Missing spending caps**: every third-party API should have a hard monthly cap configured. Flag each that does not. Anthropic in particular is a P0 risk. An infinite tool-call loop bug could produce a five-figure surprise bill in hours.
-- **Cache effectiveness**: the spec mentions aggressive SerpApi caching. Evaluate `server/src/services/cache.service.ts` and related code. Is the cache actually saving calls?
+- **Cache effectiveness**: the spec mentions aggressive SerpApi caching. Evaluate `apps/server/src/services/cache.service.ts` and related code. Is the cache actually saving calls?
 - **Dead paid integrations**: Amadeus is referenced in the spec and schema but there is no actual client. Is a paid account accidentally provisioned for it?
 
 **Product documents:**

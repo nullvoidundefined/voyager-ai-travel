@@ -8,11 +8,11 @@ Apply the canonical Design role to the Voyager web-client with these project-spe
 
 **Primary read targets:**
 
-- `web-client/src/app/`. Next.js 15 App Router pages (home, explore, destinations, trips, account)
-- `web-client/src/components/`. All shared components
-- `web-client/src/styles/`. Global styles, CSS custom properties, design tokens
+- `apps/client/web/src/app/`. Next.js 15 App Router pages (home, explore, destinations, trips, account)
+- `apps/client/web/src/components/`. All shared components
+- `apps/client/web/src/styles/`. Global styles, CSS custom properties, design tokens
 - SCSS modules throughout the web-client (`*.module.scss`)
-- Image assets in `web-client/public/`
+- Image assets in `apps/client/web/public/`
 
 **Voyager-specific surfaces to evaluate carefully:**
 

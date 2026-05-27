@@ -8,8 +8,8 @@ Apply the canonical UX role to Voyager with these project-specific inputs.
 
 **Primary read targets:**
 
-- `web-client/src/app/`. Every page / route
-- `web-client/src/components/`. Especially the chat UI, tile-card flow, and any wizard / onboarding components
+- `apps/client/web/src/app/`. Every page / route
+- `apps/client/web/src/components/`. Especially the chat UI, tile-card flow, and any wizard / onboarding components
 - `docs/USER_STORIES.md`. **exhaustively walk through every user story (US-1 through US-35)** per the canonical role's User Story Coverage requirement. For each story, mark passed / failed / blocked with evidence, and flag any story without an E2E test.
 - `e2e/`. Current E2E coverage (expect only `auth.spec.ts` and `navigation.spec.ts`; everything else is a coverage gap)
 

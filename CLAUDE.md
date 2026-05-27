@@ -16,7 +16,7 @@ Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about re
 
 ## Stack
 
-- **Monorepo:** pnpm workspaces with `server/` and `web-client/` packages
+- **Monorepo:** pnpm workspaces with `apps/server/` and `apps/client/web/` packages
 - **Frontend:** Next.js 15
 - **API:** Express 5 + TypeScript (Docker)
 - **Database:** PostgreSQL on Neon
@@ -47,7 +47,7 @@ railway up --detach
 
 ### Deploy pitfalls
 
-- **Wrong directory:** Railway must run from the monorepo root, not `server/`.
+- **Wrong directory:** Railway must run from the monorepo root, not `apps/server/`.
 - **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars. They override the Dockerfile.
 
 ## Bug fix process: test first, not optimism
@@ -81,7 +81,7 @@ Every entry in `docs/BUGS.md` must tag its first line with `severity: P0|P1|P2|P
 
 ## ChatBox invariants
 
-Before landing any further fix to `web-client/src/components/ChatBox/`, write a `web-client/src/components/ChatBox/ChatBox.invariants.test.tsx` that enumerates the invariants the data model must hold:
+Before landing any further fix to `apps/client/web/src/components/ChatBox/`, write a `apps/client/web/src/components/ChatBox/ChatBox.invariants.test.tsx` that enumerates the invariants the data model must hold:
 
 - Tool-result cards persist after the SSE stream ends.
 - Text nodes never duplicate when the agent re-emits text.
@@ -89,7 +89,7 @@ Before landing any further fix to `web-client/src/components/ChatBox/`, write a 
 - Virtualizer layout is stable under append (no layout thrash on the last node).
 - QuickReplyChips render only after the final assistant message of a turn.
 
-Every subsequent ChatBox fix must extend this spec, not create a new ad-hoc test next to the file. The 2026-04-06 process retrospective found a 9-commit fix storm (`183eb289` through `9e2eab7d`) in 85 minutes touching `web-client/src/components/ChatBox/*` exclusively, with one `debug:` commit landing console.logs directly on main. Each fix patched a symptom without unifying the data model, so each new fix risked reintroducing an earlier symptom. The invariants spec exists to make those regressions impossible.
+Every subsequent ChatBox fix must extend this spec, not create a new ad-hoc test next to the file. The 2026-04-06 process retrospective found a 9-commit fix storm (`183eb289` through `9e2eab7d`) in 85 minutes touching `apps/client/web/src/components/ChatBox/*` exclusively, with one `debug:` commit landing console.logs directly on main. Each fix patched a symptom without unifying the data model, so each new fix risked reintroducing an earlier symptom. The invariants spec exists to make those regressions impossible.
 
 ## Incident history
 

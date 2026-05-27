@@ -52,12 +52,12 @@ if ! redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" ping >/dev/null 2>&1; then
   fail "Redis not reachable at $REDIS_HOST:$REDIS_PORT"
 fi
 
-# Verify server/.env exists. Its dotenv/config import only finds
-# server/.env when run from the server/ directory, so an empty
+# Verify apps/server/.env exists. Its dotenv/config import only finds
+# .env when run from the apps/server/ directory, so an empty
 # worktree (which never had .env copied in) would crash later
 # with "DATABASE_URL is required". Catch that here.
-if [ ! -f "server/.env" ]; then
-  fail "server/.env is missing (worktrees do not inherit .env from main)"
+if [ ! -f "apps/server/.env" ]; then
+  fail "apps/server/.env is missing (worktrees do not inherit .env from main)"
 fi
 
 # ENG-16 addition: provision the local test database if opted in.
@@ -86,5 +86,5 @@ if [ -n "$PORT_PID" ]; then
   echo "[e2e-precheck] port $API_PORT already bound by pid $PORT_PID ($PORT_CMD); Playwright will reuse"
 fi
 
-echo "e2e-precheck OK: Postgres, Redis, server/.env, port $API_PORT status all verified"
+echo "e2e-precheck OK: Postgres, Redis, apps/server/.env, port $API_PORT status all verified"
 exit 0

@@ -81,7 +81,7 @@ test.describe('Trip detail page spacing (B5)', () => {
     await page.reload();
 
     // Wait for both anchors. The chat heading is "Chat with Voyager"
-    // (APP_NAME = 'Voyager' in web-client/src/lib/constants.ts).
+    // (APP_NAME = 'Voyager' in apps/client/web/src/lib/constants.ts).
     // The Flights section heading is the literal h2 inside the
     // first .itinerary block.
     const chatHeading = page

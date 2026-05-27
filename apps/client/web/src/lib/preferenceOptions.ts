@@ -1,4 +1,4 @@
-// Duplicated from server/src/schemas/userPreferences.ts for frontend use.
+// Duplicated from apps/server/src/schemas/userPreferences.ts for frontend use.
 // Do not import from the server package.
 
 export const ACCOMMODATION_OPTIONS = [

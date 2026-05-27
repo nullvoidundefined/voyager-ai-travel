@@ -11,7 +11,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
       '@voyager/shared-types': path.resolve(
         __dirname,
-        '../packages/shared-types/src',
+        '../../../packages/shared-types/src',
       ),
     },
   },

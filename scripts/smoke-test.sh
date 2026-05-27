@@ -17,12 +17,12 @@ trap cleanup EXIT
 echo "=== Smoke Test: agentic-travel-agent ==="
 
 # Start server
-cd "$PROJECT_DIR/server"
+cd "$PROJECT_DIR/apps/server"
 PORT=3001 npx tsx src/index.ts &>/dev/null &
 PIDS+=($!)
 
 # Start web-client
-cd "$PROJECT_DIR/web-client"
+cd "$PROJECT_DIR/apps/client/web"
 npx next dev --port 3000 &>/dev/null &
 PIDS+=($!)
 

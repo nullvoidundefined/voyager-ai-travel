@@ -6,14 +6,14 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 
 # Copy server and shared-types package.json for dependency resolution
-COPY server/package.json server/package.json
+COPY apps/server/package.json apps/server/package.json
 COPY packages/shared-types/package.json packages/shared-types/package.json
 
 # Install dependencies (production + dev for build)
 RUN pnpm install --frozen-lockfile --filter voyager-server --ignore-scripts
 
 # Copy server source and shared-types
-COPY server/ server/
+COPY apps/server/ apps/server/
 COPY packages/shared-types/ packages/shared-types/
 
 # Build
@@ -25,15 +25,15 @@ RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
-COPY server/package.json server/package.json
+COPY apps/server/package.json apps/server/package.json
 COPY packages/shared-types/package.json packages/shared-types/package.json
 COPY packages/shared-types/ packages/shared-types/
 RUN pnpm install --frozen-lockfile --filter voyager-server --ignore-scripts --prod
 
-COPY --from=base /app/server/dist server/dist
-COPY server/src/data/destinations.json server/dist/data/destinations.json
-COPY server/migrations server/migrations
+COPY --from=base /app/apps/server/dist apps/server/dist
+COPY apps/server/src/data/destinations.json apps/server/dist/data/destinations.json
+COPY apps/server/migrations apps/server/migrations
 
 EXPOSE 3001
 USER node
-CMD ["node", "server/dist/index.js"]
+CMD ["node", "apps/server/dist/index.js"]

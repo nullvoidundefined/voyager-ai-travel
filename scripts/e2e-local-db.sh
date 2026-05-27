@@ -67,7 +67,7 @@ fi
 # from the environment.
 log "running migrations against $DATABASE_URL_LOCAL"
 (
-  cd "$(dirname "$0")/../server" || exit 1
+  cd "$(dirname "$0")/../apps/server" || exit 1
   DATABASE_URL="$DATABASE_URL_LOCAL" pnpm migrate:up >/dev/null 2>&1 || {
     log "migration failed; aborting"
     exit 1

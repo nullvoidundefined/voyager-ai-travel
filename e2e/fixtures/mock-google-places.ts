@@ -2,7 +2,7 @@
  * Test-side mirror of the server's Google Places mock layer.
  *
  * Mirrors the deterministic shapes that
- * server/src/tools/mock/experiences.mock.ts emits when
+ * apps/server/src/tools/mock/experiences.mock.ts emits when
  * E2E_MOCK_TOOLS=1 is set.
  */
 

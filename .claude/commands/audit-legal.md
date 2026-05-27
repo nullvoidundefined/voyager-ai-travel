@@ -19,8 +19,8 @@ Apply the canonical Legal role to Voyager. **Expected output is a checklist of m
 
 **Primary read targets:**
 
-- `web-client/src/app/`. Look for `/terms`, `/privacy`, `/cookies`, or any legal page
-- `web-client/src/app/layout.tsx`. Cookie consent banner? Footer legal links?
+- `apps/client/web/src/app/`. Look for `/terms`, `/privacy`, `/cookies`, or any legal page
+- `apps/client/web/src/app/layout.tsx`. Cookie consent banner? Footer legal links?
 - Everything referenced in `docs/FULL_APPLICATION_SPEC.md` around data handling
 - `README.md`
 

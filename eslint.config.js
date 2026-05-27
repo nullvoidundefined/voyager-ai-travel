@@ -90,8 +90,8 @@ export default tseslint.config([
         ecmaFeatures: { jsx: true },
         ecmaVersion: 'latest',
         project: [
-          './server/tsconfig.json',
-          './web-client/tsconfig.json',
+          './apps/server/tsconfig.json',
+          './apps/client/web/tsconfig.json',
           './eval/tsconfig.json',
           './packages/shared-types/tsconfig.json',
         ],
