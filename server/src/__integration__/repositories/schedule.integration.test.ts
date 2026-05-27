@@ -1,5 +1,12 @@
 import pool from 'app/db/pool/pool.js';
+import {
+  addScheduleItem,
+  getScheduleForTrip,
+  upsertScheduleDay,
+} from 'app/repositories/trips/schedule.repository.js';
 import { describe, expect, it } from 'vitest';
+
+import { seedTrip, seedUser } from '../helpers/seed.js';
 
 describe('trip_schedule table', () => {
   it('exists with required columns', async () => {
@@ -31,5 +38,63 @@ describe('trip_schedule_items table', () => {
     expect(cols).toContain('description');
     expect(cols).toContain('item_type');
     expect(cols).toContain('item_order');
+  });
+});
+
+describe('ScheduleRepository', () => {
+  let tripId: string;
+
+  it('setup: seed a user and trip', async () => {
+    const user = await seedUser();
+    const trip = await seedTrip(user.id);
+    tripId = trip.id;
+  });
+
+  it('upsertScheduleDay creates a day row', async () => {
+    const day = await upsertScheduleDay(tripId, {
+      day_date: '2026-08-01',
+      day_number: 1,
+    });
+    expect(day.id).toBeTruthy();
+    expect(day.day_number).toBe(1);
+  });
+
+  it('upsertScheduleDay is idempotent (upsert on conflict)', async () => {
+    const day1 = await upsertScheduleDay(tripId, {
+      day_date: '2026-08-01',
+      day_number: 1,
+    });
+    const day2 = await upsertScheduleDay(tripId, {
+      day_date: '2026-08-02',
+      day_number: 1,
+    });
+    expect(day1.id).toBe(day2.id);
+    // pg returns DATE as a JS Date (midnight local time); the upsert updated the row.
+    // Assert the two returned day_dates differ (not the same object) to confirm the update ran.
+    expect(String(day2.day_date)).not.toBe(String(day1.day_date));
+  });
+
+  it('addScheduleItem adds an item to a day', async () => {
+    const day = await upsertScheduleDay(tripId, {
+      day_date: '2026-08-01',
+      day_number: 1,
+    });
+    const item = await addScheduleItem(day.id, {
+      time_of_day: 'morning',
+      title: 'Visit Museum',
+      description: 'Explore the local art museum.',
+      item_type: 'activity',
+      item_order: 1,
+    });
+    expect(item.id).toBeTruthy();
+    expect(item.title).toBe('Visit Museum');
+  });
+
+  it('getScheduleForTrip returns days with items', async () => {
+    const schedule = await getScheduleForTrip(tripId);
+    expect(schedule.length).toBeGreaterThan(0);
+    expect(Array.isArray(schedule[0].items)).toBe(true);
+    const itemTitles = schedule.flatMap((d) => d.items.map((i) => i.title));
+    expect(itemTitles).toContain('Visit Museum');
   });
 });
