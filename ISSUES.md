@@ -16,9 +16,7 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-01] All 5 repository test files mock the database pool (R-200 anti-pattern #5)
 
 - **Severity:** P1 . **Effort:** L . **Category:** test-quality
-- Affects: auth, conversations, tool-call-log, trips, userPreferences repos
-- All assertions verify mock calls with SQL strings, not behavioral outcomes against a real database
-- Fix requires setting up a test database (Neon branch or local Postgres container) and rewriting tests as integration tests
+- **Status:** RESOLVED in commit 34a706c. Integration tests added for all 5 repositories (auth: 15 tests, conversations: 7, tool-call-log: 5, userPreferences: 6, trips: 22; 55 new repo tests total). Setup extended with full FK-safe cleanup. singleFork vitest config prevents worker races on shared sentinel-email data.
 
 ### [CQS-02] `server/src/schemas/trips.ts` has no test file
 
