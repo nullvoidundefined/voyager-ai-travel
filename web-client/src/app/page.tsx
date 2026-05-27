@@ -19,13 +19,13 @@ const FEATURES = [
     color: 'ocean' as const,
   },
   {
-    title: 'Curated Hotels',
+    title: 'Hotel Search',
     desc: 'Searches Google Hotels by location, dates, and star rating within your price range.',
     color: 'sand' as const,
   },
   {
     title: 'Local Experiences',
-    desc: 'Discovers restaurants, tours, and hidden gems via Google Places.',
+    desc: 'Discovers restaurants, tours, and local favorites via Google Places.',
     color: 'lagoon' as const,
   },
   {
@@ -174,8 +174,8 @@ export default function Home() {
       <section className={styles.exploreSection}>
         <h2 className={styles.sectionTitle}>Explore Destinations</h2>
         <p className={styles.sectionSubtitle}>
-          Browse 30 curated travel guides with local tips, dining
-          recommendations, and insider knowledge.
+          Browse 30 destination travel guides with local tips, dining
+          recommendations, and destination research.
         </p>
         <Link href='/explore' className={styles.exploreCta}>
           Discover destinations

@@ -49,3 +49,13 @@ describe('landing page content', () => {
     expect(pageSource).toContain('Grounded in live API data');
   });
 });
+
+describe('landing page banned words', () => {
+  const BANNED = ['curated', 'hidden gems', 'insider knowledge', 'world-class'];
+
+  BANNED.forEach((word) => {
+    it(`does not contain banned word "${word}"`, () => {
+      expect(pageSource.toLowerCase()).not.toContain(word);
+    });
+  });
+});
