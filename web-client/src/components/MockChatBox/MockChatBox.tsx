@@ -21,7 +21,7 @@ const DEMO_MESSAGES: DemoMessage[] = [
     nodes: [
       {
         type: 'text',
-        content: "Great choice! Let's plan your trip to **Monterey**.",
+        content: "Great choice! Let's plan your trip to **Barcelona**.",
       },
     ],
   },
@@ -134,7 +134,7 @@ const DEMO_MESSAGES: DemoMessage[] = [
     nodes: [
       {
         type: 'text',
-        content: 'Here are some hotels in Monterey.',
+        content: 'Here are some hotels in Barcelona.',
       },
       {
         type: 'hotel_tiles',
@@ -142,9 +142,9 @@ const DEMO_MESSAGES: DemoMessage[] = [
         hotels: [
           {
             id: 'demo-hotel-1',
-            name: 'Monterey Plaza Hotel & Spa',
-            city: 'Monterey',
-            star_rating: 4,
+            name: 'W Barcelona',
+            city: 'Barcelona',
+            star_rating: 5,
             price_per_night: 289,
             total_price: 2023,
             currency: 'USD',
@@ -153,8 +153,8 @@ const DEMO_MESSAGES: DemoMessage[] = [
           },
           {
             id: 'demo-hotel-2',
-            name: 'InterContinental The Clement',
-            city: 'Monterey',
+            name: 'Hotel Arts Barcelona',
+            city: 'Barcelona',
             star_rating: 5,
             price_per_night: 359,
             total_price: 2513,
@@ -172,7 +172,7 @@ const DEMO_MESSAGES: DemoMessage[] = [
     nodes: [
       {
         type: 'text',
-        content: "I've selected Monterey Plaza Hotel",
+        content: "I've selected W Barcelona",
       },
     ],
   },
