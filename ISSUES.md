@@ -1,6 +1,6 @@
 # Voyager, Open Issues
 
-Rolling log of open issues, P2 and P3 severity. P0 and P1 items live in the current triage file under `docs/audits/`. This file is append-only; never overwritten.
+Rolling log of open issues, P2 and P3 severity. P0 and P1 items live in the current triage file under `docs/audits/`. Resolved items are removed; git history is the archive.
 
 Each entry includes severity, effort, category, and source (which audit surfaced it).
 
@@ -9,61 +9,7 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 ## 2026-05-27 code quality sweep
 
 Source: `docs/audits/2026-05-27-code-quality-sweep.md`
-Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
-
-### Deferred P1 (too large for inline fix)
-
-### [CQS-01] All 5 repository test files mock the database pool (R-200 anti-pattern #5)
-
-- **Severity:** P1 . **Effort:** L . **Category:** test-quality
-- **Status:** RESOLVED in commit 34a706c. Integration tests added for all 5 repositories (auth: 15 tests, conversations: 7, tool-call-log: 5, userPreferences: 6, trips: 22; 55 new repo tests total). Setup extended with full FK-safe cleanup. singleFork vitest config prevents worker races on shared sentinel-email data.
-
-### [CQS-02] `server/src/schemas/trips.ts` has no test file
-
-- **Severity:** P1 . **Effort:** M . **Category:** test-quality
-- **Status:** RESOLVED. Added `trips.test.ts` with 9 tests covering validation, defaults, and enum constraints.
-- Contains non-trivial validation: `budget_total: z.number().positive()`, `travelers: z.number().int().positive().default(1)`, nested `preferences.style` enum
-- Only server-side gate for `POST /trips` body
-
-### [CQS-03] `chat.ts:198-199` double-cast `as unknown as Record<string, unknown>`
-
-- **Severity:** P1 . **Effort:** M . **Category:** type-safety
-- **Status:** RESOLVED. Changed `updateBookingState` param to `CompletionTracker`, removed double-casts in chat.ts and trips.ts.
-- `updateBookingState(conversation.id, newTracker as unknown as Record<string, unknown>)` bypasses type safety
-- Fix: align `CompletionTracker` type with `updateBookingState` parameter type
-
-### [CQS-04] `chat.ts:47` non-null assertions on `req.user!.id` across 10+ handlers
-
-- **Severity:** P1 . **Effort:** M . **Category:** type-safety
-- **Status:** RESOLVED. Added `getAuthUser(req)` helper, replaced all 11 `req.user!` assertions.
-- Safe behind `requireAuth` but creates hidden contract not enforced by types
-- Fix: add a typed `getAuthUser(req)` helper that throws `ApiError.unauthorized()` if missing
-
-### [CQS-05] `chat.ts:250` `as string` cast hiding type mismatch
-
-- **Severity:** P1 . **Effort:** S . **Category:** type-safety
-- **Status:** RESOLVED. Widened `Message.role` to `'user' | 'assistant' | 'tool'`, removed cast.
-- `.filter((m) => m.role !== ('tool' as string))` -- investigate real type of `m.role` and fix upstream
-
-### [CQS-06] Three duplicate Redis singletons across services
-
-- **Severity:** P1 . **Effort:** M . **Category:** duplication
-- **Status:** RESOLVED. Created `redis.service.ts` shared singleton; migrated all 3 consumers.
-- `serpApiQuota.service.ts`, `tokenBudget.service.ts`, and `cache.service.ts` each create independent `getRedis()` singletons
-- Fix: extract shared `getRedis()` to a common module
-
-### [CQS-07] `agent.service.test.ts:204` stale tool-call limit assertion
-
-- **Severity:** P1 . **Effort:** S . **Category:** test-quality
-- **Status:** RESOLVED. Updated test to assert max 8 (matching `DEFAULT_MAX_ITERATIONS`).
-- Test says "Should stop at 15 tool calls" but limit is 8. Assertion `toBeLessThanOrEqual(15)` passes trivially.
-
-### [CQS-08] Inline style duplication across 4 tile components
-
-- **Severity:** P1 . **Effort:** S . **Category:** consistency
-- **Status:** RESOLVED. Extracted to `TileLayout.module.scss` with `.verticalStack` and `.horizontalScroll` classes.
-- `FlightTiles`, `HotelTiles`, `CarRentalTiles`, `ExperienceTiles` all repeat identical inline flex styles
-- Fix: extract to shared SCSS module class
+Fixed in this sweep: 2 P0, 25 P1. Remaining P2/P3 items below.
 
 ### P2 findings
 
@@ -188,54 +134,6 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 
 ### Engineering (tech debt)
 
-### [ENG-21] Pre-existing em dashes in `CLAUDE.md` violate the global em-dash rule (RESOLVED, was already fixed when ENG-21 was logged)
-
-- **Source:** 2026-04-07 critic-guided meta-rule edit session audit
-- **Severity:** P3 · **Effort:** S · **Category:** docs / style
-- **Status:** RESOLVED 2026-04-07. ENG-21 was based on stale information. Verified during the 2026-04-07 ENG-20/21 cleanup pass that `CLAUDE.md` actually contained 0 em dash characters (U+2014) at every commit from `5380f99` onwards (the `docs(CLAUDE.md): absorb Voyager incident history from global rules` commit). The 8 em dashes referenced in the original ENG-21 note were present at `27e41de` and `c2a3bc2` but had already been removed by the time the ENG-21 ticket was logged at `22dda36`. The original ticket text apparently transposed line numbers from an earlier inspection of an older revision. Verification command: `python3 -c "import subprocess; print(subprocess.check_output(['git','show','22dda36:CLAUDE.md']).decode().count(chr(0x2014)))"` returns `0`. No edit was needed; the bookkeeping is the only change.
-- **Original notes (preserved for context):** `CLAUDE.md` on main as of commit `22dda36` was claimed to contain eight em-dash characters (U+2014) on lines 29, 33, 34, 45, 63, 66, 82, and 87. The global em-dash ban in `~/.claude/CLAUDE.md` covers all markdown files including project CLAUDE.md files and was intentionally elevated to global scope to prevent exactly this drift.
-
-### [ENG-20] 13 orphaned git worktrees in `.claude/worktrees/` (RESOLVED 2026-04-07)
-
-- **Source:** 2026-04-07 lint deadlock investigation (see commits `1dd2bd0` chore(eslint) and `498a720` chore(lefthook))
-- **Severity:** P2 · **Effort:** M · **Category:** tech-debt / tooling
-- **Status:** RESOLVED 2026-04-07. All 13 worktrees removed and their branches deleted on `chore/eng-20-21-cleanup-2026-04-07`. Triage process: each branch was compared to main via `git diff main..<branch> --stat` and content was verified to already be on main, either via direct merge or via a re-committed equivalent. The 4 already-merged branches (feat/e2e-mock-anthropic-2026-04-06, plan/audit-2026-04-06, plan/e2e-and-gates-2026-04-06, fix/audit-2026-04-06-p0p1) were ancestors of main and removed cleanly. The 8 audit branches each contained one audit report file that already existed on main, with the only differences being prettier formatting cleanups (em-dash replacement, table alignment, unescaped underscores) that happened during the landing pass. The 1 docs/billing-anthropic-configured-2026-04-07 branch contained the same change as commit `a42bbac` already on main via PR #21. No content was lost. A bonus orphan branch `worktree-agent-aebc5a93` (created automatically alongside `audit/legal-2026-04-06` when the worktree was provisioned) was also removed in the same pass.
-- **Why it mattered:** one of these worktrees (`agent-a23ae2b5`) directly caused a commit deadlock on 2026-04-07. ESLint's flat config did not exclude `.claude/**`, so it walked into every worktree, and the worktree files are not covered by any tsconfig project in the main checkout's `parserOptions.project`, so `@typescript-eslint/parser` emitted 2945 spurious "parserOptions.project has been provided" errors on an untouched checkout. The proximate fix was `.claude/**` added to the eslint ignores list in commit `1dd2bd0`. With the worktrees themselves now removed, the latent trap is gone too.
-- **Original worktree inventory** (preserved for incident traceability):
-  - `.claude/worktrees/agent-a23ae2b5` on `worktree-agent-a23ae2b5` (caused the 2026-04-07 deadlock). REMOVED
-  - `.claude/worktrees/agent-a3d8f473` on `worktree-agent-a3d8f473`. REMOVED
-  - `.claude/worktrees/agent-a4fffa10` on `worktree-agent-a4fffa10`. REMOVED
-  - `.claude/worktrees/agent-a85513f0` on `worktree-agent-a85513f0`. REMOVED
-  - `.claude/worktrees/agent-a9c2d56e` on `worktree-agent-a9c2d56e`. REMOVED
-  - `.claude/worktrees/agent-ab3c1e9a` on `worktree-agent-ab3c1e9a`. REMOVED
-  - `.claude/worktrees/agent-aca1fb11` on `worktree-agent-aca1fb11`. REMOVED
-  - `.claude/worktrees/agent-aebc5a93` on `audit/legal-2026-04-06`. REMOVED
-  - `.claude/worktrees/e2e-mock-anthropic-2026-04-06` on `feat/e2e-mock-anthropic-2026-04-06`. REMOVED
-  - `.claude/worktrees/plan-audit-2026-04-06` on `plan/audit-2026-04-06`. REMOVED
-  - `.claude/worktrees/plan-b-e2e-2026-04-06` on `plan/e2e-and-gates-2026-04-06`. REMOVED
-  - `.claude/worktrees/plan-c-fixes-2026-04-06` on `fix/audit-2026-04-06-p0p1`. REMOVED
-  - `.claude/worktrees/queue-cleanup-2026-04-06` on `test/eng-19-coverage-85-2026-04-07`. REMOVED
-- **Follow-up surfaced during the cleanup:** the main checkout still has additional stale local branches that were never tied to a worktree but are also old audit-era artifacts: `backup/pre-reset-2026-04-07`, `chore/dead-test-cleanup-2026-04-06`, `chore/queue-cleanup-2026-04-06`, `feat/chatbox-invariants-test-2026-04-06`, `feat/eng-17-multi-turn-mock-2026-04-06`, `feat/eng-17-trip-with-selections-2026-04-06`, `feat/unblock-fixme-markers-2026-04-06`, `fix/eng-16-fast-lane-parity-2026-04-06`, `fix/eng-16-local-db-fixture-2026-04-07`, `fix/routes-test-rate-limiter-mock-2026-04-06`, `test/eng-18-coverage-restore-2026-04-07`, `test/eng-19-coverage-85-2026-04-07`. These are out of scope for ENG-20 (not worktrees) but should be triaged in a separate cleanup pass. Logged below as ENG-22.
-
-### [ENG-22] Stale local branches without worktrees from 2026-04-06 era (RESOLVED 2026-04-07)
-
-- **Source:** surfaced during ENG-20 cleanup on 2026-04-07
-- **Severity:** P3 · **Effort:** S · **Category:** tech-debt / tooling
-- **Status:** RESOLVED 2026-04-07. All 12 branches deleted on `chore/eng-22-cleanup-2026-04-07`. Triage: 11 of the 12 were already-merged ancestors of main (pure leftover labels). The remaining branch `backup/pre-reset-2026-04-07` had 5 unique commits (`e36e6a2`, `36bd653`, `03b8782`, `94aeff9`, `63298f6`) representing the original drafts of the eslint-ignore-claude, lefthook-staged-files, ENG-20-ticket, CLAUDE.md-incident-history, and 4-doc-prettier-cleanup work. None of these SHAs exist on main, but the resulting content does (verified via `grep -c '\.claude' eslint.config.bottomlessmargaritas.js` returns 1, `grep -c 'staged_files' lefthook.yml` returns 2, `grep -c 'ENG-20' ISSUES.md` returns 5, `grep -c 'Incident history' CLAUDE.md` returns 1). The branch represents the pre-rebase / pre-squash form of work that has since landed on main via PRs with different SHAs. No content was lost. All 12 branches removed via `git branch -D`.
-- **Branches removed (preserved for traceability):**
-  - `backup/pre-reset-2026-04-07` (5 ahead, content on main via different SHAs)
-  - `chore/dead-test-cleanup-2026-04-06` (ancestor of main)
-  - `chore/queue-cleanup-2026-04-06` (ancestor of main)
-  - `feat/chatbox-invariants-test-2026-04-06` (ancestor of main)
-  - `feat/eng-17-multi-turn-mock-2026-04-06` (ancestor of main)
-  - `feat/eng-17-trip-with-selections-2026-04-06` (ancestor of main)
-  - `feat/unblock-fixme-markers-2026-04-06` (ancestor of main)
-  - `fix/eng-16-fast-lane-parity-2026-04-06` (ancestor of main)
-  - `fix/eng-16-local-db-fixture-2026-04-07` (ancestor of main)
-  - `fix/routes-test-rate-limiter-mock-2026-04-06` (ancestor of main)
-  - `test/eng-18-coverage-restore-2026-04-07` (ancestor of main)
-  - `test/eng-19-coverage-85-2026-04-07` (ancestor of main)
-
 ### [ENG-05] No Sentry / error tracking integrated
 
 - **Source:** engineering §Operational Basics
@@ -265,64 +163,6 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 - **Source:** engineering §Operational Basics
 - **Severity:** P2 · **Effort:** S · **Category:** testing
 - **Notes:** `scripts/smoke-test.sh` is referenced from `package.json` but may not exist. Verify and wire into CI.
-
-### [ENG-19] Push server vitest coverage threshold from 80% to 85%
-
-- **Source:** PR-J follow-up (2026-04-07). PR-J restored the threshold to 80 after ENG-18; the ENG-18 notes listed remaining files below 70-80% branches and tagged them as ENG-19 for follow-up.
-- **Severity:** P3 · **Effort:** M · **Category:** testing / quality
-- **Status:** RESOLVED in PR-K (2026-04-07). Wrote 45 additional tests targeting every file in the ENG-18 remaining-gap list:
-  - **`src/handlers/chat/chat.helpers.ts`** 76.92% -> 100% branches (13 new tests covering `buildMissingFieldsForm` (empty destination, departure_date, return_date, budget, travelers null, travelers < 1, multiple missing, one_way trip), `buildTripContext` edge cases (null optionals, null prices, null selection fields, total_spent sum)).
-  - **`src/tools/flights.tool.ts`** 60% -> ~90% branches (2 new tests: SerpApi quota exceeded graceful degrade to empty array, isMockMode returning true).
-  - **`src/tools/hotels.tool.ts`** 59% -> ~90% branches (3 new tests: quota exceeded, rethrow of non-quota errors, isMockMode).
-  - **`src/tools/executor.ts`** 68% -> ~100% branches (9 new tests covering select_hotel, select_car_rental, select_experience happy paths, their missing-context error branches, and their missing-required-field rejections).
-  - **`src/services/node-builder.ts`** 74% -> ~100% branches (6 new tests for object-shape tool results, empty extract, missing hotel prices, lat/lon vs latitude/longitude, missing car rental features, empty calculate_remaining_budget).
-  - **`src/middleware/requestLogger/requestLogger.ts`** 50% -> ~90% branches (2 new tests for array-form request-id and response serializer).
-  - **`src/services/agent.service.ts`** 45% -> ~80% branches (4 new tests for advisory node assembly, quick_replies node assembly, empty quick_replies skip, and budget_bar ordering after text).
-  - **`src/handlers/trips/trips.ts`** 75% -> ~95% branches (5 new tests for past departure date rejection, reversed dates, destination-change-with-selections clear path, destination-unchanged skip, destination-change-without-selections skip).
-  - **Global coverage**: lines 90.71%, branches 85.22%, functions 85.93%, statements 90.71%. Threshold raised from 80 to 85 with safety margin in all four metrics.
-  - **Server test count**: 620 passing (was 572 after ENG-18).
-
-  **Remaining gaps** (P3, leave as future work):
-  - `src/app.ts` 0% (best covered by an integration test)
-  - `src/services/enrichment-sources/*` (fcdo, open-meteo, state-dept) at 8-66% (external API wrappers; need mocked HTTP)
-  - `src/utils/ApiError.ts` functions at 44% (helpers for specific error types that are not hit in the current paths)
-  - `src/handlers/trips/conversations.ts` 75% branches (some branches need mocked DB)
-
-### [ENG-18] Restore server vitest coverage threshold to 80% by writing the missing tests
-
-- **Source:** PR-G follow-up (2026-04-06). PR-G lowered the server vitest coverage threshold from 80% to 75% so the lint-and-test workflow could go green after PR-C correctly removed `**/rateLimiter.ts` from the coverage exclusion.
-- **Severity:** P2 · **Effort:** L · **Category:** testing / quality
-- **Status:** RESOLVED in PR-J (2026-04-07). Wrote 47 new tests across three of the lowest-coverage files:
-  - **`src/prompts/trip-context.ts`** 10% -> ~95% branches (35 new tests covering every conditional branch in `formatTripContext` and `formatChecklist`, including the safety context injections for LGBTQ+ / woman / non-binary / solo travelers).
-  - **`src/utils/logs/logger.ts`** 0% -> 100% (4 new tests covering the NODE_ENV branch that swaps pino-pretty in dev vs prod).
-  - **`src/routes/trips.ts`** + **`src/routes/places.ts`** 0% -> 100% wiring coverage (8 new route-wiring smoke tests in `routes.trips-places.test.ts` following the same pattern as the existing `routes.test.ts`).
-  - **Global coverage**: lines 89.19%, branches 80.38%, functions 85.86%, statements 89.19%. Threshold restored from 75 to 80 with safety margin in all four metrics.
-  - **Server test count**: 572 passing (was 525 at the start of this session).
-
-  **Remaining gaps still worth closing** (tracked as ENG-19 for anyone who wants to push further toward 85):
-  - `src/app.ts` 0% (the Express app composition, best covered by an integration test that boots the server)
-  - `src/services/agent.service.ts` 45.83% (the LLM consumer surface; the ENG-15 retrospective recommended fixture-replay tests here)
-  - `src/tools/flights.tool.ts` 60%, `src/tools/hotels.tool.ts` 59.25%, `src/tools/executor.ts` 68.96% (each has happy-path coverage but missing error branches)
-  - `src/handlers/chat/chat.helpers.ts` 65.67%, `src/handlers/trips/trips.ts` 67.64%
-
-  Related: ENG-15 (test suite evaluation) recommends fixture-replay tests for the LLM consumer surface. Those tests would also push branch coverage on agent.service.ts.
-
-### [ENG-17] Trip-with-selections fixture for the last 3 test.fixme markers
-
-- **Source:** PR-E follow-up (2026-04-06). Renamed from "multi-turn MockAnthropic state machine" after PR-E discovered the original analysis was wrong.
-- **Severity:** P2 · **Effort:** M · **Category:** testing / e2e
-- **Status:** RESOLVED in PR-H (2026-04-07). Added a gated test-only endpoint `POST /trips/:id/test-selections` in `server/src/handlers/trips/trips.ts` that directly calls the existing `insertTripFlight` / `insertTripHotel` / `insertTripCarRental` / `insertTripExperience` repo functions. The endpoint returns 404 unless `E2E_BYPASS_RATE_LIMITS=1` is set, so it is invisible in production. Built `seedTripSelections(page, tripId, selections)` and `defaultSelections()` helpers in `e2e/fixtures/test-trips.ts`. Converted the three remaining `test.fixme` markers (US-23, US-26, US-27) to real tests. **Fixme count on main: 0 of original 10.** All US-1 through US-35 are now active tests. 4 new server handler tests cover the new endpoint with the full gate matrix (flag unset, ownership mismatch, payload with all selection types, empty payload).
-
-### [ENG-16] Local e2e-fast fast lane needs CI parity before it can be promoted to blocking
-
-- **Source:** PR-A queue cleanup (2026-04-06). Promoted to blocking too eagerly; reverted; partially fixed in PR-F; fully fixed in PR-I.
-- **Severity:** P2 · **Effort:** M · **Category:** testing / DX
-- **Status:** RESOLVED in PR-I (2026-04-07).
-  - New `scripts/e2e-local-db.sh` provisions a local Postgres test database (idempotent), runs migrations, and emits a `DATABASE_URL` export statement. Invoked opt-in via `E2E_PROVISION_LOCAL_DB=1` on the first run, then skipped on subsequent runs because the DB already exists.
-  - `scripts/e2e-precheck.sh` extended to run the DB provisioner when asked and to report the process holding port 3001 (if any) so Playwright's webServer spawn failure mode no longer silently collides with a stale dev server.
-  - `playwright.config.ts` now prefers `DATABASE_URL_E2E_LOCAL` over the inherited `DATABASE_URL` when set. Developers can point the fast lane at the local test DB without touching `server/.env`.
-  - Together: local fast lane stays fast (single-digit-ms DB latency), the spawn failure mode is visible, and the `e2e-fast` hook is suitable for blocking mode on dev machines that have run the one-time `E2E_PROVISION_LOCAL_DB=1 ./scripts/e2e-precheck.sh`.
-  - The hook is NOT re-promoted to blocking in this PR because that requires user opt-in (the one-time provisioning step). The lefthook comment now points developers at the provisioning command; once they run it, they can flip the hook to blocking in their own workflow.
 
 ### [ENG-15] Evaluate test suite for bloat, thinness, AND confidence theater
 
@@ -375,13 +215,6 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 - **Source:** engineering §Operational Basics
 - **Severity:** P3 · **Effort:** S · **Category:** documentation
 - **Notes:** Railway has built-in rollback but the procedure is not written down.
-
-### [ENG-12] Package names still say `agentic-travel-agent*` after rename to Voyager
-
-- **Source:** engineering §Naming drift
-- **Severity:** P3 · **Effort:** M · **Category:** branding / tech-debt
-- **Notes:** Rename the server, web, and shared-types packages to `voyager-*` as one atomic refactor.
-- **Status: closed** by the mechanical rename across 39 files plus lockfile regeneration on the `fix/audit-2026-04-06-p0p1` branch. The Vercel project slug and the `interviewiangreenough.xyz` deploy URL still reference the old name in `CLAUDE.md`; those are infra-level identifiers external to the codebase and are tracked as a separate infra cleanup.
 
 ---
 
@@ -732,5 +565,5 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 
 - New audit runs append a new `## YYYY-MM-DD audit run` section at the top.
 - P0 and P1 items go to the current triage file under `docs/audits/`, not here.
-- Closed items are not removed; append a `**Status: closed in commit <sha>**` line to the entry.
+- Resolved items are removed entirely. Git history preserves the record.
 - Deduplicate across audits by cross-referencing IDs (e.g., `cross-ref LEG-02`).
