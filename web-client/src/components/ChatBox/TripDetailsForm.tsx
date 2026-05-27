@@ -154,6 +154,9 @@ export function TripDetailsForm({
             <div className={styles.tripTypeToggle}>
               <button
                 type='button'
+                aria-pressed={
+                  (values.trip_type ?? 'round_trip') === 'round_trip'
+                }
                 className={`${styles.tripTypeBtn} ${(values.trip_type ?? 'round_trip') === 'round_trip' ? styles.tripTypeBtnActive : ''}`}
                 onClick={() => set('trip_type', 'round_trip')}
                 disabled={disabled || isLocked}
@@ -162,6 +165,7 @@ export function TripDetailsForm({
               </button>
               <button
                 type='button'
+                aria-pressed={values.trip_type === 'one_way'}
                 className={`${styles.tripTypeBtn} ${values.trip_type === 'one_way' ? styles.tripTypeBtnActive : ''}`}
                 onClick={() => set('trip_type', 'one_way')}
                 disabled={disabled || isLocked}
