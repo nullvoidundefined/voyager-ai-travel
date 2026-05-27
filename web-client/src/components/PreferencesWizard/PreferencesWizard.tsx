@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { put } from '@/lib/api';
 import { type UserPreferences, WIZARD_STEPS } from '@/lib/preferenceOptions';
+import * as Dialog from '@radix-ui/react-dialog';
 import { useQueryClient } from '@tanstack/react-query';
 
 import styles from './PreferencesWizard.module.scss';
@@ -33,7 +34,6 @@ export function PreferencesWizard({
   initialPreferences,
 }: PreferencesWizardProps) {
   const queryClient = useQueryClient();
-  const overlayRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -184,139 +184,122 @@ export function PreferencesWizard({
     }
   }
 
-  function handleOverlayClick(e: React.MouseEvent) {
-    if (e.target === overlayRef.current) {
-      onClose();
-    }
-  }
-
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
-
   if (!isOpen) return null;
 
   return (
-    <div
-      className={styles.overlay}
-      ref={overlayRef}
-      onClick={handleOverlayClick}
-      role='dialog'
-      aria-modal='true'
-      aria-label='Travel preferences wizard'
-    >
-      <div className={styles.modal}>
-        <div className={styles.header}>
-          <h2>Your Travel Preferences</h2>
-          <p>
-            Step {currentStepIndex + 1} of {WIZARD_STEPS.length}:{' '}
-            {currentStep.label}
-          </p>
-        </div>
+    <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <Dialog.Portal>
+        <Dialog.Overlay className={styles.overlay} />
+        <Dialog.Content className={styles.modal} aria-describedby={undefined}>
+          <Dialog.Title className={styles.srOnly}>
+            Travel preferences wizard
+          </Dialog.Title>
+          <div className={styles.header}>
+            <h2>Your Travel Preferences</h2>
+            <p>
+              Step {currentStepIndex + 1} of {WIZARD_STEPS.length}:{' '}
+              {currentStep.label}
+            </p>
+          </div>
 
-        {/* Progress bar */}
-        <div
-          className={styles.progress}
-          role='navigation'
-          aria-label='Wizard progress'
-        >
-          {WIZARD_STEPS.map((step, i) => {
-            const isCompleted = completedSteps.includes(step.id);
-            const isCurrent = i === currentStepIndex;
+          {/* Progress bar */}
+          <div
+            className={styles.progress}
+            role='navigation'
+            aria-label='Wizard progress'
+          >
+            {WIZARD_STEPS.map((step, i) => {
+              const isCompleted = completedSteps.includes(step.id);
+              const isCurrent = i === currentStepIndex;
 
-            return (
-              <div
-                key={step.id}
-                style={{ display: 'flex', alignItems: 'center' }}
-              >
-                {i > 0 && (
-                  <div
-                    className={`${styles.stepLine} ${i <= currentStepIndex ? styles.stepLineCompleted : ''}`}
-                  />
-                )}
-                <button
-                  type='button'
-                  className={`${styles.stepCircle} ${isCompleted ? styles.stepCompleted : ''} ${isCurrent && !isCompleted ? styles.stepCurrent : ''}`}
-                  onClick={() => isCompleted && setCurrentStepIndex(i)}
-                  aria-label={`${step.label}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
-                  tabIndex={isCompleted ? 0 : -1}
+              return (
+                <div
+                  key={step.id}
+                  style={{ display: 'flex', alignItems: 'center' }}
                 >
-                  {isCompleted ? '\u2713' : i + 1}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                  {i > 0 && (
+                    <div
+                      className={`${styles.stepLine} ${i <= currentStepIndex ? styles.stepLineCompleted : ''}`}
+                    />
+                  )}
+                  <button
+                    type='button'
+                    className={`${styles.stepCircle} ${isCompleted ? styles.stepCompleted : ''} ${isCurrent && !isCompleted ? styles.stepCurrent : ''}`}
+                    onClick={() => isCompleted && setCurrentStepIndex(i)}
+                    aria-label={`${step.label}${isCompleted ? ' (completed)' : isCurrent ? ' (current)' : ''}`}
+                    tabIndex={isCompleted ? 0 : -1}
+                  >
+                    {isCompleted ? '\u2713' : i + 1}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
 
-        {/* Step content */}
-        {currentStep.id === 'accommodation' && (
-          <AccommodationStep
-            value={accommodation}
-            onChange={setAccommodation}
-          />
-        )}
-        {currentStep.id === 'travel_pace' && (
-          <TravelPaceStep value={travelPace} onChange={setTravelPace} />
-        )}
-        {currentStep.id === 'dining' && (
-          <DiningStep value={dining} onChange={setDining} />
-        )}
-        {currentStep.id === 'activities' && (
-          <ActivitiesStep value={activities} onChange={setActivities} />
-        )}
-        {currentStep.id === 'travel_party' && (
-          <TravelPartyStep
-            value={travelParty}
-            onChange={setTravelParty}
-            lgbtqSafety={lgbtqSafety}
-            onLgbtqSafetyChange={setLgbtqSafety}
-            gender={gender}
-            onGenderChange={setGender}
-          />
-        )}
-        {currentStep.id === 'budget_comfort' && (
-          <BudgetComfortStep
-            value={budgetComfort}
-            onChange={setBudgetComfort}
-          />
-        )}
+          {/* Step content */}
+          {currentStep.id === 'accommodation' && (
+            <AccommodationStep
+              value={accommodation}
+              onChange={setAccommodation}
+            />
+          )}
+          {currentStep.id === 'travel_pace' && (
+            <TravelPaceStep value={travelPace} onChange={setTravelPace} />
+          )}
+          {currentStep.id === 'dining' && (
+            <DiningStep value={dining} onChange={setDining} />
+          )}
+          {currentStep.id === 'activities' && (
+            <ActivitiesStep value={activities} onChange={setActivities} />
+          )}
+          {currentStep.id === 'travel_party' && (
+            <TravelPartyStep
+              value={travelParty}
+              onChange={setTravelParty}
+              lgbtqSafety={lgbtqSafety}
+              onLgbtqSafetyChange={setLgbtqSafety}
+              gender={gender}
+              onGenderChange={setGender}
+            />
+          )}
+          {currentStep.id === 'budget_comfort' && (
+            <BudgetComfortStep
+              value={budgetComfort}
+              onChange={setBudgetComfort}
+            />
+          )}
 
-        {saveError && <p className={styles.saveError}>{saveError}</p>}
+          {saveError && <p className={styles.saveError}>{saveError}</p>}
 
-        {/* Navigation */}
-        <div className={styles.buttons}>
-          {currentStepIndex > 0 && (
+          {/* Navigation */}
+          <div className={styles.buttons}>
+            {currentStepIndex > 0 && (
+              <button
+                type='button'
+                className={styles.backButton}
+                onClick={handleBack}
+              >
+                Back
+              </button>
+            )}
             <button
               type='button'
-              className={styles.backButton}
-              onClick={handleBack}
+              className={styles.skipButton}
+              onClick={handleSkip}
             >
-              Back
+              Skip
             </button>
-          )}
-          <button
-            type='button'
-            className={styles.skipButton}
-            onClick={handleSkip}
-          >
-            Skip
-          </button>
-          <button
-            type='button'
-            className={styles.nextButton}
-            onClick={handleNext}
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : isLastStep ? 'Done' : 'Next'}
-          </button>
-        </div>
-      </div>
-    </div>
+            <button
+              type='button'
+              className={styles.nextButton}
+              onClick={handleNext}
+              disabled={saving}
+            >
+              {saving ? 'Saving...' : isLastStep ? 'Done' : 'Next'}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
