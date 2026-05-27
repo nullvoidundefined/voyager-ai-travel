@@ -1,6 +1,7 @@
 import * as chatHandlers from 'app/handlers/chat/chat.js';
 import * as legsHandlers from 'app/handlers/trips/legs.js';
 import * as scheduleHandlers from 'app/handlers/trips/schedule.js';
+import * as shareHandlers from 'app/handlers/trips/share.js';
 import * as tripHandlers from 'app/handlers/trips/trips.js';
 import { chatRateLimiter } from 'app/middleware/rateLimiter/rateLimiter.js';
 import { requireAuth } from 'app/middleware/requireAuth/requireAuth.js';
@@ -35,5 +36,7 @@ tripRouter.delete('/:id/legs/:legId', legsHandlers.removeLeg);
 
 tripRouter.post('/:id/chat', chatRateLimiter, chatHandlers.chat);
 tripRouter.get('/:id/messages', chatHandlers.getMessages);
+
+tripRouter.post('/:id/share', shareHandlers.createShareHandler);
 
 export { tripRouter };

@@ -1,6 +1,7 @@
 import { corsConfig } from 'app/config/corsConfig.js';
 import { isProduction } from 'app/config/env.js';
 import pool, { query } from 'app/db/pool/pool.js';
+import { getSharedTripHandler } from 'app/handlers/trips/share.js';
 import { csrfGuard } from 'app/middleware/csrfGuard/csrfGuard.js';
 import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
 import { notFoundHandler } from 'app/middleware/notFoundHandler/notFoundHandler.js';
@@ -141,6 +142,9 @@ app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/trips', tripRouter);
 app.use('/user-preferences', userPreferencesRouter);
+
+// Public route -- no auth required
+app.get('/shared/:shareId', getSharedTripHandler);
 
 // Test-only endpoint to switch the mock Anthropic scenario.
 // Double-gated: only registered outside production AND only responds

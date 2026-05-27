@@ -1,0 +1,34 @@
+import { query } from 'app/db/pool/pool.js';
+import { getTripWithDetails } from 'app/repositories/trips/trips.js';
+import type { Request, Response } from 'express';
+
+export async function createShareHandler(req: Request, res: Response) {
+  const { id: tripId } = req.params;
+  const userId = req.user?.id ?? '';
+
+  const result = await query<{ id: string }>(
+    `INSERT INTO shared_trips (trip_id, created_by) VALUES ($1, $2) RETURNING id`,
+    [tripId, userId],
+  );
+  const shareId = result.rows[0].id;
+  const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/shared/${shareId}`;
+  res.status(201).json({ share_id: shareId, share_url: shareUrl });
+}
+
+export async function getSharedTripHandler(req: Request, res: Response) {
+  const { shareId } = req.params;
+
+  const result = await query<{ trip_id: string; created_by: string }>(
+    `SELECT trip_id, created_by FROM shared_trips WHERE id = $1`,
+    [shareId],
+  );
+
+  if (!result.rows.length) {
+    res.status(404).json({ error: 'Share link not found' });
+    return;
+  }
+
+  const { trip_id, created_by } = result.rows[0];
+  const trip = await getTripWithDetails(trip_id, created_by);
+  res.json({ trip });
+}
