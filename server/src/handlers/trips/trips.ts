@@ -5,7 +5,7 @@ import {
   updateBookingState,
 } from 'app/repositories/conversations/conversations.js';
 import * as tripRepo from 'app/repositories/trips/trips.js';
-import { createTripSchema } from 'app/schemas/trips.js';
+import { createTripSchema, updateTripSchema } from 'app/schemas/trips.js';
 import {
   selectCarRentalSchema,
   selectExperienceSchema,
@@ -61,27 +61,13 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
   const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
 
-  const {
-    destination,
-    origin,
-    departure_date,
-    return_date,
-    budget_total,
-    travelers,
-    transport_mode,
-    trip_type,
-    status,
-  } = req.body ?? {};
-  const input: Record<string, unknown> = {};
-  if (destination !== undefined) input.destination = destination;
-  if (origin !== undefined) input.origin = origin;
-  if (departure_date !== undefined) input.departure_date = departure_date;
-  if (return_date !== undefined) input.return_date = return_date;
-  if (budget_total !== undefined) input.budget_total = budget_total;
-  if (travelers !== undefined) input.travelers = travelers;
-  if (transport_mode !== undefined) input.transport_mode = transport_mode;
-  if (trip_type !== undefined) input.trip_type = trip_type;
-  if (status !== undefined) input.status = status;
+  const parsed = updateTripSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    const message = parsed.error.issues.map((e) => e.message).join('; ');
+    throw ApiError.badRequest(message);
+  }
+  const input = parsed.data;
+  const { destination, departure_date, return_date, budget_total } = input;
 
   if (departure_date !== undefined) {
     const today = new Date();
@@ -95,10 +81,6 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
     if (new Date(return_date) < new Date(departure_date)) {
       throw ApiError.badRequest('Return date must be after departure date');
     }
-  }
-
-  if (Object.keys(input).length === 0) {
-    throw ApiError.badRequest('No fields to update');
   }
 
   let shouldClearSelections = false;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createTripSchema } from './trips.js';
+import { createTripSchema, updateTripSchema } from './trips.js';
 
 describe('createTripSchema', () => {
   it('accepts minimal valid input', () => {
@@ -88,5 +88,75 @@ describe('createTripSchema', () => {
     expect(result.destination).toBe('Tokyo');
     expect(result.travelers).toBe(3);
     expect(result.preferences.interests).toEqual(['food', 'culture']);
+  });
+});
+
+describe('updateTripSchema', () => {
+  it('accepts a partial update with only destination', () => {
+    const result = updateTripSchema.safeParse({ destination: 'Tokyo' });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts a partial update with only status', () => {
+    const result = updateTripSchema.safeParse({ status: 'saved' });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts all fields together', () => {
+    const result = updateTripSchema.safeParse({
+      destination: 'Paris',
+      origin: 'JFK',
+      departure_date: '2026-08-01',
+      return_date: '2026-08-10',
+      budget_total: 5000,
+      travelers: 2,
+      transport_mode: 'flying',
+      trip_type: 'round_trip',
+      status: 'saved',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects invalid status enum', () => {
+    const result = updateTripSchema.safeParse({ status: 'deleted' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects invalid transport_mode enum', () => {
+    const result = updateTripSchema.safeParse({
+      transport_mode: 'teleporting',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects invalid trip_type enum', () => {
+    const result = updateTripSchema.safeParse({ trip_type: 'multi_city' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-positive budget_total', () => {
+    const result = updateTripSchema.safeParse({ budget_total: -100 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-integer travelers', () => {
+    const result = updateTripSchema.safeParse({ travelers: 1.5 });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects empty object (at least one field required)', () => {
+    const result = updateTripSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it('strips unknown fields', () => {
+    const result = updateTripSchema.safeParse({
+      destination: 'Rome',
+      malicious_field: 'drop table',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect('malicious_field' in result.data).toBe(false);
+    }
   });
 });

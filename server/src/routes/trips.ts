@@ -17,10 +17,12 @@ tripRouter.delete('/:id', tripHandlers.deleteTrip);
 // B14: persist a single tile-card selection directly from the frontend.
 tripRouter.post('/:id/selections', tripHandlers.selectItem);
 
-// Test-only seam (ENG-17). The handler itself returns 404 unless
-// E2E_BYPASS_RATE_LIMITS=1 is set, so this route is invisible in
-// production. See server/src/handlers/trips/trips.ts::seedSelections.
-tripRouter.post('/:id/test-selections', tripHandlers.seedSelections);
+// Test-only seam (ENG-17). The handler returns 404 unless
+// E2E_BYPASS_RATE_LIMITS=1, and the route is not registered at all
+// in production. Double gate: route registration + handler check.
+if (process.env.NODE_ENV !== 'production') {
+  tripRouter.post('/:id/test-selections', tripHandlers.seedSelections);
+}
 
 tripRouter.post('/:id/chat', chatRateLimiter, chatHandlers.chat);
 tripRouter.get('/:id/messages', chatHandlers.getMessages);

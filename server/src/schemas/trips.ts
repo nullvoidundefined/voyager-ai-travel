@@ -19,6 +19,24 @@ export const createTripSchema = z.object({
 
 export type CreateTripInput = z.infer<typeof createTripSchema>;
 
+export const updateTripSchema = z
+  .object({
+    destination: z.string().min(1).optional(),
+    origin: z.string().optional(),
+    departure_date: z.string().optional(),
+    return_date: z.string().optional(),
+    budget_total: z.number().positive().optional(),
+    travelers: z.number().int().positive().optional(),
+    transport_mode: z.enum(['flying', 'driving']).optional(),
+    trip_type: z.enum(['round_trip', 'one_way']).optional(),
+    status: z.enum(['planning', 'saved', 'archived']).optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field is required',
+  });
+
+export type UpdateTripInput = z.infer<typeof updateTripSchema>;
+
 export interface Trip {
   id: string;
   user_id: string;

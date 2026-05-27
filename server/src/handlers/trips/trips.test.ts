@@ -194,6 +194,20 @@ describe('trip handlers', () => {
       expect(res.body.error).toBe('VALIDATION_ERROR');
     });
 
+    it('returns 400 when body contains only unknown fields', async () => {
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ evil_field: 'drop table', hack: true });
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when transport_mode is an invalid value', async () => {
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ transport_mode: 'teleporting' });
+      expect(res.status).toBe(400);
+    });
+
     it('returns 404 when trip not found', async () => {
       vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce(null);
 
