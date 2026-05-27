@@ -190,7 +190,7 @@ export default function TripDetailPage() {
         </div>
         <div className={styles.headerRight}>
           {trip.status === 'saved' && (
-            <span className={styles.bookedBadge}>Booked</span>
+            <span className={styles.bookedBadge}>Saved</span>
           )}
           {trip.budget_total != null && (
             <div className={styles.budgetCard}>

@@ -6,7 +6,7 @@ import { BookingPrompt } from './BookingPrompt';
 afterEach(cleanup);
 
 describe('BookingPrompt', () => {
-  it('renders Book now and Change something chips when both empty flags are false', () => {
+  it('renders Save itinerary and Change something chips when both empty flags are false', () => {
     render(
       <BookingPrompt
         experiencesEmpty={false}
@@ -16,7 +16,7 @@ describe('BookingPrompt', () => {
       />,
     );
     expect(
-      screen.getByRole('button', { name: 'Book now' }),
+      screen.getByRole('button', { name: 'Save itinerary' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Change something' }),
@@ -56,7 +56,7 @@ describe('BookingPrompt', () => {
       />,
     );
     expect(
-      screen.getByRole('button', { name: 'Book now' }),
+      screen.getByRole('button', { name: 'Save itinerary' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Add experiences' }),
@@ -69,7 +69,7 @@ describe('BookingPrompt', () => {
     ).toBeInTheDocument();
   });
 
-  it('calls onBookNow when Book now is clicked', () => {
+  it('calls onBookNow when Save itinerary is clicked', () => {
     const onBookNow = vi.fn();
     render(
       <BookingPrompt
@@ -79,7 +79,7 @@ describe('BookingPrompt', () => {
         onQuickReply={() => {}}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Book now' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save itinerary' }));
     expect(onBookNow).toHaveBeenCalledTimes(1);
   });
 

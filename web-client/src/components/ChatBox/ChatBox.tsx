@@ -101,7 +101,7 @@ export function ChatBox({
       if (!msg.trim()) return;
 
       // Intercept booking confirmation — open modal instead of sending chat message
-      if (msg.trim() === 'Confirm booking') {
+      if (msg.trim() === 'Save itinerary') {
         onBookTrip?.();
         return;
       }
@@ -240,12 +240,12 @@ export function ChatBox({
           className={styles.input}
           placeholder={
             isBooked
-              ? 'Trip booked! Enjoy your adventure.'
+              ? 'Itinerary saved! Enjoy your adventure.'
               : 'Ask the agent to plan your trip...'
           }
           aria-label={
             isBooked
-              ? 'Trip booked! Enjoy your adventure.'
+              ? 'Itinerary saved! Enjoy your adventure.'
               : 'Ask the agent to plan your trip...'
           }
           value={input}

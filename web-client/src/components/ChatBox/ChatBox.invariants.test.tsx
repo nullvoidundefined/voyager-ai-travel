@@ -397,10 +397,10 @@ describe('ChatBox invariants', () => {
         />,
       );
 
-      const matches = screen.getAllByText(/Ready to book this trip/);
+      const matches = screen.getAllByText(/Ready to save this itinerary/);
       expect(matches).toHaveLength(1);
       expect(
-        screen.getByRole('button', { name: 'Book now' }),
+        screen.getByRole('button', { name: 'Save itinerary' }),
       ).toBeInTheDocument();
     });
   });

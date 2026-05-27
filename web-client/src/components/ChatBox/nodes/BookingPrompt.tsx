@@ -8,7 +8,7 @@ interface BookingPromptProps {
   onQuickReply: (text: string) => void;
 }
 
-const CHIP_BOOK_NOW = 'Book now';
+const CHIP_BOOK_NOW = 'Save itinerary';
 const CHIP_ADD_EXPERIENCES = 'Add experiences';
 const CHIP_ADD_CAR_RENTAL = 'Add car rental';
 const CHIP_CHANGE_SOMETHING = 'Change something';
@@ -52,7 +52,7 @@ export function BookingPrompt({
   return (
     <div className={styles.wrapper}>
       <p className={styles.body}>
-        Ready to book this trip, or want to keep refining?
+        Ready to save this itinerary, or want to keep refining?
       </p>
       <QuickReplyChips chips={chips} onSelect={handleSelect} />
     </div>
