@@ -11,9 +11,8 @@ Apply the canonical Financial role to Voyager with these project-specific inputs
 - **Anthropic**: Claude API for the agent loop. Cost per agent turn in tokens. Is there a hard monthly spending cap configured? Voyager's agent loop can call tools up to 15 times per turn, and tool calls are billed.
 - **SerpApi**: Google Flights + Google Hotels. Free tier is **250 searches / month**. This is uncomfortably close to exhaustion after even light testing. Calculate the realistic searches-per-trip-plan and divide into 250 to project how many trip plans the free tier supports.
 - **Google Places API**: for experiences / destination content. What tier? What is the per-request cost?
-- **Railway**: API server + Postgres (Neon is separate or hosted on Railway?). Plan, current monthly cost, resource usage.
-- **Vercel**: web-client deployment. Plan, usage.
-- **Neon**: Postgres (if hosted here rather than Railway). Plan, usage.
+- **Railway**: API server + Redis. Plan, current monthly cost, resource usage.
+- **Neon**: Postgres. Plan, usage.
 - **Supabase**: auth. Plan, MAU.
 - **Any other service referenced in env vars**: scan `.env.example` and deploy configs for clues.
 

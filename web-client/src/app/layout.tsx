@@ -5,8 +5,6 @@ import { VibeLensBar } from '@/components/VibeLensBar/VibeLensBar';
 import { AuthProvider } from '@/context/AuthContext';
 import { APP_NAME } from '@/lib/constants';
 import { QueryProvider } from '@/providers/QueryProvider';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 
 import '../styles/animations.scss';
@@ -39,8 +37,6 @@ export default function RootLayout({
           </AuthProvider>
         </QueryProvider>
         <VibeLensBar />
-        <Analytics />
-        <SpeedInsights />
       </body>
     </html>
   );

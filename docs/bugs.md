@@ -110,7 +110,7 @@ Fixed: consolidated `CITY_COORDS` and `CITY_DATABASE` into shared `server/src/da
 
 ### B9: Mobile Safari login fails with "Authentication required"
 
-Fixed: API proxied through Vercel rewrites (`/api/:path*` → Railway) for same-origin cookies. Changed `sameSite` to `'lax'`. Safari ITP no longer blocks the session cookie. Resolved 2026-04-03.
+Fixed: API proxied through frontend rewrites (`/api/:path*` → server) for same-origin cookies. Changed `sameSite` to `'lax'`. Safari ITP no longer blocks the session cookie. Resolved 2026-04-03.
 
 ## Bug batch 2026-04-07 (B24 through B29)
 

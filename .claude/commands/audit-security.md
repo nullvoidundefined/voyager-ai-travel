@@ -18,16 +18,11 @@ Apply the canonical Security role to the Voyager codebase with these project-spe
 
 - **LLM & agent loop security**: how is the Anthropic API key handled inside the agent loop? Can it leak through tool results, error messages, or response streams? Is the max-15 tool-call budget enforced? Are malformed tool responses handled safely?
 - **Prompt injection surface**: Voyager takes free-text user messages and feeds them into Claude's tool-use loop, which then constructs queries to SerpApi and Google Places. Evaluate the injection path: user message → agent reasoning → tool call arguments → third-party API query. What is the worst an attacker can do with a crafted user message?
-- **External API key management**: SerpApi key, Google Places key, Anthropic key. Rotation hygiene, scoping per environment (dev/staging/prod), env var scoping across Railway and Vercel.
+- **External API key management**: SerpApi key, Google Places key, Anthropic key. Rotation hygiene, scoping per environment (dev/staging/prod), env var scoping across Railway.
 - **Supabase auth & RLS**: is Supabase auth configured correctly? Are RLS policies in place on trip data so users can only see their own trips?
-- **CSRF pattern**: verify which variant Voyager uses (header-based or cookie-based) and evaluate whether it works with Vercel preview URL origins.
+- **CSRF pattern**: verify which variant Voyager uses (header-based or cookie-based) and evaluate whether it works with preview URL origins.
 - **CORS config**: `CORS_ORIGIN` is comma-separated for Railway; confirm every preview URL origin is covered and credentials flow works.
-- **Known-issues cross-check**: read `~/.claude/KNOWN-ISSUES.md` for prior incident patterns (CSRF SameSite, cookie scoping, Vercel env var baking) and verify none are repeated in Voyager.
-
-**Project convention files (read before writing):**
-
-- `.claude/bottomlessmargaritas/CLAUDE-BACKEND.md`
-- `.claude/bottomlessmargaritas/CLOUD-DEPLOYMENT.md`
+- **Known-issues cross-check**: read `~/.claude/KNOWN-ISSUES.md` for prior incident patterns (CSRF SameSite, cookie scoping, env var baking) and verify none are repeated in Voyager.
 
 **Product documents:**
 

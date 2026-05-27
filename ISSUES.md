@@ -500,7 +500,7 @@ Fixed in this sweep: 2 P0, 25 P1. Remaining P2/P3 items below.
 - **Severity:** P2 · **Effort:** M · **Category:** tech-debt
 - **Notes:** Verify no personal Amadeus dev account is sitting active with a stored credit card from early prototyping.
 
-### [FIN-09] Railway, Vercel, Neon plans and MTD spend not documented
+### [FIN-09] Infrastructure plans and MTD spend not documented
 
 - **Source:** financial §Unaudited Services
 - **Severity:** P2 · **Effort:** S · **Category:** financial

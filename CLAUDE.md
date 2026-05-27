@@ -17,10 +17,10 @@ Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about re
 ## Stack
 
 - **Monorepo:** pnpm workspaces with `server/` and `web-client/` packages
-- **Frontend:** Next.js 15 on Vercel
-- **API:** Express 5 + TypeScript on Railway (Docker)
+- **Frontend:** Next.js 15
+- **API:** Express 5 + TypeScript (Docker)
 - **Database:** PostgreSQL on Neon
-- **Cache:** Redis on Railway (ioredis)
+- **Cache:** Redis (ioredis)
 - **External APIs:** SerpApi (Google Flights + Hotels, 250 searches/month free tier), Google Places API
 - **LLM:** Anthropic Claude API (tool use + streaming)
 
@@ -35,18 +35,7 @@ The agent loop runs synchronously on the API server. The agent needs immediate r
 
 ## Deployment
 
-### Vercel (frontend)
-
-```bash
-cd web-client && npx vercel --prod
-```
-
-- Vercel project `agentic-travel-agent`, domain `interviewiangreenough.xyz`
-- `.vercel/` link lives in `web-client/`. Always deploy from there.
-- `web-client/vercel.json` sets `"framework": "nextjs"`
-- Do NOT set `outputFileTracingRoot` in `next.config.ts` (causes Vercel path doubling error)
-
-### Railway (server)
+### Server
 
 ```bash
 railway up --detach
@@ -54,14 +43,12 @@ railway up --detach
 
 - Railway CLI is linked to the monorepo root, where `Dockerfile.server` lives
 - `railway.toml` sets `dockerfilePath = "Dockerfile.server"`
-- Railway dashboard Build → Dockerfile Path must be `Dockerfile.server`
-- `CORS_ORIGIN` env var is comma-separated: `https://interviewiangreenough.xyz,https://agentic-travel-agent-dmvmh3529-nullvoidundefineds-projects.vercel.app`
+- `CORS_ORIGIN` env var must match the frontend production URL
 
 ### Deploy pitfalls
 
-- **Wrong directory:** Railway must run from the monorepo root, not `server/`. Vercel must run from `web-client/`, not the root.
+- **Wrong directory:** Railway must run from the monorepo root, not `server/`.
 - **Nixpacks conflict:** Never set `NIXPACKS_ROOT_DIR` or `NIXPACKS_CONFIG_FILE` env vars. They override the Dockerfile.
-- **Stale Railway link:** If build logs show the wrong directory, relink: `railway link -p d05e2e2b-d70f-4ea6-ae2c-4e0f61a928b4 -s 97a57f4c-65d1-403c-80cf-8c0b742af04f -e production` from the monorepo root.
 
 ## Bug fix process: test first, not optimism
 
@@ -103,16 +90,6 @@ Before landing any further fix to `web-client/src/components/ChatBox/`, write a 
 - QuickReplyChips render only after the final assistant message of a turn.
 
 Every subsequent ChatBox fix must extend this spec, not create a new ad-hoc test next to the file. The 2026-04-06 process retrospective found a 9-commit fix storm (`183eb289` through `9e2eab7d`) in 85 minutes touching `web-client/src/components/ChatBox/*` exclusively, with one `debug:` commit landing console.logs directly on main. Each fix patched a symptom without unifying the data model, so each new fix risked reintroducing an earlier symptom. The invariants spec exists to make those regressions impossible.
-
-## Shared convention files
-
-Read the relevant file in `.claude/bottomlessmargaritas/` **before writing code** in that layer:
-
-- **Backend:** `.claude/bottomlessmargaritas/CLAUDE-BACKEND.md`
-- **Frontend:** `.claude/bottomlessmargaritas/CLAUDE-FRONTEND.md`
-- **Database:** `.claude/bottomlessmargaritas/CLAUDE-DATABASE.md`
-- **Styling:** `.claude/bottomlessmargaritas/CLAUDE-STYLING.md`
-- **Deployment:** `.claude/bottomlessmargaritas/CLOUD-DEPLOYMENT.md`
 
 ## Incident history
 

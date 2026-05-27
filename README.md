@@ -2,7 +2,7 @@
 
 > **Portfolio demo, not a commercial product.** Voyager is a technical demonstration of an agentic AI travel planning pattern, built as a portfolio piece to show engineering judgment, not to sell trips. No bookings happen. No payments flow. No user data is shared beyond the API calls required to fetch live search results. The business model, unit economics, and strategic weaknesses of the concept are analyzed honestly in the [2026-04-06 Criticism audit](./docs/audits/2026-04-06-criticism.md), which is published in this repo as a deliberate artifact, not hidden.
 
-**One-line stack:** Express 5 + TypeScript on Railway; Next.js 15 + React 19 on Vercel; Postgres on Neon; Redis on Railway; Claude Sonnet 4 via Anthropic SDK; SerpApi (Google Flights + Google Hotels) and Google Places for live travel data.
+**One-line stack:** Express 5 + TypeScript; Next.js 15 + React 19; Postgres on Neon; Redis; Claude Sonnet 4 via Anthropic SDK; SerpApi (Google Flights + Google Hotels) and Google Places for live travel data.
 
 ## Audit trail
 
@@ -137,7 +137,7 @@ voyager/
 │   │   └── config/         Environment, CORS
 │   └── migrations/         10 node-pg-migrate files
 │
-└── web-client/       Next.js frontend (Vercel)
+└── web-client/       Next.js frontend
     ├── src/
     │   ├── app/            App Router pages
     │   ├── components/     ChatBox, Itinerary cards, TripForm, etc.
@@ -152,7 +152,7 @@ voyager/
 
 | Layer               | Technology                                                      | Deployment   |
 | ------------------- | --------------------------------------------------------------- | ------------ |
-| Frontend            | Next.js 15, React 19, TypeScript, SCSS, TanStack React Query v5 | Vercel       |
+| Frontend            | Next.js 15, React 19, TypeScript, SCSS, TanStack React Query v5 | --           |
 | API Server          | Express 5, TypeScript, Pino logging                             | Railway      |
 | Database            | PostgreSQL (Neon), 10 tables, pgvector-ready                    | Neon         |
 | Cache               | Redis (ioredis), 1-hour TTL                                     | Railway      |
@@ -194,7 +194,7 @@ This application was built following a three-phase approach:
 
 ### Phase 1: POC (Days 1–3)
 
-Get the core agentic loop working end-to-end, deployed. A user sends a trip request, Claude searches flights, calculates budget, searches hotels, and returns an itinerary. SSE progress events stream to the frontend. API deployed on Railway, frontend on Vercel.
+Get the core agentic loop working end-to-end, deployed. A user sends a trip request, Claude searches flights, calculates budget, searches hotels, and returns an itinerary. SSE progress events stream to the frontend.
 
 ### Phase 2: Week 1
 

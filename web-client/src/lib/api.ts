@@ -1,4 +1,4 @@
-// In production, use the Vercel rewrite proxy (/api/) so cookies are same-origin
+// In production, use the rewrite proxy (/api/) so cookies are same-origin
 // and not blocked by Safari ITP. In dev, hit the Express server directly.
 export const API_BASE =
   process.env.NODE_ENV === 'production'
