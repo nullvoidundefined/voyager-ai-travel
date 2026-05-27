@@ -4,12 +4,18 @@ import { createMockReq, createMockRes, parseSSEChunks } from './harness.js';
 
 const MAX_TURNS = 10;
 
+export interface ToolResult {
+  tool_name: string;
+  result: unknown;
+}
+
 export interface ConversationResult {
   transcript: TranscriptEntry[];
   turns: number;
   completed: boolean;
   error?: string;
   tool_calls: string[];
+  tool_results: ToolResult[];
   tripId: string;
 }
 
@@ -21,6 +27,7 @@ export async function runConversation(
 ): Promise<ConversationResult> {
   const transcript: TranscriptEntry[] = [];
   const allToolCalls: string[] = [];
+  const allToolResults: ToolResult[] = [];
   let completed = false;
 
   let customerMessage = generateFirstMessage(persona);
@@ -40,6 +47,7 @@ export async function runConversation(
         completed: false,
         error: `Agent error on turn ${turn + 1}: ${err instanceof Error ? err.message : String(err)}`,
         tool_calls: allToolCalls,
+        tool_results: allToolResults,
         tripId,
       };
     }
@@ -52,6 +60,7 @@ export async function runConversation(
         completed: false,
         error: `HTTP ${res.statusCode}: ${JSON.stringify(res.jsonData)}`,
         tool_calls: allToolCalls,
+        tool_results: allToolResults,
         tripId,
       };
     }
@@ -67,12 +76,21 @@ export async function runConversation(
         completed: false,
         error: `SSE error: ${JSON.stringify(errorEvent.data)}`,
         tool_calls: allToolCalls,
+        tool_results: allToolResults,
         tripId,
       };
     }
 
     let agentText = '';
     const turnToolCalls: string[] = [];
+
+    // Map node types back to tool names for tool_results extraction
+    const nodeTypeToTool: Record<string, string> = {
+      flight_tiles: 'search_flights',
+      hotel_tiles: 'search_hotels',
+      car_rental_tiles: 'search_car_rentals',
+      experience_tiles: 'search_experiences',
+    };
 
     if (doneEvent?.data?.message) {
       const message = doneEvent.data.message as Record<string, unknown>;
@@ -87,6 +105,12 @@ export async function runConversation(
           typeof node.tool_name === 'string'
         ) {
           turnToolCalls.push(node.tool_name);
+        }
+
+        // Capture structured tool results from tile nodes
+        const toolName = nodeTypeToTool[node.type as string];
+        if (toolName) {
+          allToolResults.push({ tool_name: toolName, result: node });
         }
       }
     }
@@ -146,6 +170,7 @@ export async function runConversation(
     turns: Math.ceil(transcript.length / 2),
     completed,
     tool_calls: allToolCalls,
+    tool_results: allToolResults,
     tripId,
   };
 }

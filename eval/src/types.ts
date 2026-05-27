@@ -42,6 +42,8 @@ export interface AssertionResults {
   budget_respected: boolean;
   format_response_used: boolean;
   conversation_completed: boolean;
+  search_results_have_prices: boolean;
+  search_results_have_names: boolean;
 }
 
 export interface JudgeScore {

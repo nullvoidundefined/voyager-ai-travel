@@ -181,6 +181,7 @@ async function main() {
         transcript: convResult.transcript,
         completed: convResult.completed,
         tool_calls: convResult.tool_calls,
+        tool_results: convResult.tool_results,
         error: convResult.error,
         persona,
         tripRecord,
@@ -237,6 +238,8 @@ async function main() {
           budget_respected: true,
           format_response_used: false,
           conversation_completed: false,
+          search_results_have_prices: true,
+          search_results_have_names: true,
         },
         assertion_score: 0,
         judge_scores: {
