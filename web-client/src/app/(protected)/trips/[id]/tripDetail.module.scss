@@ -5,6 +5,13 @@
   overflow: hidden;
 }
 
+.skeletonLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
 /* -- Full-bleed banner -- */
 
 .banner {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { AlertDialog } from '@/components/ui/AlertDialog/AlertDialog';
 import { del, get } from '@/lib/api';
 import { getDestinationImage } from '@/lib/destinationImage';
@@ -107,7 +108,13 @@ export default function TripsPage() {
         </Link>
       </div>
 
-      {isLoading && <p className={styles.loading}>Loading trips...</p>}
+      {isLoading && (
+        <div className={styles.skeletonGrid}>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} width='100%' height={160} borderRadius={12} />
+          ))}
+        </div>
+      )}
 
       {error && (
         <p className={styles.error}>Failed to load trips. Please try again.</p>

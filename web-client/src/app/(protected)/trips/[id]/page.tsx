@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
 import { ChatBox } from '@/components/ChatBox/ChatBox';
+import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Toast } from '@/components/Toast/Toast';
 import { get, put } from '@/lib/api';
 import {
@@ -111,7 +112,10 @@ export default function TripDetailPage() {
   if (isLoading) {
     return (
       <div className={styles.page}>
-        <p>Loading trip...</p>
+        <div className={styles.skeletonLayout}>
+          <Skeleton width='60%' height={28} />
+          <Skeleton width='100%' height={400} />
+        </div>
       </div>
     );
   }
