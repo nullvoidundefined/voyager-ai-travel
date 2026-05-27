@@ -45,65 +45,6 @@ export function Header() {
       <div className={styles.inner}>
         <Link href='/' className={styles.logo}>
           {APP_NAME}
-          <svg
-            className={styles.logoIcon}
-            width='24'
-            height='24'
-            viewBox='0 0 28 28'
-            aria-hidden='true'
-          >
-            <circle
-              cx='14'
-              cy='14'
-              r='12'
-              fill='none'
-              stroke='currentColor'
-              strokeWidth='1.5'
-            />
-            <line
-              x1='14'
-              y1='2'
-              x2='14'
-              y2='5'
-              stroke='currentColor'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-            />
-            <line
-              x1='14'
-              y1='23'
-              x2='14'
-              y2='26'
-              stroke='currentColor'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-            />
-            <line
-              x1='2'
-              y1='14'
-              x2='5'
-              y2='14'
-              stroke='currentColor'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-            />
-            <line
-              x1='23'
-              y1='14'
-              x2='26'
-              y2='14'
-              stroke='currentColor'
-              strokeWidth='1.5'
-              strokeLinecap='round'
-            />
-            <polygon points='14,5 16,14 14,13 12,14' fill='currentColor' />
-            <polygon
-              points='14,23 16,14 14,15 12,14'
-              fill='currentColor'
-              opacity='0.35'
-            />
-            <circle cx='14' cy='14' r='1.5' fill='currentColor' />
-          </svg>
         </Link>
         <nav className={styles.nav} aria-label='Main navigation'>
           {navLinks.map((link) => (

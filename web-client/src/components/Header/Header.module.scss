@@ -2,7 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--surface);
+  background: rgba(248, 251, 254, 0.95);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
 }
 
@@ -13,30 +14,18 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 32px;
-  height: 72px;
+  height: 64px;
 }
 
 .logo {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--cta);
+  color: var(--ink);
   transition: color var(--transition-fast);
 
   &:hover {
-    color: var(--cta-hover);
-  }
-}
-
-.logoIcon {
-  margin-left: 6px;
-  vertical-align: -2px;
-  color: var(--cta);
-  transition: transform var(--transition-fast);
-
-  .logo:hover & {
-    transform: translate(2px, -2px);
+    color: var(--ocean);
   }
 }
 
@@ -49,25 +38,23 @@
 
 .navLink {
   position: relative;
-  padding: 8px 18px;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--foreground-muted);
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--muted);
   letter-spacing: 0.01em;
   transition:
     background var(--transition-fast),
     color var(--transition-fast);
 
   &:hover {
-    background: var(--surface-hover);
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   &.active {
-    background: var(--surface-alt);
-    color: var(--foreground);
-    font-weight: 600;
+    color: var(--ocean);
+    font-weight: 500;
   }
 }
 
@@ -76,7 +63,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--cta);
+  background: var(--sunset);
   margin-left: 5px;
   vertical-align: middle;
   flex-shrink: 0;
@@ -85,59 +72,51 @@
 .signIn {
   display: inline-flex;
   align-items: center;
-  padding: 9px 22px;
-  border-radius: var(--radius-sm);
+  padding: 8px 20px;
+  border-radius: var(--radius-md);
   border: none;
-  background: var(--cta);
-  color: var(--cta-text);
-  font-size: 14px;
+  background: transparent;
+  color: var(--ocean);
+  font-size: 13px;
   font-weight: 500;
   font-family: var(--font-body);
   cursor: pointer;
   text-decoration: none;
   transition:
-    background var(--transition-fast),
-    box-shadow var(--transition-fast);
+    color var(--transition-fast),
+    background var(--transition-fast);
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    color: var(--ocean-deep);
+    background: var(--ocean-light);
   }
 }
 
 @media (max-width: 600px) {
   .inner {
     padding: 0 16px;
-    height: 64px;
+    height: 56px;
   }
 
   .logo {
-    font-size: 22px;
-  }
-
-  .logoIcon {
-    display: none;
+    font-size: 16px;
   }
 
   .navLink {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 6px 10px;
+    font-size: 12px;
   }
 
   .signIn {
-    padding: 7px 16px;
-    font-size: 13px;
+    padding: 6px 14px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .inner {
     padding: 0 12px;
-    height: 56px;
-  }
-
-  .logo {
-    font-size: 20px;
+    height: 52px;
   }
 
   .nav {
@@ -146,13 +125,13 @@
   }
 
   .navLink {
-    padding: 6px 8px;
-    font-size: 12px;
+    padding: 6px 6px;
+    font-size: 11px;
   }
 
   .signIn {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 11px;
     white-space: nowrap;
   }
 }
