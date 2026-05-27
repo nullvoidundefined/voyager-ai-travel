@@ -14,18 +14,25 @@ import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Toast } from '@/components/Toast/Toast';
 import type { MapPin } from '@/components/TripMap/TripMap';
 import { TripMap } from '@/components/TripMap/TripMap';
-import { del, get, put } from '@/lib/api';
+import { del, get, post, put } from '@/lib/api';
 import {
   getDestinationImage,
   getDestinationImageUrl,
 } from '@/lib/destinationImage';
+import { downloadICS } from '@/lib/export-ics';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import styles from './tripDetail.module.scss';
+
+const TripPDFButton = dynamic(
+  () => import('@/components/TripPDF/TripPDF').then((m) => m.TripPDFButton),
+  { ssr: false },
+);
 
 interface TripFlight {
   id: string;
@@ -290,6 +297,34 @@ export default function TripDetailPage() {
         >
           {/* Interactive map */}
           <TripMap pins={pins} />
+
+          {/* Export and share */}
+          <div className={styles.exportBar}>
+            <TripPDFButton
+              tripTitle={trip.destination}
+              days={scheduleData?.days ?? []}
+            />
+            <button
+              type='button'
+              onClick={() =>
+                downloadICS(trip.destination, scheduleData?.days ?? [])
+              }
+            >
+              Download Calendar
+            </button>
+            <button
+              type='button'
+              onClick={async () => {
+                const res = await post<{ share_url: string }>(
+                  `/trips/${id}/share`,
+                );
+                await navigator.clipboard.writeText(res.share_url);
+                setToastMessage('Share link copied!');
+              }}
+            >
+              Share
+            </button>
+          </div>
 
           {/* Booking links */}
           {bookingLinks.length > 0 && (
