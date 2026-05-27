@@ -11,13 +11,18 @@
   align-items: center;
   gap: 64px;
   min-height: 580px;
-  padding: 80px 0 64px;
-  margin-left: -32px;
-  margin-right: -32px;
-  padding-left: 64px;
-  padding-right: 64px;
-  width: calc(100% + 64px);
-  background: linear-gradient(165deg, #f8fbfe 0%, #eef6fb 40%, #fdf8f0 100%);
+  padding: 80px 32px 64px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    left: calc(-50vw + 50%);
+    background: linear-gradient(165deg, #f8fbfe 0%, #eef6fb 40%, #fdf8f0 100%);
+    z-index: -1;
+  }
 }
 
 .heroLeft {
@@ -262,12 +267,17 @@
 
 .features {
   padding: 80px 0;
-  background: var(--surface);
-  margin-left: -32px;
-  margin-right: -32px;
-  padding-left: 32px;
-  padding-right: 32px;
-  width: calc(100% + 64px);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    left: calc(-50vw + 50%);
+    background: var(--surface);
+    z-index: -1;
+  }
 }
 
 .featureGrid {
@@ -390,9 +400,6 @@
     flex-direction: column;
     gap: 40px;
     padding: 48px 20px;
-    margin-left: -20px;
-    margin-right: -20px;
-    width: calc(100% + 40px);
     min-height: auto;
   }
 
@@ -419,11 +426,8 @@
   }
 
   .features {
-    margin-left: -20px;
-    margin-right: -20px;
-    padding-left: 20px;
-    padding-right: 20px;
-    width: calc(100% + 40px);
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .featureGrid {
