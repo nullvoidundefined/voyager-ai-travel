@@ -214,6 +214,7 @@ export default function TripDetailPage() {
         >
           <ChatBox
             tripId={trip.id}
+            initialDestination={trip.destination}
             hasFlights={hasFlights}
             hasHotels={trip.hotels.length > 0}
             experiencesEmpty={trip.experiences.length === 0}

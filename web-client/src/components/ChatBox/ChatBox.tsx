@@ -15,6 +15,7 @@ const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary';
 
 interface ChatBoxProps {
   tripId: string;
+  initialDestination?: string;
   hasFlights?: boolean;
   hasHotels?: boolean;
   experiencesEmpty?: boolean;
@@ -25,6 +26,7 @@ interface ChatBoxProps {
 
 export function ChatBox({
   tripId,
+  initialDestination,
   hasFlights,
   hasHotels,
   experiencesEmpty,
@@ -234,6 +236,7 @@ export function ChatBox({
         onFormSubmit={handleFormSubmit}
         onFormValuesChange={handleFormValuesChange}
         onBookNow={handleBookTrip}
+        initialDestination={initialDestination}
       />
 
       <div className={styles.srOnly} aria-live='polite' aria-atomic='true'>

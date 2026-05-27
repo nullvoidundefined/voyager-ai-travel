@@ -24,6 +24,7 @@ interface VirtualizedChatProps {
     displayMessage: string,
   ) => void;
   onFormValuesChange?: (values: Record<string, string>) => void;
+  initialDestination?: string;
 }
 
 // Height estimates by node type for initial virtualized sizing
@@ -77,6 +78,7 @@ export function VirtualizedChat({
   onBookNow,
   onFormSubmit,
   onFormValuesChange,
+  initialDestination,
 }: VirtualizedChatProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const wasAtBottomRef = useRef(true);
@@ -236,6 +238,9 @@ export function VirtualizedChat({
                               onBookNow,
                               onFormSubmit,
                               onFormValuesChange,
+                              initialValues: initialDestination
+                                ? { destination: initialDestination }
+                                : undefined,
                               onConfirmFlight: (label, data) => {
                                 onSelectItem?.('flight', data);
                                 onQuickReply(
