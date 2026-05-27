@@ -369,6 +369,11 @@ export default function TripDetailPage() {
               <p className={styles.budgetAmount}>
                 {formatCurrency(trip.budget_total, trip.budget_currency)}
               </p>
+              {allocated > 0 && (
+                <p className={styles.budgetAllocated}>
+                  {formatCurrency(allocated, trip.budget_currency)} allocated
+                </p>
+              )}
               <div className={styles.budgetBar}>
                 {flightTotal > 0 && (
                   <div
@@ -504,7 +509,7 @@ export default function TripDetailPage() {
                         : ''}
                     </p>
                   </div>
-                  {h.total_price != null && (
+                  {h.total_price != null && Number.isFinite(h.total_price) && (
                     <span className={styles.itemPrice}>
                       {formatCurrency(h.total_price, h.currency)}
                     </span>
@@ -557,7 +562,7 @@ export default function TripDetailPage() {
                       {c.provider} · {c.car_type}
                     </p>
                   </div>
-                  {c.total_price != null && (
+                  {c.total_price != null && Number.isFinite(c.total_price) && (
                     <span className={styles.itemPrice}>
                       {formatCurrency(c.total_price, c.currency)}
                     </span>
