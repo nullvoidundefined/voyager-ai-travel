@@ -22,7 +22,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.81.0",
+    "@anthropic-ai/sdk": "^0.91.1",
     "@voyager/shared-types": "workspace:*",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
