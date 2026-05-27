@@ -11,7 +11,7 @@ import './globals.scss';
 import styles from './layout.module.scss';
 
 export const metadata: Metadata = {
-  title: `${APP_NAME} — AI Travel Concierge`,
+  title: `${APP_NAME} | AI Travel Concierge`,
   description:
     'Plan your next trip with an AI concierge that searches flights, hotels, and experiences within your budget.',
 };

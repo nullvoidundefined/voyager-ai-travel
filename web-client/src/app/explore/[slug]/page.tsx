@@ -24,10 +24,10 @@ export async function generateMetadata({
   if (!dest) return {};
   const description = dest.description.split('.')[0] + '.';
   return {
-    title: `${dest.name} Travel Guide — Voyager`,
+    title: `${dest.name} Travel Guide | Voyager`,
     description,
     openGraph: {
-      title: `${dest.name} Travel Guide — Voyager`,
+      title: `${dest.name} Travel Guide | Voyager`,
       description,
     },
   };
