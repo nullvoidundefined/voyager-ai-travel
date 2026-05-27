@@ -24,11 +24,14 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body>
+        <a href='#main-content' className={styles.skipLink}>
+          Skip to main content
+        </a>
         <QueryProvider>
           <AuthProvider>
             <div className={styles.appShell}>
               <Header />
-              <main className={styles.main}>
+              <main id='main-content' tabIndex={-1} className={styles.main}>
                 <ErrorBoundary>{children}</ErrorBoundary>
               </main>
               <Footer />
