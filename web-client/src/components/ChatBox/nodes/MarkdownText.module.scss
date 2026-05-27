@@ -9,7 +9,7 @@
   font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.65;
-  color: var(--foreground);
+  color: var(--ink);
 
   p {
     margin: 0 0 10px;
@@ -25,7 +25,7 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 600;
-    color: var(--foreground);
+    color: var(--ink);
     margin: 16px 0 6px;
 
     &:first-child {
@@ -61,7 +61,7 @@
 
   strong {
     font-weight: 600;
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   em {
@@ -71,14 +71,14 @@
   code {
     font-family: var(--font-mono);
     font-size: 12px;
-    background: var(--surface-alt);
-    border: 1px solid var(--border-light);
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
     padding: 1px 5px;
   }
 
   pre {
-    background: var(--surface-alt);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     padding: 12px;
@@ -94,15 +94,15 @@
   }
 
   blockquote {
-    border-left: 3px solid var(--accent);
+    border-left: 3px solid var(--ocean);
     margin: 8px 0;
     padding-left: 12px;
-    color: var(--foreground-muted);
+    color: var(--muted);
     font-style: italic;
   }
 
   a {
-    color: var(--accent-text);
+    color: var(--ocean);
     text-decoration: underline;
 
     &:hover {
@@ -122,7 +122,7 @@
   flex-direction: column;
   gap: 4px;
   padding-top: 8px;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border);
 }
 
 .citationsLabel {
@@ -131,7 +131,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .citationList {
@@ -151,19 +151,19 @@
 .citationText {
   font-family: var(--font-body);
   font-size: 11px;
-  color: var(--foreground-muted);
-  background: var(--surface-alt);
-  border: 1px solid var(--border-light);
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
 }
 
 .citationLink {
-  color: var(--accent-text);
+  color: var(--ocean);
   text-decoration: none;
 
   &:hover {
     background: var(--surface);
-    border-color: var(--accent);
+    border-color: var(--ocean);
   }
 }

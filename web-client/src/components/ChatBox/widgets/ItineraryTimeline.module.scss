@@ -8,7 +8,7 @@
 .dayCard {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  background: var(--surface-alt);
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -20,7 +20,7 @@
   padding: 10px 14px;
   border: none;
   background: none;
-  color: var(--foreground);
+  color: var(--ink);
   font-family: var(--font-body);
   font-size: 14px;
   cursor: pointer;
@@ -37,8 +37,8 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--accent-light);
-  color: var(--accent-text);
+  background: var(--ocean-light);
+  color: var(--ocean);
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
@@ -56,7 +56,7 @@
 .chevron {
   flex-shrink: 0;
   font-size: 16px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   width: 20px;
   text-align: center;
 }
@@ -86,7 +86,7 @@
   gap: 8px;
   font-family: var(--font-body);
   font-size: 13px;
-  color: var(--foreground);
+  color: var(--ink);
   line-height: 1.4;
 }
 
@@ -96,5 +96,5 @@
   height: 6px;
   margin-top: 6px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--ocean);
 }

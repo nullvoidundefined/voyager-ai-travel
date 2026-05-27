@@ -39,7 +39,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--foreground-muted);
+  color: var(--muted);
   padding: 0 4px;
 }
 
@@ -63,24 +63,24 @@
 }
 
 .user .bubble {
-  background: var(--user-bubble);
-  color: var(--foreground);
+  background: var(--ocean-light);
+  color: var(--ink);
   border-bottom-right-radius: 4px;
 }
 
 .assistant .bubble {
   background: transparent;
-  color: var(--foreground);
+  color: var(--ink);
   border-bottom-left-radius: 4px;
 }
 
-/* — Tool progress — */
+/* Tool progress */
 
 .toolProgress {
   padding: 14px 18px;
   border-radius: var(--radius-md);
-  background: var(--surface-alt);
-  border: 1px solid var(--border-light);
+  background: var(--surface);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -101,11 +101,11 @@
 }
 
 .toolName {
-  color: var(--foreground);
+  color: var(--ink);
   font-weight: 500;
 }
 
-/* — Typing indicator — */
+/* Typing indicator */
 
 .typing {
   display: inline-flex;
@@ -117,7 +117,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--accent);
+    background: var(--ocean);
     animation: typingDot 1.4s infinite;
     opacity: 0.3;
 
@@ -131,7 +131,7 @@
   }
 }
 
-/* — Result cards — */
+/* Result cards */
 
 .resultCards {
   margin-top: 12px;
@@ -139,13 +139,13 @@
   overflow-x: auto;
 }
 
-/* — Input area — */
+/* Input area */
 
 .inputArea {
   display: flex;
   gap: 10px;
   padding: 18px 24px;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border);
   background: var(--surface);
 }
 
@@ -155,7 +155,7 @@
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  color: var(--foreground);
+  color: var(--ink);
   font-size: 14px;
   font-family: var(--font-body);
   outline: none;
@@ -164,13 +164,13 @@
     box-shadow var(--transition-fast);
 
   &::placeholder {
-    color: var(--foreground-muted);
+    color: var(--muted);
     opacity: 0.5;
   }
 
   &:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.1);
+    border-color: var(--ocean);
+    box-shadow: 0 0 0 3px rgba(12, 140, 233, 0.1);
   }
 
   &:disabled {
@@ -183,8 +183,8 @@
   padding: 12px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -195,8 +195,8 @@
     transform var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
   }
 

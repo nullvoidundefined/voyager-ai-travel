@@ -25,7 +25,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--foreground-muted);
+  color: var(--muted);
   padding: 0 4px;
 
   .user & {
@@ -40,14 +40,14 @@
   line-height: 1.7;
 
   .user & {
-    background: var(--user-bubble);
-    color: var(--foreground);
+    background: var(--ocean-light);
+    color: var(--ink);
     border-bottom-right-radius: 4px;
   }
 
   .assistant & {
     background: transparent;
-    color: var(--foreground);
+    color: var(--ink);
     border-bottom-left-radius: 4px;
   }
 }
@@ -59,7 +59,7 @@
   justify-content: center;
   height: 100%;
   gap: 4px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   text-align: center;
   padding: 48px 24px;
 }
@@ -73,7 +73,7 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .emptySubtitle {

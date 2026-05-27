@@ -8,9 +8,9 @@
 .chip {
   padding: 8px 18px;
   border: 1.5px solid var(--border);
-  border-radius: 100px;
-  background: var(--surface-alt);
-  color: var(--foreground);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--ink);
   font-size: 13px;
   font-weight: 500;
   font-family: var(--font-body);
@@ -21,8 +21,8 @@
     background var(--transition-fast);
 
   &:hover:not(:disabled) {
-    border-color: var(--accent);
-    background: var(--accent-light);
+    border-color: var(--ocean);
+    background: var(--surface);
   }
 
   &:disabled {
