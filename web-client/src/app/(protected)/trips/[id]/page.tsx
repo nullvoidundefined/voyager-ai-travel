@@ -248,7 +248,7 @@ export default function TripDetailPage() {
               <LegList
                 legs={legsData?.legs ?? []}
                 onRemoveLeg={(legId) => {
-                  del(`/trips/${id}/legs/${legId}`).then(() =>
+                  void del(`/trips/${id}/legs/${legId}`).then(() =>
                     queryClient.invalidateQueries({
                       queryKey: ['trip-legs', id],
                     }),
