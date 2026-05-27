@@ -21,8 +21,8 @@
   padding: 11px 24px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -30,13 +30,11 @@
   text-decoration: none;
   transition:
     background var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    box-shadow var(--transition-fast);
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-1px);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -50,20 +48,18 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
   transition:
     border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: var(--accent);
+    border-color: var(--ocean);
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
   }
 }
 
@@ -77,11 +73,11 @@
   position: relative;
   height: 160px;
   width: 100%;
-  background: linear-gradient(135deg, var(--accent), var(--cta));
+  background: linear-gradient(135deg, var(--ocean), var(--ocean-deep));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--cta-text);
+  color: #fff;
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 600;
@@ -133,7 +129,7 @@
 
 .dates {
   font-size: 14px;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .tripMeta {
@@ -145,41 +141,41 @@
 .budget {
   font-size: 15px;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .status {
   padding: 5px 14px;
-  border-radius: 100px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.02em;
 
   &.planning {
-    background: var(--accent-light);
-    color: var(--accent-text);
+    background: var(--ocean-light);
+    color: var(--ocean);
   }
 
   &.saved {
-    background: rgba(22, 163, 74, 0.08);
+    background: var(--success-light);
     color: var(--success);
   }
 
   &.archived {
-    background: var(--surface-alt);
-    color: var(--foreground-muted);
+    background: var(--surface);
+    color: var(--muted);
   }
 
   &.draft {
-    background: var(--surface-alt);
-    color: var(--foreground-muted);
+    background: var(--surface);
+    color: var(--muted);
   }
 }
 
 .empty {
   text-align: center;
   padding: 80px 0;
-  color: var(--foreground-muted);
+  color: var(--muted);
 
   p {
     margin-bottom: 20px;
@@ -191,7 +187,7 @@
 .error {
   text-align: center;
   padding: 48px 0;
-  color: var(--foreground-muted);
+  color: var(--muted);
   font-size: 15px;
 }
 
