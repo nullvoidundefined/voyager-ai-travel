@@ -3,17 +3,22 @@
 import { useEffect } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!isLoading && !user) {
-      router.replace('/login');
+      const currentPath =
+        pathname +
+        (searchParams.toString() ? `?${searchParams.toString()}` : '');
+      router.replace(`/login?next=${encodeURIComponent(currentPath)}`);
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, pathname, searchParams]);
 
   if (isLoading || !user) {
     return null;

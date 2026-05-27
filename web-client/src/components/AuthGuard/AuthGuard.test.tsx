@@ -6,6 +6,8 @@ import { AuthGuard } from './AuthGuard';
 const mockReplace = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mockReplace }),
+  usePathname: () => '/trips/abc-123',
+  useSearchParams: () => ({ toString: () => '' }),
 }));
 
 let mockUser: { id: string } | null = null;
@@ -62,7 +64,7 @@ describe('AuthGuard', () => {
         <div>Protected content</div>
       </AuthGuard>,
     );
-    expect(mockReplace).toHaveBeenCalledWith('/login');
+    expect(mockReplace).toHaveBeenCalledWith('/login?next=%2Ftrips%2Fabc-123');
   });
 
   it('does not redirect when loading', () => {

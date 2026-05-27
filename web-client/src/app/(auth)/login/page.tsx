@@ -7,13 +7,14 @@ import { useAuth } from '@/context/AuthContext';
 import { ApiError, get } from '@/lib/api';
 import { APP_NAME } from '@/lib/constants';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import styles from '../auth.module.scss';
 
 export default function LoginPage() {
   const { login, isLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,10 +31,15 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      const { trips } = await get<{
-        trips: { id: string }[];
-      }>('/trips');
-      router.push(trips.length > 0 ? '/trips' : '/trips/new');
+      const nextUrl = searchParams.get('next');
+      if (nextUrl && nextUrl.startsWith('/')) {
+        router.push(nextUrl);
+      } else {
+        const { trips } = await get<{
+          trips: { id: string }[];
+        }>('/trips');
+        router.push(trips.length > 0 ? '/trips' : '/trips/new');
+      }
     } catch (err) {
       const msg =
         err instanceof ApiError
