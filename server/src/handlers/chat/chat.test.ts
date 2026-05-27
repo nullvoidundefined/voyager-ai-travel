@@ -72,6 +72,18 @@ describe('chat handlers', () => {
       expect(res.status).toBe(400);
     });
 
+    it('returns 400 when message exceeds 2000 characters', async () => {
+      const app = createApp();
+      const oversized = 'x'.repeat(2001);
+
+      const res = await request(app)
+        .post(`/trips/${tripId}/chat`)
+        .send({ message: oversized });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('2000');
+    });
+
     it('returns 404 when trip not found', async () => {
       const app = createApp();
       vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce(null);

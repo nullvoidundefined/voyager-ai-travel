@@ -46,10 +46,17 @@ export function getActiveConversationCount(): number {
 export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const userId = getAuthUser(req).id;
+  const MAX_MESSAGE_LENGTH = 2000;
   const { message } = req.body;
 
   if (!message || typeof message !== 'string') {
     throw ApiError.badRequest('message is required');
+  }
+
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    throw ApiError.badRequest(
+      `Message must be ${MAX_MESSAGE_LENGTH} characters or fewer`,
+    );
   }
 
   // FIN-01 / FIN-05: per-user daily token budget guard.
