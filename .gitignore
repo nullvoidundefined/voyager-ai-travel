@@ -16,7 +16,6 @@ coverage/
 
 # Claude Code local settings
 .claude/*
-!.claude/bottomlessmargaritas/
 !.claude/commands/
 .DS_Store
 
@@ -27,3 +26,14 @@ test-results/
 
 eval/reports/*.json
 eval/personas-cache.json
+
+# Internal docs (audit reports, handoffs, plans, specs, todos)
+docs/audits/
+docs/todos/
+docs/session-handoff/
+docs/superpowers/
+docs/BILLING.md
+docs/FULL_APPLICATION_SPEC.md
+web-client/public/.vibelens/
+web-client/vercel.json
+MEMORY.md
