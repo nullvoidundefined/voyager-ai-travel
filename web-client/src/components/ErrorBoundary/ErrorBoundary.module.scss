@@ -4,35 +4,35 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  padding: 2rem;
+  padding: 32px;
   text-align: center;
 }
 
 .heading {
-  font-size: 1.5rem;
+  font-size: 24px;
   font-weight: 600;
-  margin-bottom: 0.75rem;
-  color: var(--color-text, var(--foreground));
+  margin-bottom: 12px;
+  color: var(--foreground);
 }
 
 .message {
-  color: var(--color-text-secondary, var(--foreground-muted));
-  margin-bottom: 1.5rem;
+  color: var(--foreground-muted);
+  margin-bottom: 24px;
   max-width: 400px;
 }
 
 .button {
-  padding: 0.625rem 1.25rem;
+  padding: 10px 20px;
   border: none;
   border-radius: 6px;
-  background: var(--color-primary, var(--accent));
+  background: var(--accent);
   color: var(--cta-text);
-  font-size: 0.875rem;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--color-primary-hover, var(--accent-hover));
+    background: var(--accent-hover);
   }
 }

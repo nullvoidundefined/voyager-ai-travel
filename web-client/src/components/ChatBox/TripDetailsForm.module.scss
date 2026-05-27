@@ -79,7 +79,7 @@
   padding: 10px 22px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--accent);
+  background: var(--cta);
   color: var(--cta-text);
   font-size: 14px;
   font-weight: 600;
@@ -90,7 +90,7 @@
     box-shadow var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: var(--accent-hover);
+    background: var(--cta-hover);
     box-shadow: var(--shadow-glow);
   }
 

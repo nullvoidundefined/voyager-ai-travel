@@ -4,20 +4,32 @@ import { useEffect } from 'react';
 
 import styles from './Toast.module.scss';
 
+type ToastVariant = 'danger' | 'success' | 'info';
+
 interface ToastProps {
   message: string;
   onClose: () => void;
   duration?: number;
+  variant?: ToastVariant;
 }
 
-export function Toast({ message, onClose, duration = 5000 }: ToastProps) {
+export function Toast({
+  message,
+  onClose,
+  duration = 5000,
+  variant = 'danger',
+}: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
   }, [onClose, duration]);
 
   return (
-    <div className={styles.toast} role='alert' aria-live='assertive'>
+    <div
+      className={`${styles.toast} ${styles[variant]}`}
+      role='alert'
+      aria-live='assertive'
+    >
       <span>{message}</span>
       <button
         type='button'

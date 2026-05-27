@@ -5,8 +5,21 @@
 }
 
 .horizontalScroll {
+  position: relative;
   display: flex;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 6px;
+  mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 32px),
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    black 0%,
+    black calc(100% - 32px),
+    transparent 100%
+  );
 }

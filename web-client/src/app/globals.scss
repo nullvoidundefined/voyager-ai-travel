@@ -66,6 +66,28 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s var(--ease-out);
   --transition-med: 0.3s var(--ease-out);
+
+  /* -- Spacing scale -- */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* -- Breakpoints (reference; media queries use raw values) -- */
+  --bp-mobile: 480px;
+  --bp-tablet: 768px;
+  --bp-desktop: 1024px;
+  --bp-wide: 1440px;
+
+  /* -- Overlay -- */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+
+  /* -- Font extras -- */
+  --font-weight-bold: 700;
+  --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 }
 
 html,

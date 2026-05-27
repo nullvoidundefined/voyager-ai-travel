@@ -69,7 +69,7 @@
   }
 
   code {
-    font-family: monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     background: var(--surface-alt);
     border: 1px solid var(--border-light);

@@ -133,17 +133,6 @@
   animation: fadeSlideIn 0.35s var(--ease-out);
 }
 
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .typing {
   display: inline-flex;
   gap: 5px;
@@ -165,19 +154,6 @@
     &:nth-child(3) {
       animation-delay: 0.4s;
     }
-  }
-}
-
-@keyframes typingDot {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  30% {
-    opacity: 1;
-    transform: scale(1.15);
   }
 }
 

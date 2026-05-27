@@ -9,6 +9,7 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Metadata } from 'next';
 
+import '../styles/animations.scss';
 import './globals.scss';
 import styles from './layout.module.scss';
 
