@@ -1,4 +1,4 @@
-/* — Modal overlay — */
+/* Modal overlay */
 
 .overlay {
   position: fixed;
@@ -12,7 +12,7 @@
   animation: fadeIn 0.2s var(--ease-out);
 }
 
-/* — Modal card — */
+/* Modal card */
 
 .modal {
   position: fixed;
@@ -32,7 +32,7 @@
   animation: slideUp 0.25s var(--ease-out);
 }
 
-/* — Header — */
+/* Header */
 
 .header {
   text-align: center;
@@ -42,18 +42,18 @@
     font-family: var(--font-display);
     font-size: 24px;
     font-weight: 600;
-    color: var(--foreground);
+    color: var(--ink);
     letter-spacing: -0.02em;
     margin-bottom: 4px;
   }
 
   p {
     font-size: 14px;
-    color: var(--foreground-muted);
+    color: var(--muted);
   }
 }
 
-/* — Progress bar — */
+/* Progress bar */
 
 .progress {
   display: flex;
@@ -74,7 +74,7 @@
   font-weight: 600;
   border: 2px solid var(--border);
   background: var(--surface);
-  color: var(--foreground-muted);
+  color: var(--muted);
   cursor: default;
   transition:
     border-color var(--transition-fast),
@@ -84,15 +84,15 @@
 }
 
 .stepCompleted {
-  border-color: var(--cta);
-  background: var(--cta);
-  color: var(--cta-text);
+  border-color: var(--ocean);
+  background: var(--ocean);
+  color: #fff;
   cursor: pointer;
 }
 
 .stepCurrent {
-  border-color: var(--cta);
-  color: var(--cta);
+  border-color: var(--ocean);
+  color: var(--ocean);
 }
 
 .stepLine {
@@ -103,10 +103,10 @@
 }
 
 .stepLineCompleted {
-  background: var(--cta);
+  background: var(--ocean);
 }
 
-/* — Fieldset — */
+/* Fieldset */
 
 .fieldset {
   border: none;
@@ -116,12 +116,12 @@
   legend {
     font-size: 14px;
     font-weight: 600;
-    color: var(--foreground);
+    color: var(--ink);
     margin-bottom: 14px;
   }
 }
 
-/* — Step sections (dining has two fieldsets) — */
+/* Step sections (dining has two fieldsets) */
 
 .stepSections {
   display: flex;
@@ -129,7 +129,7 @@
   gap: 24px;
 }
 
-/* — Card layouts — */
+/* Card layouts */
 
 .cardGrid {
   display: grid;
@@ -148,7 +148,7 @@
   gap: 10px;
 }
 
-/* — Option card — */
+/* Option card */
 
 .optionCard {
   display: flex;
@@ -164,27 +164,27 @@
     box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: var(--cta);
+    border-color: var(--ocean);
   }
 }
 
 .optionSelected {
-  border-color: var(--cta);
-  box-shadow: var(--shadow-glow);
+  border-color: var(--ocean);
+  box-shadow: var(--shadow-sm);
 }
 
 .optionLabel {
   font-size: 14px;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .optionDesc {
   font-size: 12px;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
-/* — Chip group — */
+/* Chip group */
 
 .chipGroup {
   display: flex;
@@ -197,7 +197,7 @@
   border: 2px solid var(--border);
   border-radius: 100px;
   background: var(--surface);
-  color: var(--foreground-muted);
+  color: var(--muted);
   font-size: 13px;
   font-weight: 500;
   font-family: var(--font-body);
@@ -209,24 +209,24 @@
     box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: var(--cta);
-    color: var(--foreground);
+    border-color: var(--ocean);
+    color: var(--ink);
   }
 }
 
 .chipSelected {
-  background: var(--cta);
-  border-color: var(--cta);
-  color: var(--cta-text);
-  box-shadow: var(--shadow-glow);
+  background: var(--ocean);
+  border-color: var(--ocean);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 
   &:hover {
-    border-color: var(--cta-hover);
-    color: var(--cta-text);
+    border-color: var(--ocean-deep);
+    color: #fff;
   }
 }
 
-/* — Activity grid (3-col desktop, 2-col mobile) — */
+/* Activity grid (3-col desktop, 2-col mobile) */
 
 .activityGrid {
   display: grid;
@@ -239,7 +239,7 @@
   }
 }
 
-/* — Screen reader only — */
+/* Screen reader only */
 
 .srOnly {
   position: absolute;
@@ -252,7 +252,7 @@
   border: 0;
 }
 
-/* — Navigation buttons — */
+/* Navigation buttons */
 
 .buttons {
   display: flex;
@@ -266,7 +266,7 @@
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  color: var(--foreground);
+  color: var(--ink);
   font-size: 14px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -276,8 +276,8 @@
     border-color var(--transition-fast);
 
   &:hover {
-    background: var(--surface-hover);
-    border-color: var(--cta);
+    background: var(--surface);
+    border-color: var(--ocean);
   }
 }
 
@@ -286,8 +286,8 @@
   padding: 12px 20px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -297,8 +297,8 @@
     box-shadow var(--transition-fast);
 
   &:hover:not(:disabled) {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 
   &:disabled {
@@ -307,7 +307,7 @@
   }
 }
 
-/* — Responsive — */
+/* Responsive */
 
 @media (max-width: 560px) {
   .modal {
@@ -328,7 +328,7 @@
   }
 }
 
-/* — LGBTQ+ safety & gender — */
+/* LGBTQ+ safety & gender */
 
 .safetySection {
   margin-top: 24px;
@@ -338,7 +338,7 @@
 
 .safetyExplanation {
   font-size: 13px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   margin-bottom: 16px;
   line-height: 1.5;
 }
@@ -355,7 +355,7 @@
 .toggleInput {
   width: 18px;
   height: 18px;
-  accent-color: var(--cta);
+  accent-color: var(--ocean);
   cursor: pointer;
 }
 
@@ -372,7 +372,7 @@
 
 .optional {
   font-weight: 400;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .select {
@@ -380,13 +380,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
-  color: var(--foreground);
+  color: var(--ink);
   font-size: 14px;
   font-family: var(--font-body);
   max-width: 240px;
 
   &:focus {
-    outline: 2px solid var(--cta);
+    outline: 2px solid var(--ocean);
     outline-offset: 2px;
   }
 }
@@ -395,7 +395,7 @@
 
 .saveError {
   font-size: 13px;
-  color: var(--danger);
+  color: var(--error);
   text-align: center;
   margin-top: 12px;
 }

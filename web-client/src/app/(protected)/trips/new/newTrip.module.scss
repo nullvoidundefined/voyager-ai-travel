@@ -12,12 +12,12 @@
   align-items: center;
   gap: 6px;
   font-size: 14px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   margin-bottom: 28px;
   transition: color var(--transition-fast);
 
   &:hover {
-    color: var(--accent);
+    color: var(--ocean);
   }
 }
 
@@ -28,7 +28,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   font-size: 15px;
 }
 
@@ -36,7 +36,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid var(--border);
-  border-top-color: var(--accent);
+  border-top-color: var(--ocean);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

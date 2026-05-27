@@ -12,11 +12,11 @@
   font-size: 24px;
   font-weight: 600;
   margin-bottom: 12px;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .message {
-  color: var(--foreground-muted);
+  color: var(--muted);
   margin-bottom: 24px;
   max-width: 400px;
 }
@@ -25,14 +25,14 @@
   padding: 10px 20px;
   border: none;
   border-radius: 6px;
-  background: var(--accent);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition: background var(--transition-fast);
 
   &:hover {
-    background: var(--accent-hover);
+    background: var(--ocean-deep);
   }
 }

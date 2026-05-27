@@ -1,4 +1,4 @@
-/* —————————— Hero —————————— */
+/* Hero */
 
 .page {
   min-height: 100vh;
@@ -16,7 +16,7 @@
 .heroFallback {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--cta) 100%);
+  background: linear-gradient(135deg, var(--ocean) 0%, var(--ocean) 100%);
 }
 
 .heroOverlay {
@@ -52,7 +52,7 @@
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* —————————— Quick Stats —————————— */
+/* Quick Stats */
 
 .statsBar {
   display: flex;
@@ -71,7 +71,7 @@
 
 .statLabel {
   font-size: 12px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 500;
@@ -80,10 +80,10 @@
 .statValue {
   font-size: 14px;
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
-/* —————————— Content Container —————————— */
+/* Content Container */
 
 .content {
   max-width: 1000px;
@@ -91,11 +91,11 @@
   padding: 0 32px;
 }
 
-/* —————————— Sections —————————— */
+/* Sections */
 
 .section {
   padding: 40px 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 
   &:last-of-type {
     border-bottom: none;
@@ -107,15 +107,15 @@
   font-size: 28px;
   font-weight: 600;
   margin-bottom: 24px;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
-/* —————————— About —————————— */
+/* About */
 
 .paragraph {
   font-size: 16px;
   line-height: 1.7;
-  color: var(--foreground);
+  color: var(--ink);
   margin-bottom: 16px;
 
   &:last-child {
@@ -123,7 +123,7 @@
   }
 }
 
-/* —————————— Top 10 Experiences —————————— */
+/* Top 10 Experiences */
 
 .experienceGrid {
   display: grid;
@@ -137,7 +137,7 @@
 
 .experienceCard {
   background: var(--surface);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 20px;
   transition: box-shadow var(--transition-fast);
@@ -168,25 +168,25 @@
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 12px;
-  background: var(--accent-light);
-  color: var(--accent-text);
+  background: var(--ocean-light);
+  color: var(--ocean);
   white-space: nowrap;
 }
 
 .experienceDesc {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--foreground-muted);
+  color: var(--muted);
   margin-bottom: 8px;
 }
 
 .experienceCost {
   font-size: 14px;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--ocean);
 }
 
-/* —————————— Dining Highlights —————————— */
+/* Dining Highlights */
 
 .diningList {
   display: flex;
@@ -196,7 +196,7 @@
 
 .diningItem {
   padding: 16px 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     border-bottom: none;
@@ -219,16 +219,16 @@
 
 .diningMeta {
   font-size: 13px;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .diningDesc {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
-/* —————————— Neighborhoods —————————— */
+/* Neighborhoods */
 
 .neighborhoodList {
   display: flex;
@@ -238,7 +238,7 @@
 
 .neighborhoodItem {
   padding: 16px 0;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     border-bottom: none;
@@ -255,10 +255,10 @@
 .neighborhoodDesc {
   font-size: 14px;
   line-height: 1.55;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
-/* —————————— Weather —————————— */
+/* Weather */
 
 .weatherTable {
   overflow-x: auto;
@@ -269,7 +269,7 @@
   display: grid;
   grid-template-columns: 60px repeat(12, 1fr);
   min-width: 700px;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     border-bottom: none;
@@ -283,15 +283,15 @@
   letter-spacing: 0.03em;
   padding: 10px 6px;
   text-align: center;
-  color: var(--foreground-muted);
-  background: var(--surface-alt);
+  color: var(--muted);
+  background: var(--surface);
 }
 
 .weatherLabel {
   font-size: 12px;
   font-weight: 600;
   padding: 10px 6px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   display: flex;
   align-items: center;
 }
@@ -301,7 +301,7 @@
   font-weight: 600;
   padding: 10px 6px;
   text-align: center;
-  color: var(--cta);
+  color: var(--ocean);
 }
 
 .weatherLow {
@@ -309,21 +309,21 @@
   font-weight: 500;
   padding: 10px 6px;
   text-align: center;
-  color: var(--accent);
+  color: var(--ocean);
 }
 
 .weatherRain {
   font-size: 12px;
   padding: 10px 6px;
   text-align: center;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
-/* —————————— Travel Advisories —————————— */
+/* Travel Advisories */
 
 .advisory {
-  background: var(--surface-alt);
-  border: 1px solid var(--border-light);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 20px;
 }
@@ -333,16 +333,16 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 6px;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
-/* —————————— CTA —————————— */
+/* CTA */
 
 .ctaSection {
   text-align: center;
   padding: 60px 24px;
   margin: 40px 0;
-  background: var(--surface-alt);
+  background: var(--surface);
   border-radius: var(--radius-lg);
 }
 
@@ -355,7 +355,7 @@
 
 .ctaSubtitle {
   font-size: 16px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   margin-bottom: 28px;
 }
 
@@ -365,8 +365,8 @@
   font-size: 18px;
   font-weight: 600;
   padding: 14px 36px;
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   border-radius: var(--radius-md);
   transition:
     background var(--transition-fast),
@@ -375,8 +375,8 @@
   text-decoration: none;
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
     transform: translateY(-1px);
   }
 
@@ -385,7 +385,7 @@
   }
 }
 
-/* —————————— Responsive —————————— */
+/* Responsive */
 
 @media (max-width: 600px) {
   .heroTitle {

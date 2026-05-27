@@ -13,13 +13,13 @@
     font-size: 42px;
     font-weight: 600;
     letter-spacing: -0.02em;
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   p {
     margin-top: 14px;
     font-size: 17px;
-    color: var(--foreground-muted);
+    color: var(--muted);
     line-height: 1.6;
   }
 }
@@ -33,7 +33,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--accent);
+    color: var(--ocean);
     margin-bottom: 16px;
     padding-left: 4px;
   }
@@ -55,8 +55,8 @@
     box-shadow var(--transition-fast);
 
   &[open] {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(30, 86, 160, 0.06);
+    border-color: var(--ocean);
+    box-shadow: 0 0 0 3px rgba(12, 140, 233, 0.06);
   }
 }
 
@@ -64,7 +64,8 @@
   padding: 18px 24px;
   font-size: 15px;
   font-weight: 600;
-  color: var(--foreground);
+  font-family: var(--font-display);
+  color: var(--ink);
   cursor: pointer;
   list-style: none;
   display: flex;
@@ -80,14 +81,14 @@
     content: '+';
     font-size: 20px;
     font-weight: 400;
-    color: var(--foreground-muted);
+    color: var(--muted);
     transition: transform 0.25s var(--ease-out);
     flex-shrink: 0;
   }
 
   [open] > &::after {
     transform: rotate(45deg);
-    color: var(--accent);
+    color: var(--ocean);
   }
 }
 
@@ -95,20 +96,20 @@
   padding: 0 24px 18px;
   font-size: 14px;
   line-height: 1.75;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .cta {
   text-align: center;
   padding: 56px 0 0;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border);
   margin-top: 56px;
 
   p {
     font-family: var(--font-display);
     font-size: 24px;
     font-weight: 600;
-    color: var(--foreground);
+    color: var(--ink);
     margin-bottom: 20px;
   }
 }
@@ -117,8 +118,8 @@
   display: inline-block;
   padding: 14px 36px;
   border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 15px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -127,8 +128,8 @@
     box-shadow var(--transition-fast);
 
   &:hover {
-    background: var(--accent-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 }
 

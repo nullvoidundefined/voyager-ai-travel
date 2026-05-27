@@ -18,7 +18,7 @@
     font-family: var(--font-body);
     font-size: 12px;
     font-weight: 600;
-    color: var(--foreground-muted);
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     margin-bottom: 12px;
@@ -37,8 +37,8 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -46,7 +46,7 @@
   font-weight: 700;
   font-family: var(--font-body);
   margin-bottom: 16px;
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--shadow-sm);
 }
 
 .info {
@@ -63,7 +63,7 @@
 
 .email {
   font-size: 14px;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .prefHeader {
@@ -75,15 +75,15 @@
 
 .prefCompletion {
   font-size: 13px;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
 .editButton {
   padding: 8px 18px;
   border: none;
   border-radius: var(--radius-sm);
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   font-size: 13px;
   font-weight: 600;
   font-family: var(--font-body);
@@ -93,8 +93,8 @@
     box-shadow var(--transition-fast);
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 }
 
@@ -103,7 +103,7 @@
   justify-content: space-between;
   padding: 12px 0;
   font-size: 14px;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     border-bottom: none;
@@ -117,5 +117,5 @@
 
 .prefValue {
   font-weight: 600;
-  color: var(--foreground);
+  color: var(--ink);
 }

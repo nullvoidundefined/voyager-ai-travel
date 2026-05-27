@@ -25,14 +25,14 @@
   font-family: var(--font-display, Georgia, serif);
   font-size: var(--text-2xl, 24px);
   font-weight: 600;
-  color: var(--foreground, #1a2332);
+  color: var(--ink, #1a2332);
   margin: 0 0 12px 0;
 }
 
 .description {
   font-size: var(--text-base, 16px);
   line-height: 1.5;
-  color: var(--foreground-muted, #6b7b8d);
+  color: var(--muted, #6b7b8d);
   margin: 0 0 20px 0;
 }
 
@@ -56,25 +56,25 @@
 }
 
 .cancelButton {
-  background: var(--background-alt, #f5f2ee);
-  color: var(--foreground, #1a2332);
+  background: var(--surface, #f5f2ee);
+  color: var(--ink, #1a2332);
 
   &:hover {
-    background: var(--border-light, #ebe7e0);
+    background: var(--border, #ebe7e0);
   }
 }
 
 .confirmButton {
-  background: var(--accent);
+  background: var(--ocean);
   color: #ffffff;
 
   &:hover {
-    background: var(--accent-hover);
+    background: var(--ocean-deep);
   }
 }
 
 .destructiveButton {
-  background: #dc2626;
+  background: var(--error);
   color: #ffffff;
 
   &:hover {
