@@ -4,7 +4,7 @@ AI travel planner powered by a multi-step tool-use loop. Users describe a trip (
 
 ## Key AI pattern
 
-Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about results between calls. Unlike app 3 (single-pass tool use), this is multi-step with budget-aware planning. Max 15 tool calls per turn as safety limit.
+Agentic tool-use loop: Claude calls tools 3-8 times per turn, reasoning about results between calls. Unlike app 3 (single-pass tool use), this is multi-step with budget-aware planning. Max 8 tool calls per turn as safety limit.
 
 ## Tools the agent uses
 
