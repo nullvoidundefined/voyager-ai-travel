@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { BookingPrompt } from './BookingPrompt';
@@ -129,5 +130,18 @@ describe('BookingPrompt', () => {
     expect(onQuickReply).toHaveBeenCalledWith(
       'Can you find a car rental for this trip?',
     );
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <BookingPrompt
+        experiencesEmpty={false}
+        carRentalsEmpty={false}
+        onBookNow={() => {}}
+        onQuickReply={() => {}}
+      />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });

@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { DemoBanner } from './DemoBanner';
@@ -29,5 +30,11 @@ describe('DemoBanner', () => {
   it('is marked as a complementary landmark for screen readers', () => {
     render(<DemoBanner />);
     expect(screen.getByRole('note')).toBeInTheDocument();
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = render(<DemoBanner />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });

@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { axe } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Toast } from './Toast';
@@ -54,5 +55,13 @@ describe('Toast', () => {
     expect(onClose).toHaveBeenCalledOnce();
 
     vi.useRealTimers();
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <Toast message='Something went wrong' onClose={vi.fn()} />,
+    );
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });
