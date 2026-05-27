@@ -25,23 +25,34 @@ export default function NewTripPage() {
       return;
     }
     creating.current = true;
-    let aborted = false;
+
+    // React Strict Mode (enabled by default in Next.js dev) double-
+    // invokes effects: mount -> cleanup -> mount. The creating ref
+    // prevents the second mount from firing a duplicate POST. But
+    // the previous implementation used an `aborted` boolean that
+    // the cleanup set to true, which silenced router.replace in
+    // the success handler of the FIRST (and only) POST. That left
+    // the page stuck on /trips/new permanently.
+    //
+    // router.replace is safe to call after the Strict Mode cleanup
+    // unmount because it operates on the Next.js router singleton,
+    // not on component state. We only gate setError behind a
+    // mounted ref to avoid a React state-update-on-unmount warning.
+    let mounted = true;
 
     post<{ trip: Trip }>('/trips', { destination })
       .then(({ trip }) => {
-        if (!aborted) {
-          router.replace(`/trips/${trip.id}`);
-        }
+        router.replace(`/trips/${trip.id}`);
       })
       .catch(() => {
-        if (!aborted) {
+        if (mounted) {
           setError('Failed to start a new trip. Please try again.');
           creating.current = false;
         }
       });
 
     return () => {
-      aborted = true;
+      mounted = false;
     };
   }, [router, destination]);
 

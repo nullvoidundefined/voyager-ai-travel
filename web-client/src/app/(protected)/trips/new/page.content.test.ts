@@ -30,10 +30,16 @@ describe('new trip page content', () => {
     expect(newTripSource).toContain("searchParams.get('destination')");
   });
 
-  it('has a cleanup function that prevents acting after unmount', () => {
-    // The useEffect must return a cleanup function to guard against
-    // React Strict Mode double-invoke creating duplicate trips.
+  it('has a cleanup function and a creating ref to prevent duplicate trips', () => {
+    // The useEffect must return a cleanup function and use a ref
+    // to guard against React Strict Mode double-invoke creating
+    // duplicate trips. The ref prevents the second mount from
+    // firing a second POST. router.replace is NOT gated behind
+    // the mounted flag because it operates on the Next.js router
+    // singleton and must execute even after Strict Mode's
+    // intermediate cleanup.
     expect(newTripSource).toMatch(/return\s*\(\)\s*=>\s*\{/);
-    expect(newTripSource).toContain('aborted = true');
+    expect(newTripSource).toContain('creating.current');
+    expect(newTripSource).toContain('mounted = false');
   });
 });

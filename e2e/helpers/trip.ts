@@ -5,18 +5,38 @@ import { type Page, expect } from '@playwright/test';
 
 export async function createTrip(page: Page): Promise<void> {
   await page.goto('/trips');
+
+  // Set up a response listener BEFORE clicking so we never miss
+  // the POST /trips response. The /trips/new page fires a
+  // useEffect that POSTs a new trip then router.replaces to
+  // /trips/{uuid}. In CI, Next.js dev-mode on-demand compilation
+  // of /trips/new can take 5-10s on a shared runner, and the
+  // previous 15s flat timeout on the final URL was not enough to
+  // cover compilation + hydration + API round-trip + client nav.
+  //
+  // Waiting for the API response decouples us from page
+  // compilation time: Playwright holds the promise until the POST
+  // completes, then we only need a short wait for router.replace.
+  const tripCreated = page.waitForResponse(
+    (res) =>
+      res.url().includes('/trips') &&
+      res.request().method() === 'POST' &&
+      res.status() === 201,
+    { timeout: 30_000 },
+  );
+
   await page.click(
     'a:has-text("New Trip"), button:has-text("New Trip"), a:has-text("New trip"), button:has-text("New trip")',
   );
-  // /trips/new is a redirect page: it POSTs a new trip then
-  // router.replaces to /trips/{uuid}. Wait for the final URL
-  // (which includes a UUID) rather than accepting /trips/new,
-  // otherwise downstream test code that calls
-  // extractTripId() on page.url() races the redirect and sees
-  // /trips/new.
+
+  await tripCreated;
+
+  // The POST succeeded so router.replace is in-flight. Wait for
+  // the UUID to appear in the URL. This should be near-instant
+  // but allow 10s for slow CI client-side navigation.
   await expect(page).toHaveURL(
     /\/trips\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/,
-    { timeout: 15_000 },
+    { timeout: 10_000 },
   );
 }
 
