@@ -67,7 +67,7 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
     throw ApiError.badRequest(message);
   }
   const input = parsed.data;
-  const { destination, departure_date, return_date, budget_total } = input;
+  const { destination, departure_date, return_date } = input;
 
   if (departure_date !== undefined) {
     const today = new Date();
