@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   CATEGORY_FILTERS,
@@ -29,15 +29,7 @@ function formatCategory(value: string): string {
 
 export default function ExplorePage() {
   const [activeCategory, setActiveCategory] = useState('all');
-  const [heroIndex, setHeroIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % HERO_IMAGES.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const filtered: Destination[] = DESTINATIONS.filter((d) => {
     const matchesCategory =
@@ -51,25 +43,22 @@ export default function ExplorePage() {
     <div className={styles.page}>
       {/* — Hero — */}
       <section className={styles.hero} aria-label='Explore destinations hero'>
-        {HERO_IMAGES.map((img, i) => (
-          <Image
-            key={img.city}
-            src={getDestinationImageUrl(img.id, 1600, 800)}
-            alt={`${img.city} destination`}
-            fill
-            className={`${styles.heroImage} ${i === heroIndex ? styles.heroImageActive : ''}`}
-            priority={i === 0}
-            sizes='100vw'
-          />
-        ))}
+        <Image
+          src={getDestinationImageUrl(HERO_IMAGES[0].id, 1600, 800)}
+          alt={`${HERO_IMAGES[0].city} destination`}
+          fill
+          className={styles.heroImage}
+          priority
+          sizes='100vw'
+        />
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
-          <p className={styles.eyebrow}>30 Curated Destinations</p>
-          <h1 className={styles.heroTitle}>Discover your next adventure</h1>
+          <h1 className={styles.heroTitle}>
+            <em>Discover your next adventure</em>
+          </h1>
           <p className={styles.heroSubtitle}>
             Explore handpicked destinations with local tips, dining
-            recommendations, and insider knowledge — then plan your perfect trip
-            with AI.
+            recommendations, and insider knowledge.
           </p>
         </div>
       </section>
