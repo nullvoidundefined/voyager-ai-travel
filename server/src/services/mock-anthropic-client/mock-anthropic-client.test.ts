@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MockAnthropicClient,
+  getMockScenario,
   isAnthropicMockMode,
+  resetMockScenario,
+  setMockScenario,
 } from './mock-anthropic-client.js';
 
 function loadFixture(name: string): Record<string, unknown> {
@@ -14,6 +17,10 @@ function loadFixture(name: string): Record<string, unknown> {
 }
 
 describe('MockAnthropicClient', () => {
+  afterEach(() => {
+    resetMockScenario();
+  });
+
   it('exposes a messages.stream method that satisfies the orchestrator interface', () => {
     const client = new MockAnthropicClient();
     expect(typeof client.messages.stream).toBe('function');
@@ -183,6 +190,10 @@ describe('fixture-based shape validation', () => {
     system: 'test',
     tools: [],
   };
+
+  afterEach(() => {
+    resetMockScenario();
+  });
 
   describe('iteration 1 fixture (search_flights + search_hotels)', () => {
     it('matches the fixture snapshot exactly', async () => {
@@ -397,5 +408,291 @@ describe('isAnthropicMockMode', () => {
     expect(isAnthropicMockMode()).toBe(false);
     process.env.E2E_MOCK_ANTHROPIC = '0';
     expect(isAnthropicMockMode()).toBe(false);
+  });
+});
+
+describe('setMockScenario', () => {
+  afterEach(() => {
+    resetMockScenario();
+  });
+
+  it('defaults to "default" scenario', () => {
+    expect(getMockScenario()).toBe('default');
+  });
+
+  it('switches to "selection" scenario and back', () => {
+    setMockScenario('selection');
+    expect(getMockScenario()).toBe('selection');
+
+    setMockScenario('default');
+    expect(getMockScenario()).toBe('default');
+  });
+
+  it('resetMockScenario restores "default"', () => {
+    setMockScenario('selection');
+    resetMockScenario();
+    expect(getMockScenario()).toBe('default');
+  });
+});
+
+describe('selection scenario', () => {
+  const BASE_PARAMS = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    system: 'test',
+    tools: [],
+  };
+
+  afterEach(() => {
+    resetMockScenario();
+  });
+
+  it('steps 0 and 1 produce the same output as the default script', async () => {
+    // Step 0 with default
+    const defaultClient0 = new MockAnthropicClient();
+    const defaultStream0 = defaultClient0.messages.stream({
+      ...BASE_PARAMS,
+      messages: [{ role: 'user', content: 'Plan a trip' }],
+    });
+    const defaultResult0 = await defaultStream0.finalMessage();
+
+    // Step 0 with selection
+    setMockScenario('selection');
+    const selClient0 = new MockAnthropicClient();
+    const selStream0 = selClient0.messages.stream({
+      ...BASE_PARAMS,
+      messages: [{ role: 'user', content: 'Plan a trip' }],
+    });
+    const selResult0 = await selStream0.finalMessage();
+
+    expect(selResult0).toEqual(defaultResult0);
+
+    // Step 1 with default
+    resetMockScenario();
+    const defaultClient1 = new MockAnthropicClient();
+    const defaultStream1 = defaultClient1.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+      ],
+    });
+    const defaultResult1 = await defaultStream1.finalMessage();
+
+    // Step 1 with selection
+    setMockScenario('selection');
+    const selClient1 = new MockAnthropicClient();
+    const selStream1 = selClient1.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+      ],
+    });
+    const selResult1 = await selStream1.finalMessage();
+
+    expect(selResult1).toEqual(defaultResult1);
+  });
+
+  it('step 2 emits booking confirmation when user message contains "cheapest"', async () => {
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip to SF' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        {
+          role: 'user',
+          content: "I'll take the cheapest flight",
+        },
+      ],
+    });
+
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('tool_use');
+    expect(final.content).toHaveLength(1);
+    const block = final.content[0];
+    if (block?.type !== 'tool_use') {
+      throw new Error('expected tool_use block');
+    }
+    expect(block.name).toBe('format_response');
+    const input = block.input as {
+      text: string;
+      quick_replies: string[];
+    };
+    expect(input.text).toContain('booking');
+    expect(input.quick_replies).toContain('Confirm booking');
+    expect(input.quick_replies).toContain('Change selection');
+  });
+
+  it('step 2 emits booking confirmation when user message contains "first"', async () => {
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        {
+          role: 'user',
+          content: 'Give me the first option',
+        },
+      ],
+    });
+
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('tool_use');
+    const block = final.content[0];
+    if (block?.type !== 'tool_use') {
+      throw new Error('expected tool_use block');
+    }
+    expect(block.name).toBe('format_response');
+    const input = block.input as { text: string };
+    expect(input.text).toContain('booking');
+  });
+
+  it('step 2 emits booking confirmation when user message contains "take"', async () => {
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: "I'll take that hotel" },
+      ],
+    });
+
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('tool_use');
+    const block = final.content[0];
+    if (block?.type !== 'tool_use') {
+      throw new Error('expected tool_use block');
+    }
+    expect(block.name).toBe('format_response');
+  });
+
+  it('step 2 booking confirmation format_response input parses against formatResponseSchema', async () => {
+    const { formatResponseSchema } = await import('app/tools/schemas.js');
+
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        {
+          role: 'user',
+          content: "I'll take the cheapest flight",
+        },
+      ],
+    });
+    const final = await stream.finalMessage();
+
+    const formatBlock = final.content.find(
+      (b) => b.type === 'tool_use' && b.name === 'format_response',
+    );
+    if (!formatBlock || formatBlock.type !== 'tool_use') {
+      throw new Error('expected format_response tool_use');
+    }
+    expect(() => formatResponseSchema.parse(formatBlock.input)).not.toThrow();
+  });
+
+  it('step 2 falls through to end_turn when user message has no selection keyword', async () => {
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        {
+          role: 'user',
+          content: 'Show me more options please',
+        },
+      ],
+    });
+
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('end_turn');
+  });
+
+  it('step 3+ emits end_turn after booking confirmation', async () => {
+    setMockScenario('selection');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        {
+          role: 'user',
+          content: "I'll take the cheapest",
+        },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: 'Confirm booking' },
+      ],
+    });
+
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('end_turn');
+    expect(final.content[0]?.type).toBe('text');
+  });
+
+  it('setMockScenario switches behavior at runtime', async () => {
+    const client = new MockAnthropicClient();
+    const selectionMessages = [
+      { role: 'user' as const, content: 'Plan a trip' },
+      { role: 'assistant' as const, content: [] },
+      { role: 'user' as const, content: [] },
+      { role: 'assistant' as const, content: [] },
+      {
+        role: 'user' as const,
+        content: "I'll take the cheapest",
+      },
+    ];
+
+    // Default scenario: 2+ assistant messages -> end_turn
+    const stream1 = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: selectionMessages,
+    });
+    const result1 = await stream1.finalMessage();
+    expect(result1.stop_reason).toBe('end_turn');
+
+    // Switch to selection scenario: same messages -> booking confirmation
+    setMockScenario('selection');
+    const stream2 = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: selectionMessages,
+    });
+    const result2 = await stream2.finalMessage();
+    expect(result2.stop_reason).toBe('tool_use');
+    const block = result2.content[0];
+    if (block?.type !== 'tool_use') {
+      throw new Error('expected tool_use');
+    }
+    expect(block.name).toBe('format_response');
   });
 });

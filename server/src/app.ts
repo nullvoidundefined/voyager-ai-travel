@@ -12,6 +12,11 @@ import { authRouter } from 'app/routes/auth.js';
 import { placesRouter } from 'app/routes/places.js';
 import { tripRouter } from 'app/routes/trips.js';
 import { userPreferencesRouter } from 'app/routes/userPreferences.js';
+import {
+  type MockScenarioName,
+  isAnthropicMockMode,
+  setMockScenario,
+} from 'app/services/mock-anthropic-client/mock-anthropic-client.js';
 import posthog from 'app/services/posthog.js';
 import { logger } from 'app/utils/logs/logger.js';
 import cookieParser from 'cookie-parser';
@@ -136,6 +141,27 @@ app.use('/auth', authRouter);
 app.use('/places', placesRouter);
 app.use('/trips', tripRouter);
 app.use('/user-preferences', userPreferencesRouter);
+
+// Test-only endpoint to switch the mock Anthropic scenario.
+// Double-gated: only registered outside production AND only responds
+// when E2E_MOCK_ANTHROPIC=1.
+if (process.env.NODE_ENV !== 'production') {
+  app.post('/api/test/mock-scenario', (req, res) => {
+    if (!isAnthropicMockMode()) {
+      res.status(404).json({ error: 'Not available outside mock mode' });
+      return;
+    }
+    const { scenario } = req.body as { scenario?: string };
+    if (scenario !== 'default' && scenario !== 'selection') {
+      res
+        .status(400)
+        .json({ error: 'Invalid scenario. Must be "default" or "selection".' });
+      return;
+    }
+    setMockScenario(scenario as MockScenarioName);
+    res.status(200).json({ scenario });
+  });
+}
 
 // Attach reusable utilities for 404 and error handling.
 app.use(notFoundHandler);

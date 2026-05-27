@@ -2,37 +2,29 @@ import type Anthropic from '@anthropic-ai/sdk';
 
 /**
  * Deterministic mock of the @anthropic-ai/sdk client used by the
- * AgentOrchestrator. Drives a scripted three-iteration happy-path
- * conversation so the E2E suite can exercise the chat surface
- * end-to-end without burning Anthropic tokens or requiring an API
- * key in CI.
+ * AgentOrchestrator. Drives scripted conversation scenarios so the
+ * E2E suite can exercise the chat surface end-to-end without burning
+ * Anthropic tokens or requiring an API key in CI.
  *
- * Iteration sequence (driven by the assistant message count in
- * the messages array passed to stream()):
+ * Scenario scripts:
  *
- * - Iteration 1 (0 assistant messages so far): emit tool_use blocks
- *   for `search_flights` and `search_hotels` against the canonical
- *   DEN -> SFO sample. The orchestrator will run those via the
- *   existing tool executor (which routes to mock adapters when
- *   E2E_MOCK_TOOLS=1) and append tool_result blocks to the
- *   conversation.
- * - Iteration 2 (1 assistant message): emit a single tool_use for
- *   `format_response` with text plus quick_replies. The executor
- *   echoes the input back; AgentOrchestrator captures it as
- *   formatResponseData.
- * - Iteration 3 (2+ assistant messages): emit a plain end_turn so
- *   the loop terminates.
+ * DEFAULT_SCRIPT (backward-compatible 3-iteration happy path):
+ *   Step 0 (0 assistant messages): search_flights + search_hotels tool_use
+ *   Step 1 (1 assistant message): format_response with quick_replies
+ *   Step 2 (2+ assistant messages): end_turn
  *
- * The script intentionally produces the smallest realistic node
- * graph that exercises:
- * - flight tile rendering (search_flights -> buildNodeFromToolResult)
- * - hotel tile rendering (search_hotels -> buildNodeFromToolResult)
- * - quick reply chips (format_response.quick_replies)
+ * SELECTION_SCRIPT (4+ iteration flow with tile selection):
+ *   Step 0: Same as default step 0 (search tools)
+ *   Step 1: Same as default step 1 (format_response with quick_replies)
+ *   Step 2: When user message contains selection keywords ("cheapest",
+ *           "first", "take") -> format_response with booking confirmation
+ *   Step 3+: end_turn
  *
- * Anything beyond this happy path (multi-turn user replies, tile
- * selection round-trips, booking confirmation) is intentionally
- * not supported. ENG-17 in ISSUES.md tracks the larger expansion.
+ * Use setMockScenario() to switch between scripts. The active scenario
+ * is read by MockAnthropicClient when creating streams.
  */
+
+// ── Constants ──────────────────────────────────────────────────────
 
 const MOCK_END_TEXT =
   'Here are some options I found. Let me know which you prefer.';
@@ -42,6 +34,15 @@ const MOCK_QUICK_REPLIES = [
   'Show me more hotels',
   'Confirm booking',
 ];
+
+const MOCK_BOOKING_CONFIRMATION_TEXT =
+  "Great choice! I've selected the cheapest flight for you. Here are the booking details.";
+
+const MOCK_BOOKING_QUICK_REPLIES = ['Confirm booking', 'Change selection'];
+
+const SELECTION_KEYWORDS = ['cheapest', 'first', 'take'];
+
+// ── Types ──────────────────────────────────────────────────────────
 
 interface MessageParam {
   role: 'user' | 'assistant';
@@ -72,9 +73,37 @@ interface MockFinalMessage {
   usage: { input_tokens: number; output_tokens: number };
 }
 
+export interface ScenarioStep {
+  condition: (messages: MessageParam[]) => boolean;
+  response: () => MockFinalMessage;
+}
+
+export type ScenarioScript = ScenarioStep[];
+
+export type MockScenarioName = 'default' | 'selection';
+
+// ── Helpers ────────────────────────────────────────────────────────
+
 function countAssistantMessages(messages: MessageParam[]): number {
   return messages.filter((m) => m.role === 'assistant').length;
 }
+
+function lastUserMessageContainsKeyword(
+  messages: MessageParam[],
+  keywords: string[],
+): boolean {
+  const userMessages = messages.filter((m) => m.role === 'user');
+  const last = userMessages[userMessages.length - 1];
+  if (!last) return false;
+  const text =
+    typeof last.content === 'string'
+      ? last.content
+      : JSON.stringify(last.content);
+  const lower = text.toLowerCase();
+  return keywords.some((kw) => lower.includes(kw));
+}
+
+// ── Response builders ──────────────────────────────────────────────
 
 function buildIterationOneToolUse(): MockFinalMessage {
   return {
@@ -136,6 +165,24 @@ function buildIterationTwoFormatResponse(): MockFinalMessage {
   };
 }
 
+function buildBookingConfirmationFormatResponse(): MockFinalMessage {
+  return {
+    content: [
+      {
+        type: 'tool_use',
+        id: 'mock-toolu-format-2',
+        name: 'format_response',
+        input: {
+          text: MOCK_BOOKING_CONFIRMATION_TEXT,
+          quick_replies: MOCK_BOOKING_QUICK_REPLIES,
+        },
+      },
+    ],
+    stop_reason: 'tool_use',
+    usage: { input_tokens: 0, output_tokens: 0 },
+  };
+}
+
 function buildEndTurn(): MockFinalMessage {
   return {
     content: [{ type: 'text', text: MOCK_END_TEXT }],
@@ -144,19 +191,92 @@ function buildEndTurn(): MockFinalMessage {
   };
 }
 
+// ── Scenario scripts ───────────────────────────────────────────────
+
+const DEFAULT_SCRIPT: ScenarioScript = [
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 0,
+    response: buildIterationOneToolUse,
+  },
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 1,
+    response: buildIterationTwoFormatResponse,
+  },
+  {
+    // Fallback: 2+ assistant messages -> end_turn
+    condition: () => true,
+    response: buildEndTurn,
+  },
+];
+
+const SELECTION_SCRIPT: ScenarioScript = [
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 0,
+    response: buildIterationOneToolUse,
+  },
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 1,
+    response: buildIterationTwoFormatResponse,
+  },
+  {
+    // Step 2: user selected something (contains selection keyword)
+    // and we have exactly 2 prior assistant messages
+    condition: (msgs) =>
+      countAssistantMessages(msgs) === 2 &&
+      lastUserMessageContainsKeyword(msgs, SELECTION_KEYWORDS),
+    response: buildBookingConfirmationFormatResponse,
+  },
+  {
+    // Fallback: 3+ assistant messages -> end_turn
+    condition: () => true,
+    response: buildEndTurn,
+  },
+];
+
+const SCENARIO_MAP: Record<MockScenarioName, ScenarioScript> = {
+  default: DEFAULT_SCRIPT,
+  selection: SELECTION_SCRIPT,
+};
+
+// ── Module-level state ─────────────────────────────────────────────
+
+let activeScenario: MockScenarioName = 'default';
+
+export function setMockScenario(name: MockScenarioName): void {
+  activeScenario = name;
+}
+
+export function getMockScenario(): MockScenarioName {
+  return activeScenario;
+}
+
+/** Reset to default. Exported for test cleanup. */
+export function resetMockScenario(): void {
+  activeScenario = 'default';
+}
+
+// ── Stream implementation ──────────────────────────────────────────
+
+function resolveResponse(
+  script: ScenarioScript,
+  messages: MessageParam[],
+): MockFinalMessage {
+  for (const step of script) {
+    if (step.condition(messages)) {
+      return step.response();
+    }
+  }
+  // Should never reach here because scripts end with a () => true
+  // fallback, but just in case:
+  return buildEndTurn();
+}
+
 class MockMessageStream {
   private readonly listeners: MockStreamListeners = { text: [] };
   private readonly response: MockFinalMessage;
 
-  constructor(messages: MessageParam[]) {
-    const assistantCount = countAssistantMessages(messages);
-    if (assistantCount === 0) {
-      this.response = buildIterationOneToolUse();
-    } else if (assistantCount === 1) {
-      this.response = buildIterationTwoFormatResponse();
-    } else {
-      this.response = buildEndTurn();
-    }
+  constructor(script: ScenarioScript, messages: MessageParam[]) {
+    this.response = resolveResponse(script, messages);
   }
 
   on(event: 'text', cb: (chunk: string) => void): this {
@@ -185,8 +305,10 @@ class MockMessageStream {
 
 export class MockAnthropicClient {
   messages = {
-    stream: (params: StreamParams): MockMessageStream =>
-      new MockMessageStream(params.messages ?? []),
+    stream: (params: StreamParams): MockMessageStream => {
+      const script = SCENARIO_MAP[activeScenario];
+      return new MockMessageStream(script, params.messages ?? []);
+    },
   };
 }
 
