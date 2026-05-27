@@ -1,12 +1,20 @@
 'use client';
 
-import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import { CostCounter } from '@/components/CostCounter/CostCounter';
 import { Toast } from '@/components/Toast/Toast';
 import { ToolTimeline } from '@/components/ToolTimeline/ToolTimeline';
 import type { ToolCall } from '@/components/ToolTimeline/ToolTimeline';
 import { get, post, put } from '@/lib/api';
+import { runDemoScript } from '@/lib/demo-script';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage } from '@voyager/shared-types';
 
@@ -25,6 +33,7 @@ interface ChatBoxProps {
   carRentalsEmpty?: boolean;
   tripStatus?: string;
   onBookTrip?: () => void;
+  isDemoMode?: boolean;
 }
 
 export function ChatBox({
@@ -36,6 +45,7 @@ export function ChatBox({
   carRentalsEmpty,
   tripStatus,
   onBookTrip,
+  isDemoMode,
 }: ChatBoxProps) {
   const queryClient = useQueryClient();
   const [input, setInput] = useState('');
@@ -173,6 +183,14 @@ export function ChatBox({
     },
     [sendMessage, serverMessages?.length, onBookTrip, tripId],
   );
+
+  useEffect(() => {
+    if (!isDemoMode) return;
+    const stop = runDemoScript((msg) => {
+      handleSend(msg);
+    });
+    return stop;
+  }, [isDemoMode, handleSend]);
 
   const handleSubmit = useCallback(
     (e: FormEvent) => {
