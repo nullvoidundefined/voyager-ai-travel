@@ -3,6 +3,8 @@ import {
   searchExperiencesSchema,
   searchFlightsSchema,
   searchHotelsSchema,
+  selectCarRentalSchema,
+  selectExperienceSchema,
   selectFlightSchema,
   selectHotelSchema,
 } from 'app/tools/schemas.js';
@@ -213,4 +215,113 @@ describe('selectHotelSchema city allowlist', () => {
     const result = selectHotelSchema.safeParse(baseValid);
     expect(result.success).toBe(true);
   });
+});
+
+describe('searchExperiencesSchema categories[] allowlist', () => {
+  const baseValid = { location: 'Paris', categories: ['food'] };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects categories=[${JSON.stringify(bad).slice(0, 40)}]`, () => {
+      const result = searchExperiencesSchema.safeParse({
+        ...baseValid,
+        categories: [bad],
+      });
+      expect(result.success).toBe(false);
+    });
+  }
+
+  for (const good of GOOD_INPUTS) {
+    it(`accepts categories=[${good}]`, () => {
+      const result = searchExperiencesSchema.safeParse({
+        ...baseValid,
+        categories: [good],
+      });
+      expect(result.success).toBe(true);
+    });
+  }
+});
+
+describe('selectFlightSchema airline/flight_number allowlist', () => {
+  const baseValid = {
+    origin: 'JFK',
+    destination: 'Paris',
+    price: 450,
+    currency: 'USD',
+  };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects airline=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectFlightSchema.safeParse({
+        ...baseValid,
+        airline: bad,
+        flight_number: 'DL100',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it(`rejects flight_number=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectFlightSchema.safeParse({
+        ...baseValid,
+        airline: 'Delta',
+        flight_number: bad,
+      });
+      expect(result.success).toBe(false);
+    });
+  }
+});
+
+describe('selectHotelSchema name allowlist', () => {
+  const baseValid = {
+    price_per_night: 200,
+    total_price: 1000,
+    currency: 'USD',
+  };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects name=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectHotelSchema.safeParse({
+        ...baseValid,
+        name: bad,
+      });
+      expect(result.success).toBe(false);
+    });
+  }
+});
+
+describe('selectCarRentalSchema provider/car_name allowlist', () => {
+  const baseValid = { total_price: 300, currency: 'USD' };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects provider=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectCarRentalSchema.safeParse({
+        ...baseValid,
+        provider: bad,
+        car_name: 'Toyota Camry',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it(`rejects car_name=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectCarRentalSchema.safeParse({
+        ...baseValid,
+        provider: 'Hertz',
+        car_name: bad,
+      });
+      expect(result.success).toBe(false);
+    });
+  }
+});
+
+describe('selectExperienceSchema name allowlist', () => {
+  const baseValid = { estimated_cost: 30 };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects name=${JSON.stringify(bad).slice(0, 40)}`, () => {
+      const result = selectExperienceSchema.safeParse({
+        ...baseValid,
+        name: bad,
+      });
+      expect(result.success).toBe(false);
+    });
+  }
 });

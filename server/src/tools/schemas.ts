@@ -46,7 +46,7 @@ export const searchHotelsSchema = z.object({
 
 export const searchExperiencesSchema = z.object({
   location: locationAllowlist,
-  categories: z.array(z.string().min(1).max(50)).min(1),
+  categories: z.array(locationAllowlist).min(1),
   max_price_per_person: z.number().positive().optional(),
   limit: z.number().int().positive().optional(),
 });
@@ -80,8 +80,8 @@ export const searchCarRentalsSchema = z.object({
 });
 
 export const selectFlightSchema = z.object({
-  airline: z.string().min(1),
-  flight_number: z.string().min(1),
+  airline: locationAllowlist,
+  flight_number: locationAllowlist,
   origin: locationAllowlist,
   destination: locationAllowlist,
   departure_time: z.string().optional(),
@@ -91,7 +91,7 @@ export const selectFlightSchema = z.object({
 });
 
 export const selectHotelSchema = z.object({
-  name: z.string().min(1),
+  name: locationAllowlist,
   city: locationAllowlist.optional(),
   star_rating: z.number().optional(),
   price_per_night: z.number(),
@@ -102,8 +102,8 @@ export const selectHotelSchema = z.object({
 });
 
 export const selectCarRentalSchema = z.object({
-  provider: z.string().min(1),
-  car_name: z.string().min(1),
+  provider: locationAllowlist,
+  car_name: locationAllowlist,
   car_type: z.string().optional(),
   price_per_day: z.number().optional(),
   total_price: z.number(),
@@ -111,7 +111,7 @@ export const selectCarRentalSchema = z.object({
 });
 
 export const selectExperienceSchema = z.object({
-  name: z.string().min(1),
+  name: locationAllowlist,
   category: z.string().optional(),
   estimated_cost: z.number(),
   rating: z.number().optional(),
