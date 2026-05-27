@@ -50,6 +50,7 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-06] Three duplicate Redis singletons across services
 
 - **Severity:** P1 . **Effort:** M . **Category:** duplication
+- **Status:** RESOLVED. Created `redis.service.ts` shared singleton; migrated all 3 consumers.
 - `serpApiQuota.service.ts`, `tokenBudget.service.ts`, and `cache.service.ts` each create independent `getRedis()` singletons
 - Fix: extract shared `getRedis()` to a common module
 
