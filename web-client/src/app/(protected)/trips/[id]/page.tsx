@@ -4,9 +4,11 @@ import { useCallback, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
 import { ChatBox } from '@/components/ChatBox/ChatBox';
+import { LegList } from '@/components/LegList/LegList';
+import type { Leg } from '@/components/LegList/LegList';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Toast } from '@/components/Toast/Toast';
-import { get, put } from '@/lib/api';
+import { del, get, put } from '@/lib/api';
 import {
   getDestinationImage,
   getDestinationImageUrl,
@@ -68,6 +70,7 @@ interface Trip {
   budget_currency: string;
   travelers: number;
   status: string;
+  trip_structure?: string;
   flights: TripFlight[];
   hotels: TripHotel[];
   car_rentals: TripCarRental[];
@@ -88,6 +91,12 @@ export default function TripDetailPage() {
   } = useQuery({
     queryKey: ['trips', id],
     queryFn: () => get<{ trip: Trip }>(`/trips/${id}`).then((r) => r.trip),
+  });
+
+  const { data: legsData } = useQuery({
+    queryKey: ['trip-legs', id],
+    queryFn: () => get<{ legs: Leg[] }>(`/trips/${id}/legs`),
+    enabled: trip?.trip_structure === 'multi_city',
   });
 
   const handleConfirmBooking = useCallback(async () => {
@@ -232,6 +241,23 @@ export default function TripDetailPage() {
         <div
           className={`${styles.itineraryPane} ${activeTab === 'itinerary' ? styles.paneActive : ''}`}
         >
+          {/* Multi-city legs */}
+          {trip.trip_structure === 'multi_city' && (
+            <div data-testid='leg-list' className={styles.legsSection}>
+              <p className={styles.categoryLabel}>Trip Legs</p>
+              <LegList
+                legs={legsData?.legs ?? []}
+                onRemoveLeg={(legId) => {
+                  del(`/trips/${id}/legs/${legId}`).then(() =>
+                    queryClient.invalidateQueries({
+                      queryKey: ['trip-legs', id],
+                    }),
+                  );
+                }}
+              />
+            </div>
+          )}
+
           {/* Budget widget */}
           {trip.budget_total != null && (
             <div className={styles.budgetWidget}>
