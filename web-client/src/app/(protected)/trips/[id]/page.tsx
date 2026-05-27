@@ -4,6 +4,8 @@ import { useCallback, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
 import { ChatBox } from '@/components/ChatBox/ChatBox';
+import { DailySchedule } from '@/components/DailySchedule/DailySchedule';
+import type { ScheduleDay } from '@/components/DailySchedule/DailySchedule';
 import { LegList } from '@/components/LegList/LegList';
 import type { Leg } from '@/components/LegList/LegList';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
@@ -97,6 +99,12 @@ export default function TripDetailPage() {
     queryKey: ['trip-legs', id],
     queryFn: () => get<{ legs: Leg[] }>(`/trips/${id}/legs`),
     enabled: trip?.trip_structure === 'multi_city',
+  });
+
+  const { data: scheduleData } = useQuery({
+    queryKey: ['trip-schedule', id],
+    queryFn: () => get<{ days: ScheduleDay[] }>(`/trips/${id}/schedule`),
+    enabled: !!id,
   });
 
   const handleConfirmBooking = useCallback(async () => {
@@ -255,6 +263,17 @@ export default function TripDetailPage() {
                   );
                 }}
               />
+            </div>
+          )}
+
+          {/* Daily schedule */}
+          {scheduleData?.days && scheduleData.days.length > 0 && (
+            <div
+              data-testid='daily-schedule'
+              className={styles.scheduleSection}
+            >
+              <p className={styles.categoryLabel}>Daily Schedule</p>
+              <DailySchedule days={scheduleData.days} />
             </div>
           )}
 
