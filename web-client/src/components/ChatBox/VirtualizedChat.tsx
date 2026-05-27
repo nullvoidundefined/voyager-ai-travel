@@ -150,6 +150,13 @@ export function VirtualizedChat({
           <p className={styles.emptySubtitle}>
             Describe where you want to go, your dates, and budget below.
           </p>
+          <button
+            type='button'
+            className={styles.starterChip}
+            onClick={() => onQuickReply('Plan a trip to ')}
+          >
+            Plan a trip to...
+          </button>
         </div>
       )}
       {isSending &&

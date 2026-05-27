@@ -82,6 +82,22 @@
   opacity: 0.7;
 }
 
+.starterChip {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--ocean);
+  background: transparent;
+  color: var(--ocean);
+  cursor: pointer;
+  font-size: 0.95rem;
+
+  &:hover {
+    background: var(--ocean);
+    color: #fff;
+  }
+}
+
 .pendingIndicator {
   padding: 12px 24px;
   display: flex;
