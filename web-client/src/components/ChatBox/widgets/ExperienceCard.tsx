@@ -35,6 +35,7 @@ export function ExperienceCard({
     <button
       type='button'
       className={`${styles.card} ${selected ? styles.selected : ''}`}
+      aria-label={`${name}${category ? `, ${category}` : ''}${estimatedCost != null ? `, ~${formatCurrency(estimatedCost)}` : ''}`}
       aria-pressed={selected}
       onClick={onClick}
     >
