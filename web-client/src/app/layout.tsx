@@ -13,7 +13,27 @@ import styles from './layout.module.scss';
 export const metadata: Metadata = {
   title: `${APP_NAME} | AI Travel Concierge`,
   description:
-    'Plan your next trip with an AI concierge that searches flights, hotels, and experiences within your budget.',
+    'Plan your perfect trip with an AI travel agent that searches real flights, hotels, and experiences.',
+  openGraph: {
+    title: `${APP_NAME} | AI Travel Concierge`,
+    description:
+      'Plan your perfect trip with an AI travel agent that searches real flights, hotels, and experiences.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Voyager AI Travel Planner',
+      },
+    ],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${APP_NAME} | AI Travel Concierge`,
+    description: 'Plan your perfect trip with an AI travel agent.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({
