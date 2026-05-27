@@ -194,10 +194,7 @@ export async function chat(req: Request, res: Response) {
         }
       }
 
-      await updateBookingState(
-        conversation.id,
-        newTracker as unknown as Record<string, unknown>,
-      );
+      await updateBookingState(conversation.id, newTracker);
     }
 
     // Persist assistant message
@@ -247,7 +244,7 @@ export async function getMessages(req: Request, res: Response) {
   const dbMessages = await getMessagesByConversation(conversation.id);
 
   const messages: ChatMessage[] = dbMessages
-    .filter((m) => m.role !== ('tool' as string))
+    .filter((m) => m.role !== 'tool')
     .map((m) => ({
       id: m.id,
       role: m.role as 'user' | 'assistant',

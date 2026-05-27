@@ -131,10 +131,7 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
   if (shouldClearSelections) {
     await tripRepo.clearSelectionsForTrip(tripId);
     const conversation = await getOrCreateConversation(tripId);
-    await updateBookingState(
-      conversation.id,
-      DEFAULT_COMPLETION_TRACKER as unknown as Record<string, unknown>,
-    );
+    await updateBookingState(conversation.id, DEFAULT_COMPLETION_TRACKER);
     logger.info(
       { event: 'selections_cleared', tripId, newDestination: destination },
       'Cleared selections after destination change',

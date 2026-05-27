@@ -1,5 +1,6 @@
 import type { ChatNode } from '@voyager/shared-types';
 import { query } from 'app/db/pool/pool.js';
+import type { CompletionTracker } from 'app/prompts/booking-steps.js';
 
 export interface Conversation {
   id: string;
@@ -12,7 +13,7 @@ export interface Conversation {
 export interface Message {
   id: string;
   conversation_id: string;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'tool';
   content: string | null;
   tool_calls_json: unknown;
   nodes: ChatNode[];
@@ -83,7 +84,7 @@ export async function getMessagesByConversation(
 
 export async function updateBookingState(
   conversationId: string,
-  bookingState: Record<string, unknown>,
+  bookingState: CompletionTracker,
 ): Promise<void> {
   await query(
     `UPDATE conversations SET booking_state = $1, updated_at = NOW() WHERE id = $2`,
