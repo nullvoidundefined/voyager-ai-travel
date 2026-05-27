@@ -6,7 +6,6 @@ import { BookingConfirmation } from '@/components/BookingConfirmation/BookingCon
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { Toast } from '@/components/Toast/Toast';
 import { get, put } from '@/lib/api';
-import { APP_NAME } from '@/lib/constants';
 import {
   getDestinationImage,
   getDestinationImageUrl,
@@ -79,6 +78,7 @@ export default function TripDetailPage() {
   const queryClient = useQueryClient();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [activeTab, setActiveTab] = useState<'chat' | 'itinerary'>('chat');
 
   const {
     data: trip,
@@ -159,208 +159,306 @@ export default function TripDetailPage() {
 
   return (
     <div className={styles.page}>
-      <Link href='/trips' className={styles.back}>
-        &larr; Back to trips
-      </Link>
-
-      {hasHero && unsplashId && (
-        <div className={styles.destinationHero}>
+      {/* Full-bleed destination banner */}
+      <div className={styles.banner}>
+        {hasHero && unsplashId ? (
           <Image
-            src={getDestinationImageUrl(unsplashId, 1400, 400)}
+            src={getDestinationImageUrl(unsplashId, 1400, 200)}
             alt={trip.destination}
             fill
-            sizes='(max-width: 1200px) 100vw, 1200px'
+            sizes='100vw'
             style={{ objectFit: 'cover' }}
             priority
           />
-          <div className={styles.destinationHeroOverlay}>
-            <h1 className={styles.destinationHeroTitle}>{trip.destination}</h1>
+        ) : (
+          <div className={styles.bannerGradient} />
+        )}
+        <div className={styles.bannerOverlay}>
+          <div className={styles.bannerContent}>
+            <Link href='/trips' className={styles.back}>
+              All trips
+            </Link>
+            <h1 className={styles.bannerTitle}>{trip.destination}</h1>
+            <p className={styles.bannerMeta}>
+              {!trip.departure_date && !trip.return_date
+                ? 'Dates not set'
+                : `${formatShortDate(trip.departure_date)} – ${formatShortDate(trip.return_date)}`}
+              {' · '}
+              {trip.travelers} {trip.travelers === 1 ? 'traveler' : 'travelers'}
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
-      <div className={styles.header}>
-        <div>
-          {!hasHero && <h1>{trip.destination}</h1>}
-          <p className={styles.dates}>
-            {!trip.departure_date && !trip.return_date
-              ? 'Dates not set'
-              : `${formatShortDate(trip.departure_date)} \u2013 ${formatShortDate(trip.return_date)}`}
-          </p>
+      {/* Mobile tab bar */}
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tab} ${activeTab === 'chat' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('chat')}
+        >
+          Chat
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'itinerary' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('itinerary')}
+        >
+          Itinerary
+        </button>
+      </div>
+
+      {/* Split view */}
+      <div className={styles.splitView}>
+        {/* Chat pane (left) */}
+        <div
+          className={`${styles.chatPane} ${activeTab === 'chat' ? styles.paneActive : ''}`}
+        >
+          <ChatBox
+            tripId={trip.id}
+            hasFlights={hasFlights}
+            hasHotels={trip.hotels.length > 0}
+            experiencesEmpty={trip.experiences.length === 0}
+            carRentalsEmpty={trip.car_rentals.length === 0}
+            tripStatus={trip.status}
+            onBookTrip={() => setShowConfirmation(true)}
+          />
         </div>
-        <div className={styles.headerRight}>
-          {trip.status === 'saved' && (
-            <span className={styles.bookedBadge}>Saved</span>
-          )}
+
+        {/* Itinerary pane (right) */}
+        <div
+          className={`${styles.itineraryPane} ${activeTab === 'itinerary' ? styles.paneActive : ''}`}
+        >
+          {/* Budget widget */}
           {trip.budget_total != null && (
-            <div className={styles.budgetCard}>
-              <span className={styles.budgetLabel}>Budget</span>
-              <span className={styles.budgetAmount}>
+            <div className={styles.budgetWidget}>
+              <p className={styles.budgetLabel}>Total Budget</p>
+              <p className={styles.budgetAmount}>
                 {formatCurrency(trip.budget_total, trip.budget_currency)}
-              </span>
-              <span className={styles.budgetSpent}>
-                {formatCurrency(allocated, trip.budget_currency)} allocated
-              </span>
+              </p>
+              <div className={styles.budgetBar}>
+                {flightTotal > 0 && (
+                  <div
+                    className={styles.budgetSegment}
+                    style={{
+                      width: `${(flightTotal / trip.budget_total) * 100}%`,
+                      background: 'var(--ocean)',
+                    }}
+                  />
+                )}
+                {hotelTotal > 0 && (
+                  <div
+                    className={styles.budgetSegment}
+                    style={{
+                      width: `${(hotelTotal / trip.budget_total) * 100}%`,
+                      background: 'var(--sand)',
+                    }}
+                  />
+                )}
+                {experienceTotal > 0 && (
+                  <div
+                    className={styles.budgetSegment}
+                    style={{
+                      width: `${(experienceTotal / trip.budget_total) * 100}%`,
+                      background: 'var(--lagoon)',
+                    }}
+                  />
+                )}
+                {carRentalTotal > 0 && (
+                  <div
+                    className={styles.budgetSegment}
+                    style={{
+                      width: `${(carRentalTotal / trip.budget_total) * 100}%`,
+                      background: 'var(--sunset)',
+                    }}
+                  />
+                )}
+              </div>
+              <div className={styles.budgetLegend}>
+                {flightTotal > 0 && (
+                  <span className={styles.legendItem}>
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--ocean)' }}
+                    />
+                    Flights {formatCurrency(flightTotal, trip.budget_currency)}
+                  </span>
+                )}
+                {hotelTotal > 0 && (
+                  <span className={styles.legendItem}>
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--sand)' }}
+                    />
+                    Hotels {formatCurrency(hotelTotal, trip.budget_currency)}
+                  </span>
+                )}
+                {experienceTotal > 0 && (
+                  <span className={styles.legendItem}>
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--lagoon)' }}
+                    />
+                    Experiences{' '}
+                    {formatCurrency(experienceTotal, trip.budget_currency)}
+                  </span>
+                )}
+                {carRentalTotal > 0 && (
+                  <span className={styles.legendItem}>
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--sunset)' }}
+                    />
+                    Car Rentals{' '}
+                    {formatCurrency(carRentalTotal, trip.budget_currency)}
+                  </span>
+                )}
+                {remaining != null && (
+                  <span className={styles.legendItem}>
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--surface)' }}
+                    />
+                    Remaining {formatCurrency(remaining, trip.budget_currency)}
+                  </span>
+                )}
+              </div>
             </div>
           )}
-        </div>
-      </div>
 
-      <div className={styles.chatSection}>
-        <h2>Chat with {APP_NAME}</h2>
-        <ChatBox
-          tripId={trip.id}
-          hasFlights={hasFlights}
-          hasHotels={trip.hotels.length > 0}
-          experiencesEmpty={trip.experiences.length === 0}
-          carRentalsEmpty={trip.car_rentals.length === 0}
-          tripStatus={trip.status}
-          onBookTrip={() => setShowConfirmation(true)}
-        />
-      </div>
-
-      {trip.flights.length > 0 && (
-        <div className={styles.itinerary}>
-          <h2>Flights</h2>
-          <div className={styles.days}>
-            {trip.flights.map((f) => (
-              <div key={f.id} className={styles.dayCard}>
-                <div className={styles.dayHeader}>
-                  <span className={styles.dayNumber}>
-                    {f.airline} {f.flight_number}
-                  </span>
-                  <span className={styles.dayTitle}>
-                    {f.origin} &rarr; {f.destination}
-                  </span>
-                </div>
-                <ul className={styles.dayItems}>
-                  {f.departure_time && (
-                    <li>
-                      Departs: {new Date(f.departure_time).toLocaleString()}
-                    </li>
-                  )}
+          {/* Flights */}
+          {trip.flights.length > 0 && (
+            <>
+              <p className={styles.categoryLabel}>Flights</p>
+              {trip.flights.map((f) => (
+                <div key={f.id} className={styles.itemCard}>
+                  <div className={`${styles.itemIcon} ${styles.flights}`}>
+                    &#9992;
+                  </div>
+                  <div className={styles.itemContent}>
+                    <p className={styles.itemTitle}>
+                      {f.airline} {f.flight_number}
+                    </p>
+                    <p className={styles.itemSubtitle}>
+                      {f.origin} &rarr; {f.destination}
+                    </p>
+                  </div>
                   {f.price != null && (
-                    <li>Price: {formatCurrency(f.price, f.currency)}</li>
+                    <span className={styles.itemPrice}>
+                      {formatCurrency(f.price, f.currency)}
+                    </span>
                   )}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {trip.hotels.length > 0 && (
-        <div className={styles.itinerary}>
-          <h2>Hotels</h2>
-          <div className={styles.days}>
-            {trip.hotels.map((h) => (
-              <div key={h.id} className={styles.dayCard}>
-                <div className={styles.dayHeader}>
-                  <span className={styles.dayNumber}>{h.name ?? 'Hotel'}</span>
-                  <span className={styles.dayTitle}>{h.city}</span>
                 </div>
-                <ul className={styles.dayItems}>
-                  {h.check_in && (
-                    <li>Check-in: {formatShortDate(h.check_in)}</li>
-                  )}
-                  {h.check_out && (
-                    <li>Check-out: {formatShortDate(h.check_out)}</li>
-                  )}
-                  {h.price_per_night != null && (
-                    <li>
-                      {formatCurrency(h.price_per_night, h.currency)}
-                      /night
-                    </li>
-                  )}
+              ))}
+            </>
+          )}
+
+          {/* Hotels */}
+          {trip.hotels.length > 0 && (
+            <>
+              <p className={styles.categoryLabel}>Hotels</p>
+              {trip.hotels.map((h) => (
+                <div key={h.id} className={styles.itemCard}>
+                  <div className={`${styles.itemIcon} ${styles.hotels}`}>
+                    &#127976;
+                  </div>
+                  <div className={styles.itemContent}>
+                    <p className={styles.itemTitle}>{h.name ?? 'Hotel'}</p>
+                    <p className={styles.itemSubtitle}>
+                      {h.city}
+                      {h.check_in && h.check_out
+                        ? ` · ${formatShortDate(h.check_in)} – ${formatShortDate(h.check_out)}`
+                        : ''}
+                    </p>
+                  </div>
                   {h.total_price != null && (
-                    <li>Total: {formatCurrency(h.total_price, h.currency)}</li>
-                  )}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {trip.experiences.length > 0 && (
-        <div className={styles.itinerary}>
-          <h2>Experiences</h2>
-          <div className={styles.days}>
-            {trip.experiences.map((exp) => (
-              <div key={exp.id} className={styles.dayCard}>
-                <div className={styles.dayHeader}>
-                  <span className={styles.dayNumber}>
-                    {exp.name ?? 'Experience'}
-                  </span>
-                  {exp.category && (
-                    <span className={styles.dayTitle}>{exp.category}</span>
+                    <span className={styles.itemPrice}>
+                      {formatCurrency(h.total_price, h.currency)}
+                    </span>
                   )}
                 </div>
-                <ul className={styles.dayItems}>
-                  {exp.rating != null && <li>{`Rating: ${exp.rating}/5`}</li>}
+              ))}
+            </>
+          )}
+
+          {/* Experiences */}
+          {trip.experiences.length > 0 && (
+            <>
+              <p className={styles.categoryLabel}>Experiences</p>
+              {trip.experiences.map((exp) => (
+                <div key={exp.id} className={styles.itemCard}>
+                  <div className={`${styles.itemIcon} ${styles.experiences}`}>
+                    &#127919;
+                  </div>
+                  <div className={styles.itemContent}>
+                    <p className={styles.itemTitle}>
+                      {exp.name ?? 'Experience'}
+                    </p>
+                    <p className={styles.itemSubtitle}>
+                      {exp.category}
+                      {exp.rating != null ? ` · ${exp.rating}/5` : ''}
+                    </p>
+                  </div>
                   {exp.estimated_cost != null && (
-                    <li>{`~${formatCurrency(exp.estimated_cost)}`}</li>
+                    <span className={styles.itemPrice}>
+                      ~{formatCurrency(exp.estimated_cost)}
+                    </span>
                   )}
-                </ul>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Car Rentals */}
+          {trip.car_rentals.length > 0 && (
+            <>
+              <p className={styles.categoryLabel}>Car Rentals</p>
+              {trip.car_rentals.map((c) => (
+                <div key={c.id} className={styles.itemCard}>
+                  <div className={`${styles.itemIcon} ${styles.carRentals}`}>
+                    &#128663;
+                  </div>
+                  <div className={styles.itemContent}>
+                    <p className={styles.itemTitle}>{c.car_name}</p>
+                    <p className={styles.itemSubtitle}>
+                      {c.provider} · {c.car_type}
+                    </p>
+                  </div>
+                  {c.total_price != null && (
+                    <span className={styles.itemPrice}>
+                      {formatCurrency(c.total_price, c.currency)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Empty state */}
+          {trip.flights.length === 0 &&
+            trip.hotels.length === 0 &&
+            trip.experiences.length === 0 &&
+            trip.car_rentals.length === 0 && (
+              <div className={styles.emptyState}>
+                No itinerary items yet. Use the chat to start planning!
               </div>
-            ))}
-          </div>
+            )}
+
+          {/* Save button */}
+          {trip.status !== 'saved' && hasFlights && (
+            <button
+              className={styles.saveButton}
+              onClick={() => setShowConfirmation(true)}
+            >
+              Save Itinerary
+            </button>
+          )}
+
+          {trip.status === 'saved' && (
+            <div className={styles.savedBadge}>Itinerary Saved</div>
+          )}
         </div>
-      )}
+      </div>
 
-      {trip.flights.length === 0 &&
-        trip.hotels.length === 0 &&
-        trip.experiences.length === 0 && (
-          <div className={styles.emptyState}>
-            <p>No itinerary items yet. Use the chat to start planning!</p>
-          </div>
-        )}
-
-      {(flightTotal > 0 ||
-        hotelTotal > 0 ||
-        carRentalTotal > 0 ||
-        experienceTotal > 0) && (
-        <div className={styles.breakdown}>
-          <h2>Cost Breakdown</h2>
-          <div className={styles.costs}>
-            {flightTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Flights</span>
-                <span>{formatCurrency(flightTotal, trip.budget_currency)}</span>
-              </div>
-            )}
-            {hotelTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Hotels</span>
-                <span>{formatCurrency(hotelTotal, trip.budget_currency)}</span>
-              </div>
-            )}
-            {carRentalTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Car Rentals</span>
-                <span>
-                  {formatCurrency(carRentalTotal, trip.budget_currency)}
-                </span>
-              </div>
-            )}
-            {experienceTotal > 0 && (
-              <div className={styles.costRow}>
-                <span>Experiences</span>
-                <span>
-                  {formatCurrency(experienceTotal, trip.budget_currency)}
-                </span>
-              </div>
-            )}
-            {remaining != null && (
-              <div className={`${styles.costRow} ${styles.remaining}`}>
-                <span>Remaining</span>
-                <span>{formatCurrency(remaining, trip.budget_currency)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* Modals */}
       {showConfirmation && (
         <BookingConfirmation
           destination={trip.destination}
