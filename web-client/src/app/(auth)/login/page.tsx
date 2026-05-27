@@ -50,83 +50,84 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1>{APP_NAME}</h1>
-          <p>Sign in to plan your next trip</p>
+    <>
+      <div className={styles.brandPanel}>
+        <div className={styles.brandContent}>
+          <h2 className={styles.brandHeadline}>
+            <em>Plan trips you will never forget</em>
+          </h2>
+          <p className={styles.brandBody}>
+            AI-powered concierge that searches real flights, hotels, and
+            experiences within your budget.
+          </p>
         </div>
-
-        {/* TODO: Google OAuth
-                <button
-                    type="button"
-                    className={styles.googleButton}
-                    onClick={handleGoogle}
-                    disabled={isLoading}
-                >
-                    <GoogleIcon />
-                    Continue with Google
-                </button>
-
-                <div className={styles.divider}>
-                    <span>or</span>
-                </div>
-                */}
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <label className={styles.field}>
-            <span>Email</span>
-            <input
-              type='email'
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder='you@example.com'
-              autoComplete='email'
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Password</span>
-            <input
-              type='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder='••••••••'
-              autoComplete='current-password'
-            />
-          </label>
-
-          <div className={styles.forgotLink}>
-            <button
-              type='button'
-              className={styles.forgotButton}
-              onClick={() => setToast('Password reset is coming soon.')}
-            >
-              Forgot password?
-            </button>
+      </div>
+      <div className={styles.formPanel}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <h1>Welcome back</h1>
+            <p>Sign in to plan your next trip</p>
           </div>
 
-          {error && (
-            <p className={styles.error} role='alert'>
-              {error}
-            </p>
-          )}
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <label className={styles.field}>
+              <span>Email</span>
+              <input
+                type='email'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder='you@example.com'
+                autoComplete='email'
+              />
+            </label>
 
-          <button type='submit' className={styles.submit} disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
+            <label className={styles.field}>
+              <span>Password</span>
+              <input
+                type='password'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder='••••••••'
+                autoComplete='current-password'
+              />
+            </label>
 
-        <p className={styles.switchLink}>
-          Don&apos;t have an account? <Link href='/register'>Sign up</Link>
-        </p>
+            <div className={styles.forgotLink}>
+              <button
+                type='button'
+                className={styles.forgotButton}
+                onClick={() => setToast('Password reset is coming soon.')}
+              >
+                Forgot password?
+              </button>
+            </div>
 
-        <Link href='/faq' className={styles.faqLink}>
-          How does {APP_NAME} work? &rarr;
-        </Link>
+            {error && (
+              <p className={styles.error} role='alert'>
+                {error}
+              </p>
+            )}
+
+            <button
+              type='submit'
+              className={styles.submit}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <p className={styles.switchLink}>
+            Don&apos;t have an account? <Link href='/register'>Sign up</Link>
+          </p>
+
+          <Link href='/faq' className={styles.faqLink}>
+            How does {APP_NAME} work? &rarr;
+          </Link>
+        </div>
       </div>
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}
-    </div>
+    </>
   );
 }

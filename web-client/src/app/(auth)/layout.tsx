@@ -1,9 +1,15 @@
 import { Suspense } from 'react';
 
+import styles from './auth.module.scss';
+
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <Suspense>{children}</Suspense>;
+  return (
+    <Suspense>
+      <div className={styles.authLayout}>{children}</div>
+    </Suspense>
+  );
 }

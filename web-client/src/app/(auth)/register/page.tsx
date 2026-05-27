@@ -59,112 +59,125 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.card}>
-        <div className={styles.header}>
-          <h1>{APP_NAME}</h1>
-          <p>Create an account to get started</p>
+    <>
+      <div className={styles.brandPanel}>
+        <div className={styles.brandContent}>
+          <h2 className={styles.brandHeadline}>
+            <em>Plan trips you will never forget</em>
+          </h2>
+          <p className={styles.brandBody}>
+            AI-powered concierge that searches real flights, hotels, and
+            experiences within your budget.
+          </p>
         </div>
+      </div>
+      <div className={styles.formPanel}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <h1>Create account</h1>
+            <p>Start planning your perfect trip</p>
+          </div>
 
-        {/* Step indicator */}
-        <div className={styles.steps}>
-          <div
-            className={`${styles.stepDot} ${step >= 1 ? styles.stepActive : ''}`}
-          />
-          <div className={styles.stepLine} />
-          <div
-            className={`${styles.stepDot} ${step >= 2 ? styles.stepActive : ''}`}
-          />
-        </div>
+          {/* Step indicator */}
+          <div className={styles.steps}>
+            <div
+              className={`${styles.stepDot} ${step >= 1 ? styles.stepActive : ''}`}
+            />
+            <div className={styles.stepLine} />
+            <div
+              className={`${styles.stepDot} ${step >= 2 ? styles.stepActive : ''}`}
+            />
+          </div>
 
-        {step === 1 && (
-          <>
-            {/* TODO: Google OAuth
-                        <button
-                            type="button"
-                            className={styles.googleButton}
-                            onClick={handleGoogle}
-                            disabled={isLoading}
-                        >
-                            <GoogleIcon />
-                            Sign up with Google
-                        </button>
+          {step === 1 && (
+            <>
+              {/* TODO: Google OAuth
+                          <button
+                              type="button"
+                              className={styles.googleButton}
+                              onClick={handleGoogle}
+                              disabled={isLoading}
+                          >
+                              <GoogleIcon />
+                              Sign up with Google
+                          </button>
 
-                        <div className={styles.divider}>
-                            <span>or</span>
-                        </div>
-                        */}
+                          <div className={styles.divider}>
+                              <span>or</span>
+                          </div>
+                          */}
 
-            <form onSubmit={handleStepOne} className={styles.form}>
-              <div className={styles.nameRow}>
+              <form onSubmit={handleStepOne} className={styles.form}>
+                <div className={styles.nameRow}>
+                  <label className={styles.field}>
+                    <span>First name</span>
+                    <input
+                      type='text'
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder='First name'
+                      autoComplete='given-name'
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Last name</span>
+                    <input
+                      type='text'
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder='Last name'
+                      autoComplete='family-name'
+                    />
+                  </label>
+                </div>
+
                 <label className={styles.field}>
-                  <span>First name</span>
+                  <span>Email</span>
                   <input
-                    type='text'
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder='First name'
-                    autoComplete='given-name'
+                    type='email'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder='you@example.com'
+                    autoComplete='email'
                   />
                 </label>
+
                 <label className={styles.field}>
-                  <span>Last name</span>
+                  <span>Password</span>
                   <input
-                    type='text'
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder='Last name'
-                    autoComplete='family-name'
+                    type='password'
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder='At least 8 characters'
+                    autoComplete='new-password'
                   />
                 </label>
-              </div>
 
-              <label className={styles.field}>
-                <span>Email</span>
-                <input
-                  type='email'
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder='you@example.com'
-                  autoComplete='email'
-                />
-              </label>
+                {error && (
+                  <p className={styles.error} role='alert'>
+                    {error}
+                  </p>
+                )}
 
-              <label className={styles.field}>
-                <span>Password</span>
-                <input
-                  type='password'
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder='At least 8 characters'
-                  autoComplete='new-password'
-                />
-              </label>
+                <button
+                  type='submit'
+                  className={styles.submit}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Creating account...' : 'Continue'}
+                </button>
+              </form>
 
-              {error && (
-                <p className={styles.error} role='alert'>
-                  {error}
-                </p>
-              )}
+              <p className={styles.switchLink}>
+                Already have an account? <Link href='/login'>Sign in</Link>
+              </p>
 
-              <button
-                type='submit'
-                className={styles.submit}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating account...' : 'Continue'}
-              </button>
-            </form>
-
-            <p className={styles.switchLink}>
-              Already have an account? <Link href='/login'>Sign in</Link>
-            </p>
-
-            <Link href='/faq' className={styles.faqLink}>
-              How does {APP_NAME} work? &rarr;
-            </Link>
-          </>
-        )}
+              <Link href='/faq' className={styles.faqLink}>
+                How does {APP_NAME} work? &rarr;
+              </Link>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Step 2: preferences wizard opens as modal after account creation */}
@@ -175,6 +188,6 @@ export default function RegisterPage() {
       />
 
       {toast && <Toast message={toast} onClose={() => setToast('')} />}
-    </div>
+    </>
   );
 }
