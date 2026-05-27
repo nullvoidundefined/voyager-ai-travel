@@ -134,6 +134,12 @@
   color: var(--ink);
 }
 
+.budgetAllocated {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .budgetLabel {
   font-size: var(--text-label);
   font-weight: 600;
@@ -304,6 +310,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 16px;
   margin-bottom: 16px;
 
   button {
