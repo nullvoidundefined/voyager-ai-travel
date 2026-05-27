@@ -35,6 +35,9 @@ const CITY_IMAGES: Record<string, string> = {
   maldives: '1637576308588-6647bf80944d',
   naples: '1567202170721-bd01fbdea30a',
   amman: '1547483238-2cbf881a759f',
+  beijing: '1508804185872-d7badad00f7d',
+  'buenos aires': '1589909202802-8f4aadce1849',
+  'new orleans': '1568602471122-7832951cc4c5',
 };
 
 export function getDestinationImageUrl(
