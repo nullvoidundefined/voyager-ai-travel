@@ -1,0 +1,19 @@
+{
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "mock-toolu-format-1",
+      "name": "format_response",
+      "input": {
+        "text": "Here are some options I found. Let me know which you prefer.",
+        "quick_replies": [
+          "I'll take the cheapest flight",
+          "Show me more hotels",
+          "Confirm booking"
+        ]
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "usage": { "input_tokens": 0, "output_tokens": 0 }
+}

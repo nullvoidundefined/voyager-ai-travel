@@ -106,7 +106,7 @@ describe('HotelCard', () => {
     });
 
     it('defaults to aria-pressed="false" when selected prop is omitted', () => {
-      const { selected, ...rest } = allFieldsProps;
+      const { selected: _selected, ...rest } = allFieldsProps;
       render(<HotelCard {...rest} />);
 
       const button = screen.getByRole('button');

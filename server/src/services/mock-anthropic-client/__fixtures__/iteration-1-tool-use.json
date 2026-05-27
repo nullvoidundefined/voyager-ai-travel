@@ -1,0 +1,29 @@
+{
+  "content": [
+    {
+      "type": "tool_use",
+      "id": "mock-toolu-flights-1",
+      "name": "search_flights",
+      "input": {
+        "origin": "DEN",
+        "destination": "SFO",
+        "departure_date": "2026-06-01",
+        "return_date": "2026-06-04",
+        "passengers": 2
+      }
+    },
+    {
+      "type": "tool_use",
+      "id": "mock-toolu-hotels-1",
+      "name": "search_hotels",
+      "input": {
+        "city": "San Francisco",
+        "check_in": "2026-06-01",
+        "check_out": "2026-06-04",
+        "guests": 2
+      }
+    }
+  ],
+  "stop_reason": "tool_use",
+  "usage": { "input_tokens": 0, "output_tokens": 0 }
+}

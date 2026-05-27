@@ -1,9 +1,17 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   MockAnthropicClient,
   isAnthropicMockMode,
 } from './mock-anthropic-client.js';
+
+function loadFixture(name: string): Record<string, unknown> {
+  return JSON.parse(
+    readFileSync(join(__dirname, '__fixtures__', name), 'utf-8'),
+  );
+}
 
 describe('MockAnthropicClient', () => {
   it('exposes a messages.stream method that satisfies the orchestrator interface', () => {
@@ -165,6 +173,197 @@ describe('MockAnthropicClient', () => {
     });
     const result = stream.on('text', () => {}).on('text', () => {});
     expect(result).toBe(stream);
+  });
+});
+
+describe('fixture-based shape validation', () => {
+  const BASE_PARAMS = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    system: 'test',
+    tools: [],
+  };
+
+  describe('iteration 1 fixture (search_flights + search_hotels)', () => {
+    it('matches the fixture snapshot exactly', async () => {
+      const fixture = loadFixture('iteration-1-tool-use.json');
+      const client = new MockAnthropicClient();
+      const stream = client.messages.stream({
+        ...BASE_PARAMS,
+        messages: [{ role: 'user', content: 'Plan a trip' }],
+      });
+      const actual = await stream.finalMessage();
+
+      expect(actual).toEqual(fixture);
+    });
+
+    it('search_flights input contains the exact field names from searchFlightsSchema', async () => {
+      const { searchFlightsSchema } = await import('app/tools/schemas.js');
+      const fixture = loadFixture('iteration-1-tool-use.json') as {
+        content: Array<{
+          type: string;
+          name?: string;
+          input?: Record<string, unknown>;
+        }>;
+      };
+
+      const flightsBlock = fixture.content.find(
+        (b) => b.type === 'tool_use' && b.name === 'search_flights',
+      );
+      expect(flightsBlock).toBeDefined();
+
+      // Fixture must parse against the canonical Zod schema
+      expect(() =>
+        searchFlightsSchema.parse(flightsBlock!.input),
+      ).not.toThrow();
+
+      // Explicitly assert required field names are present
+      const input = flightsBlock!.input!;
+      expect(input).toHaveProperty('origin');
+      expect(input).toHaveProperty('destination');
+      expect(input).toHaveProperty('departure_date');
+      expect(input).toHaveProperty('return_date');
+      expect(input).toHaveProperty('passengers');
+      // Guard against the known wrong field names
+      expect(input).not.toHaveProperty('adults');
+      expect(input).not.toHaveProperty('from');
+      expect(input).not.toHaveProperty('to');
+    });
+
+    it('search_hotels input contains the exact field names from searchHotelsSchema', async () => {
+      const { searchHotelsSchema } = await import('app/tools/schemas.js');
+      const fixture = loadFixture('iteration-1-tool-use.json') as {
+        content: Array<{
+          type: string;
+          name?: string;
+          input?: Record<string, unknown>;
+        }>;
+      };
+
+      const hotelsBlock = fixture.content.find(
+        (b) => b.type === 'tool_use' && b.name === 'search_hotels',
+      );
+      expect(hotelsBlock).toBeDefined();
+
+      // Fixture must parse against the canonical Zod schema
+      expect(() => searchHotelsSchema.parse(hotelsBlock!.input)).not.toThrow();
+
+      // Explicitly assert required field names are present
+      const input = hotelsBlock!.input!;
+      expect(input).toHaveProperty('city');
+      expect(input).toHaveProperty('check_in');
+      expect(input).toHaveProperty('check_out');
+      expect(input).toHaveProperty('guests');
+      // Guard against the known wrong field names
+      expect(input).not.toHaveProperty('location');
+      expect(input).not.toHaveProperty('check_in_date');
+      expect(input).not.toHaveProperty('check_out_date');
+      expect(input).not.toHaveProperty('adults');
+    });
+  });
+
+  describe('iteration 2 fixture (format_response)', () => {
+    it('matches the fixture snapshot exactly', async () => {
+      const fixture = loadFixture('iteration-2-format-response.json');
+      const client = new MockAnthropicClient();
+      const stream = client.messages.stream({
+        ...BASE_PARAMS,
+        messages: [
+          { role: 'user', content: 'Plan a trip' },
+          { role: 'assistant', content: [] },
+          { role: 'user', content: [] },
+        ],
+      });
+      const actual = await stream.finalMessage();
+
+      expect(actual).toEqual(fixture);
+    });
+
+    it('format_response input has text and quick_replies fields', () => {
+      const fixture = loadFixture('iteration-2-format-response.json') as {
+        content: Array<{
+          type: string;
+          name?: string;
+          input?: Record<string, unknown>;
+        }>;
+      };
+
+      const formatBlock = fixture.content.find(
+        (b) => b.type === 'tool_use' && b.name === 'format_response',
+      );
+      expect(formatBlock).toBeDefined();
+
+      const input = formatBlock!.input!;
+      expect(input).toHaveProperty('text');
+      expect(typeof input.text).toBe('string');
+      expect((input.text as string).length).toBeGreaterThan(0);
+      expect(input).toHaveProperty('quick_replies');
+      expect(Array.isArray(input.quick_replies)).toBe(true);
+      expect((input.quick_replies as string[]).length).toBeGreaterThan(0);
+    });
+
+    it('format_response input parses against formatResponseSchema', async () => {
+      const { formatResponseSchema } = await import('app/tools/schemas.js');
+      const fixture = loadFixture('iteration-2-format-response.json') as {
+        content: Array<{
+          type: string;
+          name?: string;
+          input?: Record<string, unknown>;
+        }>;
+      };
+
+      const formatBlock = fixture.content.find(
+        (b) => b.type === 'tool_use' && b.name === 'format_response',
+      );
+      expect(() =>
+        formatResponseSchema.parse(formatBlock!.input),
+      ).not.toThrow();
+    });
+  });
+
+  describe('iteration 3 fixture (end_turn)', () => {
+    it('matches the fixture snapshot exactly', async () => {
+      const fixture = loadFixture('iteration-3-end-turn.json');
+      const client = new MockAnthropicClient();
+      const stream = client.messages.stream({
+        ...BASE_PARAMS,
+        messages: [
+          { role: 'user', content: 'Plan a trip' },
+          { role: 'assistant', content: [] },
+          { role: 'user', content: [] },
+          { role: 'assistant', content: [] },
+          { role: 'user', content: [] },
+        ],
+      });
+      const actual = await stream.finalMessage();
+
+      expect(actual).toEqual(fixture);
+    });
+
+    it('has stop_reason end_turn', () => {
+      const fixture = loadFixture('iteration-3-end-turn.json') as {
+        stop_reason: string;
+      };
+      expect(fixture.stop_reason).toBe('end_turn');
+    });
+
+    it('contains a text content block', () => {
+      const fixture = loadFixture('iteration-3-end-turn.json') as {
+        content: Array<{ type: string; text?: string }>;
+      };
+      expect(fixture.content).toHaveLength(1);
+      expect(fixture.content[0]!.type).toBe('text');
+      expect(fixture.content[0]!.text).toBeTruthy();
+    });
+
+    it('output_tokens reflects the text length', () => {
+      const fixture = loadFixture('iteration-3-end-turn.json') as {
+        content: Array<{ type: string; text?: string }>;
+        usage: { output_tokens: number };
+      };
+      const textBlock = fixture.content.find((b) => b.type === 'text');
+      expect(fixture.usage.output_tokens).toBe(textBlock!.text!.length);
+    });
   });
 });
 
