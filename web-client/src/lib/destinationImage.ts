@@ -34,6 +34,7 @@ const CITY_IMAGES: Record<string, string> = {
   cusco: '1544206709-5cdc63e3ed72',
   maldives: '1637576308588-6647bf80944d',
   naples: '1567202170721-bd01fbdea30a',
+  amman: '1547483238-2cbf881a759f',
 };
 
 export function getDestinationImageUrl(

@@ -115,6 +115,10 @@
     font-size: 22px;
   }
 
+  .logoIcon {
+    display: none;
+  }
+
   .navLink {
     padding: 8px 12px;
     font-size: 13px;
@@ -123,5 +127,32 @@
   .signIn {
     padding: 7px 16px;
     font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .inner {
+    padding: 0 12px;
+    height: 56px;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .nav {
+    gap: 0;
+    margin-right: 8px;
+  }
+
+  .navLink {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .signIn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 }
