@@ -12,6 +12,7 @@ import { authRouter } from 'app/routes/auth.js';
 import { placesRouter } from 'app/routes/places.js';
 import { tripRouter } from 'app/routes/trips.js';
 import { userPreferencesRouter } from 'app/routes/userPreferences.js';
+import posthog from 'app/services/posthog.js';
 import { logger } from 'app/utils/logs/logger.js';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -201,6 +202,7 @@ export function startServer(): void {
     await new Promise<void>((resolve) => server.close(() => resolve()));
     logger.info('HTTP server closed');
     await pool.end();
+    await posthog.shutdown();
     process.exit(0);
   }
 

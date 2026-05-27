@@ -17,6 +17,7 @@ import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
 import { getEnrichmentNodes } from 'app/services/enrichment.js';
+import posthog from 'app/services/posthog.js';
 import {
   addTokenUsage,
   isOverDailyBudget,
@@ -64,6 +65,11 @@ export async function chat(req: Request, res: Response) {
   // error status. Failing open (Redis down) is intentional: a Redis
   // outage should not block legitimate users.
   if (await isOverDailyBudget(userId)) {
+    posthog.capture({
+      distinctId: userId,
+      event: 'daily budget exceeded',
+      properties: { trip_id: tripId },
+    });
     throw new ApiError(
       429,
       'DAILY_BUDGET_EXCEEDED',
@@ -113,6 +119,16 @@ export async function chat(req: Request, res: Response) {
     role: 'user',
     content: message,
     nodes: [{ type: 'text', content: message }],
+  });
+  posthog.capture({
+    distinctId: userId,
+    event: 'chat message sent',
+    properties: {
+      trip_id: tripId,
+      conversation_id: conversation.id,
+      message_length: message.length,
+      is_first_message: history.length === 0,
+    },
   });
 
   // Fetch enrichment on first message only
@@ -169,6 +185,17 @@ export async function chat(req: Request, res: Response) {
     if (outputTokens > 0) {
       await addTokenUsage(userId, outputTokens);
     }
+    posthog.capture({
+      distinctId: userId,
+      event: 'agent turn completed',
+      properties: {
+        trip_id: tripId,
+        conversation_id: conversation.id,
+        tool_call_count: result.tool_calls?.length ?? 0,
+        input_tokens: result.total_tokens?.input ?? 0,
+        output_tokens: outputTokens,
+      },
+    });
 
     // Post-loop: check for missing fields and update completion tracker
     const updatedTrip = await getTripWithDetails(tripId, userId);

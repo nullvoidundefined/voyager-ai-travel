@@ -6,6 +6,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import * as tripRepo from 'app/repositories/trips/trips.js';
 import { createTripSchema, updateTripSchema } from 'app/schemas/trips.js';
+import posthog from 'app/services/posthog.js';
 import {
   selectCarRentalSchema,
   selectExperienceSchema,
@@ -36,6 +37,17 @@ export async function createTrip(req: Request, res: Response): Promise<void> {
     { event: 'trip_created', tripId: trip.id, userId },
     'Trip created',
   );
+  posthog.capture({
+    distinctId: userId,
+    event: 'trip created',
+    properties: {
+      trip_id: trip.id,
+      destination: trip.destination,
+      departure_date: trip.departure_date,
+      return_date: trip.return_date,
+      budget_total: trip.budget_total,
+    },
+  });
   res.status(201).json({ trip });
 }
 
@@ -119,9 +131,24 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
       { event: 'selections_cleared', tripId, newDestination: destination },
       'Cleared selections after destination change',
     );
+    posthog.capture({
+      distinctId: userId,
+      event: 'trip selections cleared',
+      properties: { trip_id: tripId, new_destination: destination },
+    });
   }
 
   logger.info({ event: 'trip_updated', tripId, userId }, 'Trip updated');
+  posthog.capture({
+    distinctId: userId,
+    event: 'trip updated',
+    properties: {
+      trip_id: tripId,
+      updated_fields: Object.keys(input).filter(
+        (k) => input[k as keyof typeof input] !== undefined,
+      ),
+    },
+  });
   res.json({ trip });
 }
 
@@ -135,6 +162,11 @@ export async function deleteTrip(req: Request, res: Response): Promise<void> {
   }
 
   logger.info({ event: 'trip_deleted', tripId, userId }, 'Trip deleted');
+  posthog.capture({
+    distinctId: userId,
+    event: 'trip deleted',
+    properties: { trip_id: tripId },
+  });
   res.status(204).send();
 }
 
@@ -213,6 +245,11 @@ export async function selectItem(req: Request, res: Response): Promise<void> {
     { event: 'selection_saved', tripId, userId, type },
     'Trip selection saved',
   );
+  posthog.capture({
+    distinctId: userId,
+    event: 'trip item selected',
+    properties: { trip_id: tripId, item_type: type },
+  });
   res.status(201).json({ success: true });
 }
 

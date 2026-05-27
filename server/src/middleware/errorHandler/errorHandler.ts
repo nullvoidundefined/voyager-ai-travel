@@ -1,3 +1,4 @@
+import posthog from 'app/services/posthog.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { NextFunction, Request, Response } from 'express';
@@ -23,6 +24,10 @@ export function errorHandler(
   }
 
   logger.error({ err, reqId: req.id }, 'Unhandled error in request handler');
+  posthog.captureException(err, req.user?.id, {
+    url: req.originalUrl,
+    method: req.method,
+  });
 
   res.status(500).json({
     error: 'INTERNAL_ERROR',

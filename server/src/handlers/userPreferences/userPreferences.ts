@@ -3,6 +3,7 @@ import {
   findByUserId,
   upsert,
 } from 'app/repositories/userPreferences/userPreferences.js';
+import posthog from 'app/services/posthog.js';
 import type { Request, Response } from 'express';
 
 export async function getPreferences(req: Request, res: Response) {
@@ -35,5 +36,10 @@ export async function upsertPreferences(req: Request, res: Response) {
   }
 
   const result = await upsert(userId, filtered);
+  posthog.capture({
+    distinctId: userId,
+    event: 'user preferences updated',
+    properties: { updated_fields: Object.keys(filtered) },
+  });
   res.json({ preferences: result });
 }

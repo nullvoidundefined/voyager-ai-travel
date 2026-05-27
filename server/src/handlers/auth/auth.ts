@@ -2,6 +2,7 @@ import { isProduction } from 'app/config/env.js';
 import { SESSION_COOKIE_NAME, SESSION_TTL_MS } from 'app/constants/session.js';
 import * as authRepo from 'app/repositories/auth/auth.js';
 import { loginSchema, registerSchema } from 'app/schemas/auth.js';
+import posthog from 'app/services/posthog.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
@@ -34,6 +35,20 @@ export async function register(req: Request, res: Response): Promise<void> {
       { event: 'register_success', userId: user.id, ip: req.ip },
       'User registered',
     );
+    posthog.identify({
+      distinctId: user.id,
+      properties: {
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        $set_once: { created_at: user.created_at },
+      },
+    });
+    posthog.capture({
+      distinctId: user.id,
+      event: 'user registered',
+      properties: { email: user.email },
+    });
     res.cookie(SESSION_COOKIE_NAME, sessionId, SESSION_COOKIE_OPTIONS);
     res.status(201).json({
       user: {
@@ -103,6 +118,19 @@ export async function login(req: Request, res: Response): Promise<void> {
     { event: 'login_success', userId: user.id, ip: req.ip },
     'User logged in',
   );
+  posthog.identify({
+    distinctId: user.id,
+    properties: {
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+    },
+  });
+  posthog.capture({
+    distinctId: user.id,
+    event: 'user logged in',
+    properties: { email: user.email },
+  });
   res.cookie(SESSION_COOKIE_NAME, sessionId, SESSION_COOKIE_OPTIONS);
   res.json({
     user: {
@@ -126,6 +154,9 @@ export async function logout(req: Request, res: Response): Promise<void> {
   }
   const userId = req.user?.id;
   logger.info({ event: 'logout', userId, ip: req.ip }, 'User logged out');
+  if (userId) {
+    posthog.capture({ distinctId: userId, event: 'user logged out' });
+  }
   res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
   res.status(204).send();
 }
