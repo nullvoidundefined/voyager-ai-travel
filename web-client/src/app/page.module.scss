@@ -4,301 +4,347 @@
   padding: 0 32px;
 }
 
-/* —————————— Hero —————————— */
+/* ---- Hero (full-bleed, split editorial) ---- */
 
 .hero {
-  position: relative;
-  overflow: hidden;
-  min-height: 600px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-
-  /* Break out of the .landing side padding to go edge-to-edge, capped at 1600px */
-  max-width: 1600px;
+  gap: 64px;
+  min-height: 580px;
+  padding: 80px 0 64px;
   margin-left: -32px;
   margin-right: -32px;
+  padding-left: 64px;
+  padding-right: 64px;
   width: calc(100% + 64px);
+  background: linear-gradient(165deg, #f8fbfe 0%, #eef6fb 40%, #fdf8f0 100%);
 }
 
-.heroImage {
-  position: absolute;
-  inset: 0;
-  object-fit: cover;
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 1s ease-in-out;
+.heroLeft {
+  flex: 1;
+  min-width: 0;
 }
 
-.heroImageActive {
-  opacity: 1;
-}
-
-.heroOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.55));
-}
-
-.heroContent {
-  position: relative;
-  z-index: 2;
-  color: var(--cta-text);
-  padding: 80px 48px 64px;
-}
-
-.eyebrow {
+.overline {
   display: inline-block;
-  font-size: 12px;
+  font-family: var(--font-body);
+  font-size: var(--text-label);
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--cta-text);
+  color: var(--ocean);
   margin-bottom: 20px;
-  padding: 6px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.15);
 }
 
-.title {
-  font-size: 72px;
-  font-weight: 600;
+.headline {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 400;
   line-height: 1.05;
-  letter-spacing: -0.025em;
-  color: var(--cta-text);
+  letter-spacing: -0.02em;
+  color: var(--ink);
   margin-bottom: 24px;
 }
 
-.titleAccent {
-  color: var(--cta);
+.headlineAccent {
+  color: var(--ocean);
   font-style: italic;
 }
 
-.subtitle {
-  font-size: 19px;
+.heroBody {
+  font-size: 17px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 540px;
-  margin: 0 auto 40px;
+  color: var(--muted);
+  max-width: 480px;
+  margin-bottom: 36px;
 }
 
-.ctas {
+.heroCtas {
   display: flex;
   gap: 14px;
-  justify-content: center;
 }
 
 .primaryCta {
   display: inline-flex;
   align-items: center;
-  padding: 14px 36px;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
   font-family: var(--font-body);
-  background: var(--cta);
-  color: var(--cta-text);
+  background: var(--ocean);
+  color: #fff;
   transition:
     background var(--transition-fast),
-    box-shadow var(--transition-fast),
-    transform var(--transition-fast);
+    box-shadow var(--transition-fast);
   text-decoration: none;
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
-    transform: translateY(-1px);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 }
 
 .secondaryCta {
   display: inline-flex;
   align-items: center;
-  padding: 14px 36px;
-  border-radius: var(--radius-sm);
-  font-size: 15px;
-  font-weight: 600;
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
   font-family: var(--font-body);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  color: var(--cta-text);
+  border: 1.5px solid var(--border-strong);
+  color: var(--ink);
   background: transparent;
   transition:
-    background var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-fast),
+    background var(--transition-fast);
   text-decoration: none;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: var(--cta-text);
+    border-color: var(--ocean);
+    background: var(--ocean-light);
   }
 }
 
-/* —————————— Section headers —————————— */
+.heroRight {
+  flex: 0 0 auto;
+  width: 420px;
+}
+
+.destinationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+
+  & > :nth-child(5) {
+    grid-column: 1 / -1;
+  }
+}
+
+.destCard {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    border-color: var(--ocean);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.destCardImage {
+  position: relative;
+  height: 120px;
+  background: var(--surface);
+}
+
+.destCardFallback {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--ocean), var(--ocean-deep));
+}
+
+.destCardInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+}
+
+.destCardName {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.destCardPrice {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ocean);
+}
+
+/* ---- Section headers ---- */
 
 .sectionTitle {
-  font-size: 40px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  font-weight: 500;
   text-align: center;
-  color: var(--foreground);
+  color: var(--ink);
   margin-bottom: 12px;
 }
 
 .sectionSubtitle {
-  font-size: 17px;
-  color: var(--foreground-muted);
+  font-size: 16px;
+  color: var(--muted);
   text-align: center;
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.6;
 }
 
-/* —————————— Demo —————————— */
-
-.demo {
-  padding: 40px 0 80px;
-}
-
-.demoHeader {
-  margin-bottom: 40px;
-}
-
-.demoBox {
-  max-width: 720px;
-  margin: 0 auto;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
-
-/* —————————— How it works —————————— */
+/* ---- How it works ---- */
 
 .howItWorks {
   padding: 80px 0;
-  border-top: 1px solid var(--border-light);
 }
 
 .steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 24px;
   margin-top: 48px;
 }
 
 .step {
   text-align: center;
-  padding: 40px 24px;
+  padding: 36px 24px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   background: var(--surface);
   transition:
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: var(--accent);
+    border-color: var(--ocean);
     box-shadow: var(--shadow-md);
   }
 }
 
 .stepNum {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 600;
-  color: var(--cta);
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
   margin-bottom: 16px;
-  line-height: 1;
+
+  &.ocean {
+    background: var(--ocean);
+  }
+  &.sand {
+    background: var(--sand);
+  }
+  &.lagoon {
+    background: var(--lagoon);
+  }
 }
 
 .stepTitle {
-  font-size: 22px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: var(--text-h3);
+  font-weight: 500;
   margin-bottom: 8px;
-  color: var(--foreground);
+  color: var(--ink);
 }
 
 .stepDesc {
-  font-size: 14px;
+  font-size: var(--text-sm);
   line-height: 1.6;
-  color: var(--foreground-muted);
+  color: var(--muted);
 }
 
-/* —————————— Features —————————— */
+/* ---- Features ---- */
 
 .features {
   padding: 80px 0;
-  border-top: 1px solid var(--border-light);
+  background: var(--surface);
+  margin-left: -32px;
+  margin-right: -32px;
+  padding-left: 32px;
+  padding-right: 32px;
+  width: calc(100% + 64px);
 }
 
 .featureGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
   margin-top: 48px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .feature {
   padding: 32px 24px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  background: var(--surface);
+  border: 1px solid var(--border);
+  background: var(--card);
   transition:
     border-color var(--transition-fast),
-    transform var(--transition-fast),
     box-shadow var(--transition-fast);
 
   &:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
+    border-color: var(--ocean);
     box-shadow: var(--shadow-md);
   }
 
   h3 {
     font-family: var(--font-display);
-    font-size: 20px;
-    font-weight: 600;
+    font-size: var(--text-h4);
+    font-weight: 500;
     margin-bottom: 8px;
-    color: var(--foreground);
+    color: var(--ink);
   }
 
   p {
-    font-size: 14px;
+    font-size: var(--text-sm);
     line-height: 1.6;
-    color: var(--foreground-muted);
+    color: var(--muted);
   }
 }
 
 .featureIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--radius-md);
-  background: var(--accent-light);
-  color: var(--accent);
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+
+  &.ocean {
+    background: var(--ocean-light);
+  }
+  &.sand {
+    background: var(--sand-light);
+  }
+  &.lagoon {
+    background: var(--lagoon-light);
+  }
+  &.sunset {
+    background: var(--sunset-light);
+  }
 }
 
-/* —————————— Explore Destinations —————————— */
+/* ---- Explore Destinations ---- */
 
 .exploreSection {
   text-align: center;
   padding: 80px 32px;
-  border-top: 1px solid var(--border-light);
 }
 
 .exploreCta {
   display: inline-block;
   margin-top: 24px;
-  padding: 14px 32px;
-  background: var(--cta);
-  color: var(--cta-text);
-  border-radius: var(--radius-sm);
-  font-weight: 600;
+  padding: 12px 28px;
+  background: var(--ocean);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 14px;
   font-family: var(--font-body);
   transition:
     background var(--transition-fast),
@@ -306,60 +352,65 @@
   text-decoration: none;
 
   &:hover {
-    background: var(--cta-hover);
-    box-shadow: var(--shadow-glow);
+    background: var(--ocean-deep);
+    box-shadow: var(--shadow-sm);
   }
 }
 
-/* —————————— Final CTA —————————— */
+/* ---- Final CTA ---- */
 
 .finalCta {
   text-align: center;
   padding: 80px 0 100px;
-  border-top: 1px solid var(--border-light);
+  border-top: 1px solid var(--border);
 
   h2 {
-    font-size: 48px;
-    font-weight: 600;
-    color: var(--foreground);
+    font-family: var(--font-display);
+    font-size: var(--text-h1);
+    font-weight: 500;
+    color: var(--ink);
     margin-bottom: 12px;
   }
 
   p {
-    font-size: 17px;
-    color: var(--foreground-muted);
+    font-size: 16px;
+    color: var(--muted);
     margin-bottom: 32px;
   }
 }
 
-/* —————————— Responsive —————————— */
+/* ---- Responsive ---- */
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .landing {
     padding: 0 20px;
   }
 
   .hero {
-    min-height: 480px;
+    flex-direction: column;
+    gap: 40px;
+    padding: 48px 20px;
     margin-left: -20px;
     margin-right: -20px;
     width: calc(100% + 40px);
+    min-height: auto;
   }
 
-  .heroContent {
-    padding: 60px 20px 48px;
+  .headline {
+    font-size: var(--text-h1);
   }
 
-  .title {
-    font-size: 44px;
+  .heroRight {
+    width: 100%;
   }
 
-  .subtitle {
-    font-size: 16px;
+  .destinationGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
-  .sectionTitle {
-    font-size: 30px;
+  .destCardImage {
+    height: 100px;
   }
 
   .steps {
@@ -367,31 +418,48 @@
     gap: 16px;
   }
 
-  .step {
-    padding: 28px 20px;
-  }
-
-  .featureGrid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  .finalCta h2 {
-    font-size: 36px;
-  }
-}
-
-@media (max-width: 480px) {
-  .title {
-    font-size: 36px;
-  }
-
-  .ctas {
-    flex-direction: column;
-    align-items: center;
+  .features {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    width: calc(100% + 40px);
   }
 
   .featureGrid {
     grid-template-columns: 1fr;
+  }
+
+  .sectionTitle {
+    font-size: var(--text-h3);
+  }
+}
+
+@media (max-width: 480px) {
+  .headline {
+    font-size: 32px;
+  }
+
+  .heroCtas {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .destinationGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .destCardImage {
+    height: 80px;
+  }
+
+  .destCardInfo {
+    padding: 8px 10px;
+  }
+
+  .destCardName {
+    font-size: 12px;
   }
 }
