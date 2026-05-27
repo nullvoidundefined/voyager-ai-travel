@@ -223,7 +223,7 @@ export function ChatBox({
   }, [allMessages, showBookingActions, experiencesEmpty, carRentalsEmpty]);
 
   return (
-    <div className={styles.chatBox}>
+    <div className={styles.chatBox} data-testid='chat-box'>
       {sseError && <Toast message={sseError} onClose={clearSseError} />}
       <VirtualizedChat
         messages={messagesWithBookingPrompt}
