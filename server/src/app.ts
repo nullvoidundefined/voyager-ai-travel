@@ -7,6 +7,7 @@ import { notFoundHandler } from 'app/middleware/notFoundHandler/notFoundHandler.
 import { rateLimiter } from 'app/middleware/rateLimiter/rateLimiter.js';
 import { requestLogger } from 'app/middleware/requestLogger/requestLogger.js';
 import { loadSession } from 'app/middleware/requireAuth/requireAuth.js';
+import { deleteExpiredSessions } from 'app/repositories/auth/auth.js';
 import { authRouter } from 'app/routes/auth.js';
 import { placesRouter } from 'app/routes/places.js';
 import { tripRouter } from 'app/routes/trips.js';
@@ -76,9 +77,7 @@ app.use((_req, res, next) => {
   next();
 });
 
-query('SELECT NOW()')
-  .then(() => logger.info('Connected to database'))
-  .catch((err: unknown) => logger.error({ err }, 'Database connection failed'));
+// DB health check moved into startServer() for test isolation
 
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
@@ -150,6 +149,25 @@ export function startServer(): void {
   pool.on('error', (err) => {
     logger.error({ err }, 'Unexpected idle-client error in pg pool');
   });
+
+  query('SELECT NOW()')
+    .then(() => logger.info('Connected to database'))
+    .catch((err: unknown) =>
+      logger.error({ err }, 'Database connection failed'),
+    );
+
+  const CLEANUP_INTERVAL_MS = 60 * 60 * 1000;
+  setInterval(() => {
+    deleteExpiredSessions()
+      .then((count) => {
+        if (count > 0) {
+          logger.info({ count }, 'Cleaned up expired sessions');
+        }
+      })
+      .catch((err: unknown) => {
+        logger.error({ err }, 'Failed to clean up expired sessions');
+      });
+  }, CLEANUP_INTERVAL_MS);
 
   process.on('uncaughtException', (err) => {
     logger.fatal({ err }, 'Uncaught exception – shutting down');

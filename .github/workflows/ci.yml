@@ -61,8 +61,11 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      - name: Build
+      - name: Build server
         run: pnpm --filter voyager-server build
+
+      - name: Build web-client
+        run: pnpm --filter voyager-web build
 
       - name: Run migrations
         run: pnpm --filter voyager-server run migrate:up
@@ -78,6 +81,9 @@ jobs:
           SESSION_SECRET: test-secret
           CSRF_SECRET: test-csrf-secret
           ANTHROPIC_API_KEY: sk-ant-test
+
+      - name: Web-client unit tests
+        run: pnpm --filter voyager-web run test
 
       - name: Upload coverage report
         if: always()

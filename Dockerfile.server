@@ -35,4 +35,5 @@ COPY server/src/data/destinations.json server/dist/data/destinations.json
 COPY server/migrations server/migrations
 
 EXPOSE 3001
+USER node
 CMD ["node", "server/dist/index.js"]
