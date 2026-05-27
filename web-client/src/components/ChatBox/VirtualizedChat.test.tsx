@@ -29,3 +29,15 @@ describe('VirtualizedChat empty state', () => {
     );
   });
 });
+
+describe('VirtualizedChat thinking indicator', () => {
+  it('shows thinking indicator when isStreaming is true', () => {
+    render(<VirtualizedChat {...defaultProps} isStreaming={true} />);
+    expect(screen.getByText(/thinking/i)).toBeInTheDocument();
+  });
+
+  it('hides thinking indicator when isStreaming is false', () => {
+    render(<VirtualizedChat {...defaultProps} isStreaming={false} />);
+    expect(screen.queryByText(/thinking/i)).not.toBeInTheDocument();
+  });
+});

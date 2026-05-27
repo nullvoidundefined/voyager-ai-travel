@@ -231,6 +231,7 @@ export function ChatBox({
         toolProgress={toolProgress}
         streamingText={streamingText}
         isSending={isSending}
+        isStreaming={isSending}
         onQuickReply={handleSend}
         onSelectItem={handleSelectItem}
         onFormSubmit={handleFormSubmit}

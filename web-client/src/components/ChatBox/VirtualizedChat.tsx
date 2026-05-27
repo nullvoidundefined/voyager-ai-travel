@@ -16,6 +16,7 @@ interface VirtualizedChatProps {
   toolProgress: ChatNode[];
   streamingText: string;
   isSending: boolean;
+  isStreaming?: boolean;
   onQuickReply: (text: string) => void;
   onSelectItem?: (type: string, data: Record<string, unknown>) => void;
   onBookNow?: () => void;
@@ -73,6 +74,7 @@ export function VirtualizedChat({
   toolProgress,
   streamingText,
   isSending,
+  isStreaming,
   onQuickReply,
   onSelectItem,
   onBookNow,
@@ -170,6 +172,18 @@ export function VirtualizedChat({
             <ChatProgressBar mode='indeterminate' label='Thinking' />
           </div>
         )}
+      {isStreaming && (
+        <div
+          className={styles.thinkingIndicator}
+          aria-live='polite'
+          aria-label='Agent is thinking'
+        >
+          <span className={styles.dot} />
+          <span className={styles.dot} />
+          <span className={styles.dot} />
+          <span className={styles.thinkingText}>Thinking...</span>
+        </div>
+      )}
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
