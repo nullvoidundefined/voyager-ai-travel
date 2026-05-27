@@ -2,6 +2,7 @@
 
 import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
 
+import { CostCounter } from '@/components/CostCounter/CostCounter';
 import { Toast } from '@/components/Toast/Toast';
 import { get, post, put } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -54,6 +55,15 @@ export function ChatBox({
       get<{ messages: ChatMessage[] }>(`/trips/${tripId}/messages`).then(
         (r) => r.messages,
       ),
+  });
+
+  const { data: costsData } = useQuery({
+    queryKey: ['trip-costs', tripId],
+    queryFn: () =>
+      get<{ total_tokens: number; total_cost_usd: string }>(
+        `/trips/${tripId}/costs`,
+      ),
+    refetchInterval: 5000,
   });
 
   // Merge server messages with optimistic pending user message
@@ -225,6 +235,14 @@ export function ChatBox({
   return (
     <div className={styles.chatBox} data-testid='chat-box'>
       {sseError && <Toast message={sseError} onClose={clearSseError} />}
+      {costsData && (
+        <div className={styles.chatHeader}>
+          <CostCounter
+            totalTokens={costsData.total_tokens}
+            totalCostUsd={costsData.total_cost_usd}
+          />
+        </div>
+      )}
       <VirtualizedChat
         messages={messagesWithBookingPrompt}
         streamingNodes={streamingNodes}

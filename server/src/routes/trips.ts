@@ -1,4 +1,5 @@
 import * as chatHandlers from 'app/handlers/chat/chat.js';
+import * as costsHandlers from 'app/handlers/trips/costs.js';
 import * as legsHandlers from 'app/handlers/trips/legs.js';
 import * as scheduleHandlers from 'app/handlers/trips/schedule.js';
 import * as shareHandlers from 'app/handlers/trips/share.js';
@@ -38,5 +39,6 @@ tripRouter.post('/:id/chat', chatRateLimiter, chatHandlers.chat);
 tripRouter.get('/:id/messages', chatHandlers.getMessages);
 
 tripRouter.post('/:id/share', shareHandlers.createShareHandler);
+tripRouter.get('/:id/costs', costsHandlers.getTripCostsHandler);
 
 export { tripRouter };
