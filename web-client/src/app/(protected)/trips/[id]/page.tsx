@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
+import type { BookingLink } from '@/components/BookingLinks/BookingLinks';
+import { BookingLinks } from '@/components/BookingLinks/BookingLinks';
 import { ChatBox } from '@/components/ChatBox/ChatBox';
 import { DailySchedule } from '@/components/DailySchedule/DailySchedule';
 import type { ScheduleDay } from '@/components/DailySchedule/DailySchedule';
@@ -34,6 +36,7 @@ interface TripFlight {
   price: number | null;
   currency: string;
   departure_time: string | null;
+  booking_url: string | null;
 }
 
 interface TripHotel {
@@ -45,6 +48,7 @@ interface TripHotel {
   currency: string;
   check_in: string | null;
   check_out: string | null;
+  booking_url: string | null;
 }
 
 interface TripCarRental {
@@ -54,6 +58,7 @@ interface TripCarRental {
   car_type: string;
   total_price: number | null;
   currency: string;
+  booking_url: string | null;
 }
 
 interface TripExperience {
@@ -184,6 +189,34 @@ export default function TripDetailPage() {
   // once the data model includes lat/lng fields.
   const pins: MapPin[] = [];
 
+  const bookingLinks: BookingLink[] = [
+    ...trip.flights
+      .filter((f) => f.booking_url)
+      .map((f) => ({
+        id: f.id,
+        label:
+          `${f.airline ?? ''} ${f.flight_number ?? ''} ${f.origin} to ${f.destination}`.trim(),
+        url: f.booking_url!,
+        type: 'flight' as const,
+      })),
+    ...trip.hotels
+      .filter((h) => h.booking_url)
+      .map((h) => ({
+        id: h.id,
+        label: h.name ?? 'Hotel',
+        url: h.booking_url!,
+        type: 'hotel' as const,
+      })),
+    ...trip.car_rentals
+      .filter((c) => c.booking_url)
+      .map((c) => ({
+        id: c.id,
+        label: `${c.provider} ${c.car_name}`,
+        url: c.booking_url!,
+        type: 'car_rental' as const,
+      })),
+  ];
+
   return (
     <div className={styles.page}>
       {/* Full-bleed destination banner */}
@@ -257,6 +290,14 @@ export default function TripDetailPage() {
         >
           {/* Interactive map */}
           <TripMap pins={pins} />
+
+          {/* Booking links */}
+          {bookingLinks.length > 0 && (
+            <div data-testid='booking-links' className={styles.scheduleSection}>
+              <p className={styles.categoryLabel}>Book Now</p>
+              <BookingLinks links={bookingLinks} />
+            </div>
+          )}
 
           {/* Multi-city legs */}
           {trip.trip_structure === 'multi_city' && (
