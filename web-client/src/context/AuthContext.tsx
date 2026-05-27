@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react';
+import { createContext, useCallback, useContext, useMemo } from 'react';
 
 import { ApiError, get, post } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,7 +32,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const [authError, setAuthError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['auth', 'me'],
@@ -61,7 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      setAuthError(null);
       const res = await post<{ user: User }>('/auth/login', {
         email,
         password,
@@ -78,7 +70,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       firstName: string,
       lastName: string,
     ) => {
-      setAuthError(null);
       const res = await post<{ user: User }>('/auth/register', {
         email,
         password,
@@ -91,7 +82,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const loginWithGoogle = useCallback(async () => {
-    setAuthError(null);
     // TODO: implement Google OAuth redirect
     throw new Error('Google OAuth not yet implemented');
   }, []);
@@ -113,9 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signup,
       loginWithGoogle,
       logout,
-      authError,
     }),
-    [user, isLoading, login, signup, loginWithGoogle, logout, authError],
+    [user, isLoading, login, signup, loginWithGoogle, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

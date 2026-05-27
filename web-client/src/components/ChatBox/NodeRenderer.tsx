@@ -26,6 +26,7 @@ export interface NodeRendererCallbacks {
     structuredData: Record<string, string>,
     displayMessage: string,
   ) => void;
+  onFormValuesChange?: (values: Record<string, string>) => void;
   disabled?: boolean;
   confirmedFlightId?: string | null;
   confirmedHotelId?: string | null;
@@ -134,6 +135,7 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
         <TripDetailsForm
           fields={tripFields}
           onSubmit={cb.onFormSubmit ?? (() => {})}
+          onValuesChange={cb.onFormValuesChange}
           disabled={cb.disabled}
         />
       );

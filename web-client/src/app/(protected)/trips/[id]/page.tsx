@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
 import { ChatBox } from '@/components/ChatBox/ChatBox';
+import { Toast } from '@/components/Toast/Toast';
 import { get, put } from '@/lib/api';
 import { APP_NAME } from '@/lib/constants';
 import {
@@ -77,6 +78,7 @@ export default function TripDetailPage() {
   const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
 
   const {
     data: trip,
@@ -90,14 +92,16 @@ export default function TripDetailPage() {
   const handleConfirmBooking = useCallback(async () => {
     try {
       await put(`/trips/${id}`, { status: 'saved' });
+      queryClient.setQueryData<Trip>(['trips', id], (old) =>
+        old ? { ...old, status: 'saved' } : old,
+      );
+      await queryClient.invalidateQueries({ queryKey: ['trips', id] });
+      setShowConfirmation(false);
     } catch {
-      // Mock: update cache directly if no endpoint exists
+      await queryClient.invalidateQueries({ queryKey: ['trips', id] });
+      setToastMessage('Failed to save your booking. Please try again.');
+      setShowConfirmation(false);
     }
-    queryClient.setQueryData<Trip>(['trips', id], (old) =>
-      old ? { ...old, status: 'saved' } : old,
-    );
-    await queryClient.invalidateQueries({ queryKey: ['trips', id] });
-    setShowConfirmation(false);
   }, [id, queryClient]);
 
   const handleCancelBooking = useCallback(() => {
@@ -376,6 +380,10 @@ export default function TripDetailPage() {
           onConfirm={handleConfirmBooking}
           onCancel={handleCancelBooking}
         />
+      )}
+
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage('')} />
       )}
     </div>
   );

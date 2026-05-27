@@ -6,6 +6,179 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 
 ---
 
+## 2026-05-27 code quality sweep
+
+Source: `docs/audits/2026-05-27-code-quality-sweep.md`
+Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
+
+### Deferred P1 (too large for inline fix)
+
+### [CQS-01] All 5 repository test files mock the database pool (R-200 anti-pattern #5)
+
+- **Severity:** P1 . **Effort:** L . **Category:** test-quality
+- Affects: auth, conversations, tool-call-log, trips, userPreferences repos
+- All assertions verify mock calls with SQL strings, not behavioral outcomes against a real database
+- Fix requires setting up a test database (Neon branch or local Postgres container) and rewriting tests as integration tests
+
+### [CQS-02] `server/src/schemas/trips.ts` has no test file
+
+- **Severity:** P1 . **Effort:** M . **Category:** test-quality
+- Contains non-trivial validation: `budget_total: z.number().positive()`, `travelers: z.number().int().positive().default(1)`, nested `preferences.style` enum
+- Only server-side gate for `POST /trips` body
+
+### [CQS-03] `chat.ts:198-199` double-cast `as unknown as Record<string, unknown>`
+
+- **Severity:** P1 . **Effort:** M . **Category:** type-safety
+- `updateBookingState(conversation.id, newTracker as unknown as Record<string, unknown>)` bypasses type safety
+- Fix: align `CompletionTracker` type with `updateBookingState` parameter type
+
+### [CQS-04] `chat.ts:47` non-null assertions on `req.user!.id` across 10+ handlers
+
+- **Severity:** P1 . **Effort:** M . **Category:** type-safety
+- Safe behind `requireAuth` but creates hidden contract not enforced by types
+- Fix: add a typed `getAuthUser(req)` helper that throws `ApiError.unauthorized()` if missing
+
+### [CQS-05] `chat.ts:250` `as string` cast hiding type mismatch
+
+- **Severity:** P1 . **Effort:** S . **Category:** type-safety
+- `.filter((m) => m.role !== ('tool' as string))` -- investigate real type of `m.role` and fix upstream
+
+### [CQS-06] Three duplicate Redis singletons across services
+
+- **Severity:** P1 . **Effort:** M . **Category:** duplication
+- `serpApiQuota.service.ts`, `tokenBudget.service.ts`, and `cache.service.ts` each create independent `getRedis()` singletons
+- Fix: extract shared `getRedis()` to a common module
+
+### [CQS-07] `agent.service.test.ts:204` stale tool-call limit assertion
+
+- **Severity:** P1 . **Effort:** S . **Category:** test-quality
+- Test says "Should stop at 15 tool calls" but limit is 8. Assertion `toBeLessThanOrEqual(15)` passes trivially.
+
+### [CQS-08] Inline style duplication across 4 tile components
+
+- **Severity:** P1 . **Effort:** S . **Category:** consistency
+- `FlightTiles`, `HotelTiles`, `CarRentalTiles`, `ExperienceTiles` all repeat identical inline flex styles
+- Fix: extract to shared SCSS module class
+
+### P2 findings
+
+### [CQS-09] `cities.ts` data quality issues
+
+- **Severity:** P2 . **Effort:** S . **Category:** naming/duplication
+- `'luang'` key misses "Luang Prabang" lookups; `'addis'`/`'addis ababa'` have divergent coordinates
+
+### [CQS-10] `pool.ts` NUMERIC parser returns NaN silently
+
+- **Severity:** P2 . **Effort:** S . **Category:** type-safety
+- `parseFloat` on non-numeric strings returns NaN that propagates into budget arithmetic
+
+### [CQS-11] Enrichment sources swallow errors silently
+
+- **Severity:** P2 . **Effort:** S . **Category:** error-handling
+- `fcdo.ts:266`, `open-meteo.ts:101`, `state-dept.ts:22,70` all catch and return `[]` with no logging
+- `enrichment.ts:23-38` drops rejected `Promise.allSettled` results silently
+
+### [CQS-12] `visa-matrix.ts` only covers US and GB
+
+- **Severity:** P2 . **Effort:** M . **Category:** dead-code
+- All other countries get a false `warning` advisory claiming no data. No tracking ticket.
+
+### [CQS-13] `schemas/trips.ts` date fields lack format validation
+
+- **Severity:** P2 . **Effort:** S . **Category:** type-safety
+- `departure_date`/`return_date` typed as `z.string().optional()` with no regex or `.date()` check
+
+### [CQS-14] `userSchema` nullable mismatch with `registerSchema`
+
+- **Severity:** P2 . **Effort:** S . **Category:** type-safety
+- `first_name`/`last_name` nullable in `userSchema` but required in `registerSchema`
+
+### [CQS-15] `car-rentals.tool.ts` cache key includes unused `car_type`
+
+- **Severity:** P2 . **Effort:** S . **Category:** dead-code
+- `car_type` in cache key but never sent to SerpApi. Produces separate cache entries for identical results.
+
+### [CQS-16] `hotels.tool.ts` address always empty in production
+
+- **Severity:** P2 . **Effort:** S . **Category:** bug
+- `address: ''` hardcoded. Mock returns non-empty address. Mock fidelity diverges.
+
+### [CQS-17] `app.ts` module-level side effects
+
+- **Severity:** P2 . **Effort:** M . **Category:** bug
+- `query('SELECT NOW()')` fires on import (affects test isolation)
+- `fs.readFileSync('destinations.json')` at load time with no error handling
+- `PORT=0` treated as falsy
+
+### [CQS-18] Client data duplication across server and web-client
+
+- **Severity:** P2 . **Effort:** L . **Category:** duplication
+- `web-client/src/data/destinations.ts`, `web-client/src/lib/destinationImage.ts`, `web-client/src/lib/preferenceOptions.ts` all duplicate data from server
+- No shared source of truth; changes in one require manual updates in the other
+
+### [CQS-19] `BookingConfirmation` sums mixed-currency prices
+
+- **Severity:** P2 . **Effort:** S . **Category:** bug
+- `grandTotal` sums item prices without currency normalization
+
+### [CQS-20] `AuthContext` missing token refresh / expiry handling
+
+- **Severity:** P2 . **Effort:** M . **Category:** consistency
+- `staleTime: Infinity` means auth state never re-fetched after initial load
+
+### [CQS-21] Missing test coverage for multiple web-client components
+
+- **Severity:** P2 . **Effort:** L . **Category:** test-quality
+- No render tests: ErrorBoundary, Header, MockChatBox, PreferencesWizard (container), BookingConfirmation
+- No test files: Footer, GoogleIcon, VibeLensBar
+
+### [CQS-22] `userPreferences` route uses per-route `requireAuth` instead of `router.use()`
+
+- **Severity:** P2 . **Effort:** S . **Category:** consistency
+- Error-prone when adding routes. `trips.ts` uses `router.use(requireAuth)`.
+
+### [CQS-23] `CircuitBreaker` allows concurrent probes in half-open state
+
+- **Severity:** P2 . **Effort:** S . **Category:** bug
+- Two simultaneous requests can both pass through when cooldown expires
+
+### [CQS-24] `register/page.tsx` wizard close always redirects to `/trips/new`
+
+- **Severity:** P2 . **Effort:** S . **Category:** bug
+- User who cancels preferences wizard is still routed to start a new trip
+
+### [CQS-25] `faq/page.tsx` uses `dangerouslySetInnerHTML` for JSON-LD
+
+- **Severity:** P2 . **Effort:** S . **Category:** security
+- Static content now, but future dynamic content would introduce XSS
+
+### [CQS-26] Commented-out Google OAuth blocks in login/register pages
+
+- **Severity:** P2 . **Effort:** S . **Category:** dead-code
+- Large commented-out blocks with `TODO`. Should be tracked and removed.
+
+### [CQS-27] `loginWithGoogle` throws "not yet implemented"
+
+- **Severity:** P2 . **Effort:** S . **Category:** dead-code
+- Exported in AuthContext but immediately throws. No tracking issue.
+
+### [CQS-28] `metrics.service.ts` largely unused instrumentation
+
+- **Severity:** P3 . **Effort:** S . **Category:** dead-code
+- `trackApiCall`, `trackRateLimit`, `trackCacheOperation` never called by the services that should use them
+
+### [CQS-29] `toolSchemas` export in `schemas.ts` is dead code
+
+- **Severity:** P3 . **Effort:** S . **Category:** dead-code
+- Never imported. Executor uses individual named schemas.
+
+### [CQS-30] `TripDetailsForm` trip_type field is dead state
+
+- **Severity:** P3 . **Effort:** S . **Category:** dead-code
+- Full rendering logic but `handleSubmit` never reads `values.trip_type`
+
+---
+
 ## 2026-04-06 audit run (P2 and P3 findings)
 
 ### Engineering (tech debt)

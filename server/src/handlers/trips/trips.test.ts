@@ -263,6 +263,48 @@ describe('trip handlers', () => {
       expect(res.body.message).toContain('after');
     });
 
+    it('accepts departure_date that is today (same-day trip)', async () => {
+      const todayStr = new Date().toISOString().split('T')[0] as string;
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        departure_date: todayStr,
+      });
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ departure_date: todayStr });
+
+      expect(res.status).toBe(200);
+    });
+
+    it('rejects departure_date that is yesterday', async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0] as string;
+
+      const res = await request(app)
+        .put(`/trips/${tripId}`)
+        .send({ departure_date: yesterdayStr });
+
+      expect(res.status).toBe(400);
+      expect(res.body.message).toContain('past');
+    });
+
+    it('accepts return_date equal to departure_date (same-day return)', async () => {
+      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+        ...mockTrip,
+        departure_date: '2026-09-01',
+        return_date: '2026-09-01',
+      });
+
+      const res = await request(app).put(`/trips/${tripId}`).send({
+        departure_date: '2026-09-01',
+        return_date: '2026-09-01',
+      });
+
+      expect(res.status).toBe(200);
+    });
+
     it('clears selections when destination changes on a trip with selections', async () => {
       const existingTrip = {
         ...mockTrip,

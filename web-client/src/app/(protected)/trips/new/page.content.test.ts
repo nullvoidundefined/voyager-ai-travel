@@ -26,4 +26,11 @@ describe('new trip page content', () => {
       /destination:\s*'New trip'|destination:\s*"New trip"/.test(newTripSource);
     expect(hasFallback).toBe(true);
   });
+
+  it('has a cleanup function that prevents acting after unmount', () => {
+    // The useEffect must return a cleanup function to guard against
+    // React Strict Mode double-invoke creating duplicate trips.
+    expect(newTripSource).toMatch(/return\s*\(\)\s*=>\s*\{/);
+    expect(newTripSource).toContain('aborted = true');
+  });
 });

@@ -16,7 +16,10 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T | undefined> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     credentials: 'include',
@@ -37,29 +40,32 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (res.status === 204) {
-    return undefined as T;
+    return undefined;
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 export function get<T>(path: string): Promise<T> {
-  return request<T>(path, { method: 'GET' });
+  return request<T>(path, { method: 'GET' }) as Promise<T>;
 }
 
 export function post<T>(path: string, body?: unknown): Promise<T> {
   return request<T>(path, {
     method: 'POST',
     body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  }) as Promise<T>;
 }
 
-export function put<T>(path: string, body?: unknown): Promise<T> {
+export function put<T = void>(
+  path: string,
+  body?: unknown,
+): Promise<T | undefined> {
   return request<T>(path, {
     method: 'PUT',
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
 }
 
-export function del<T>(path: string): Promise<T> {
+export function del<T = void>(path: string): Promise<T | undefined> {
   return request<T>(path, { method: 'DELETE' });
 }

@@ -7,6 +7,8 @@ vi.mock('app/utils/logs/logger.js', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+const mockIncrementMonthlyUsage = vi.fn();
+
 let serpApiService: typeof import('app/services/serpapi.service.js');
 
 describe('serpapi.service', () => {
@@ -16,6 +18,11 @@ describe('serpapi.service', () => {
 
     vi.doMock('app/utils/logs/logger.js', () => ({
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+    }));
+
+    vi.doMock('app/services/serpApiQuota.service.js', () => ({
+      incrementMonthlyUsage: mockIncrementMonthlyUsage,
+      isOverMonthlyCap: vi.fn().mockResolvedValue(false),
     }));
 
     process.env.SERPAPI_API_KEY = 'test-serpapi-key';
@@ -103,6 +110,36 @@ describe('serpapi.service', () => {
 
       const url = mockFetch.mock.calls[0]![0] as string;
       expect(url).not.toContain('return_date');
+    });
+
+    it('does not increment quota when response.json() throws', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => {
+          throw new Error('Invalid JSON');
+        },
+      });
+
+      await expect(
+        serpApiService.serpApiGet('google_flights', {
+          departure_id: 'SFO',
+        }),
+      ).rejects.toThrow('Invalid JSON');
+
+      expect(mockIncrementMonthlyUsage).not.toHaveBeenCalled();
+    });
+
+    it('increments quota after successful response parse', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ best_flights: [] }),
+      });
+
+      await serpApiService.serpApiGet('google_flights', {
+        departure_id: 'SFO',
+      });
+
+      expect(mockIncrementMonthlyUsage).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -91,7 +91,13 @@ export default function LoginPage() {
           </label>
 
           <div className={styles.forgotLink}>
-            <Link href='/login'>Forgot password?</Link>
+            <button
+              type='button'
+              className={styles.forgotButton}
+              onClick={() => setToast('Password reset is coming soon.')}
+            >
+              Forgot password?
+            </button>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}

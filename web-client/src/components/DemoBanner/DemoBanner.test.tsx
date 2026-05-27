@@ -19,11 +19,11 @@ describe('DemoBanner', () => {
     ).toBeInTheDocument();
   });
 
-  it('links to the engineering audit for curious viewers', () => {
+  it('does not contain a dead link to a repo-internal path', () => {
     render(<DemoBanner />);
-    const link = screen.getByRole('link', { name: /engineering audit/i });
-    expect(link).toBeInTheDocument();
-    expect(link.getAttribute('href')).toContain('/docs/audits/');
+    expect(
+      screen.queryByRole('link', { name: /engineering audit/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('is marked as a complementary landmark for screen readers', () => {

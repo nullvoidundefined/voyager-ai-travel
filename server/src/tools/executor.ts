@@ -133,7 +133,10 @@ export async function executeTool(
       );
       return updated
         ? { success: true, message: 'Trip updated successfully' }
-        : { success: false, message: 'No fields to update' };
+        : {
+            error:
+              'Failed to update trip: no fields to update or trip not found.',
+          };
     }
 
     case 'search_car_rentals': {

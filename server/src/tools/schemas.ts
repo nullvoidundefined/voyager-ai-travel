@@ -82,8 +82,8 @@ export const searchCarRentalsSchema = z.object({
 export const selectFlightSchema = z.object({
   airline: z.string().min(1),
   flight_number: z.string().min(1),
-  origin: z.string().min(1),
-  destination: z.string().min(1),
+  origin: locationAllowlist,
+  destination: locationAllowlist,
   departure_time: z.string().optional(),
   arrival_time: z.string().optional(),
   price: z.number(),
@@ -92,7 +92,7 @@ export const selectFlightSchema = z.object({
 
 export const selectHotelSchema = z.object({
   name: z.string().min(1),
-  city: z.string().optional(),
+  city: locationAllowlist.optional(),
   star_rating: z.number().optional(),
   price_per_night: z.number(),
   total_price: z.number(),

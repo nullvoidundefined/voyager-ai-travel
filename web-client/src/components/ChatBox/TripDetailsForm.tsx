@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 import styles from './TripDetailsForm.module.scss';
 
@@ -23,6 +23,7 @@ interface TripDetailsFormProps {
     structuredData: Record<string, string>,
     displayMessage: string,
   ) => void;
+  onValuesChange?: (values: Record<string, string>) => void;
   disabled?: boolean;
   initialValues?: Record<string, string>;
   submitted?: boolean;
@@ -31,6 +32,7 @@ interface TripDetailsFormProps {
 export function TripDetailsForm({
   fields,
   onSubmit,
+  onValuesChange,
   disabled,
   initialValues,
   submitted,
@@ -38,6 +40,10 @@ export function TripDetailsForm({
   const [values, setValues] = useState<Record<string, string>>(
     initialValues ?? {},
   );
+
+  useEffect(() => {
+    onValuesChange?.(values);
+  }, [values, onValuesChange]);
 
   const isLocked = submitted || false;
 

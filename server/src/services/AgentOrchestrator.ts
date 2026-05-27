@@ -267,6 +267,26 @@ export class AgentOrchestrator {
         }
 
         conversationMessages.push({ role: 'user', content: toolResults });
+      } else {
+        // Unexpected stop_reason (e.g. 'max_tokens'). Break the loop
+        // to avoid burning API calls for the remaining timeout window.
+        logger.warn(
+          { stop_reason: response.stop_reason, iterations, tokensUsed },
+          'Agent loop terminated on unexpected stop_reason',
+        );
+        const textBlock = response.content.find(
+          (block): block is Anthropic.TextBlock => block.type === 'text',
+        );
+        return {
+          response:
+            textBlock?.text ||
+            `The response was cut short (${response.stop_reason}). Please send another message to continue.`,
+          toolCallsUsed: toolCalls,
+          tokensUsed,
+          iterations,
+          nodes: collectedNodes,
+          formatResponse: formatResponseData,
+        };
       }
     }
   }

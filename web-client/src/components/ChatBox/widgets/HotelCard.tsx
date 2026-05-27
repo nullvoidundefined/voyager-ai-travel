@@ -42,6 +42,7 @@ export function HotelCard({
       type='button'
       className={`${styles.card} ${selected ? styles.selected : ''}`}
       aria-pressed={selected}
+      aria-label={`${name} in ${city}, ${formatCurrency(pricePerNight, currency)} per night, ${formatCurrency(totalPrice, currency)} total`}
       data-tile-card='hotel'
       onClick={onClick}
     >

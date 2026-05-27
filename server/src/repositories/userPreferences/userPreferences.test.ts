@@ -84,15 +84,13 @@ describe('userPreferences repository', () => {
   });
 
   describe('upsert', () => {
-    it('merges partial preferences with existing and returns normalized result', async () => {
+    it('uses atomic JSONB merge and returns normalized result', async () => {
       const partial: Partial<UserPreferences> = {
         accommodation: 'budget',
         completed_steps: ['accommodation'],
       };
 
-      // First call: findByUserId (returns existing prefs)
-      mockQuery.mockResolvedValueOnce(mockResult([dbRow]));
-      // Second call: the INSERT ... ON CONFLICT (returns updated row)
+      // Single call: the atomic INSERT ... ON CONFLICT with JSONB merge
       const updatedRow = {
         ...dbRow,
         preferences: {
@@ -107,23 +105,27 @@ describe('userPreferences repository', () => {
 
       expect(result.accommodation).toBe('budget');
       expect(result.completed_steps).toEqual(['accommodation']);
+      // Only one query call (no separate findByUserId)
+      expect(mockQuery).toHaveBeenCalledTimes(1);
       expect(mockQuery).toHaveBeenCalledWith(
         expect.stringContaining('ON CONFLICT (user_id)'),
         expect.arrayContaining([userId]),
       );
     });
 
-    it('handles upsert when no existing preferences (new user)', async () => {
+    it('SQL uses atomic JSONB merge operator (user_preferences.preferences ||)', async () => {
+      const partial: Partial<UserPreferences> = { accommodation: 'upscale' };
+      mockQuery.mockResolvedValueOnce(mockResult([dbRow]));
+
+      await prefsRepo.upsert(userId, partial);
+
+      const sql = mockQuery.mock.calls[0]![0] as string;
+      expect(sql).toContain('user_preferences.preferences || $2');
+    });
+
+    it('handles upsert for a new user (no existing row)', async () => {
       const partial: Partial<UserPreferences> = { accommodation: 'upscale' };
 
-      // First call: findByUserId returns null (no existing row)
-      mockQuery.mockResolvedValueOnce(mockResult([]));
-      // Second call: INSERT returns the new row
-      const newRow = {
-        ...dbRow,
-        preferences: { version: 1, accommodation: 'upscale' },
-      };
-      // normalizePreferences fills in defaults, so the DB row just needs version + accommodation
       const normalizedNew: UserPreferences = {
         schema_version: 1,
         accommodation: 'upscale',
@@ -137,13 +139,17 @@ describe('userPreferences repository', () => {
         lgbtq_safety: false,
         gender: null,
       };
-      mockQuery.mockResolvedValueOnce(
-        mockResult([{ ...newRow, preferences: normalizedNew }]),
-      );
+      const newRow = {
+        ...dbRow,
+        preferences: normalizedNew,
+      };
+      mockQuery.mockResolvedValueOnce(mockResult([newRow]));
 
       const result = await prefsRepo.upsert(userId, partial);
 
       expect(result.accommodation).toBe('upscale');
+      // Only one query call (atomic upsert, no read)
+      expect(mockQuery).toHaveBeenCalledTimes(1);
     });
   });
 

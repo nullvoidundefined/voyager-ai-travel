@@ -22,15 +22,24 @@ export default function NewTripPage() {
       return;
     }
     creating.current = true;
+    let aborted = false;
 
     post<{ trip: Trip }>('/trips', { destination: 'New trip' })
       .then(({ trip }) => {
-        router.replace(`/trips/${trip.id}`);
+        if (!aborted) {
+          router.replace(`/trips/${trip.id}`);
+        }
       })
       .catch(() => {
-        setError('Failed to start a new trip. Please try again.');
-        creating.current = false;
+        if (!aborted) {
+          setError('Failed to start a new trip. Please try again.');
+          creating.current = false;
+        }
       });
+
+    return () => {
+      aborted = true;
+    };
   }, [router]);
 
   if (error) {

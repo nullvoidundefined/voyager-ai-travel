@@ -233,6 +233,24 @@ describe('executeTool', () => {
     });
   });
 
+  describe('update_trip failure response', () => {
+    it('returns error field when updateTrip returns null', async () => {
+      const { updateTrip } = await import('app/repositories/trips/trips.js');
+      vi.mocked(updateTrip).mockResolvedValueOnce(null);
+
+      const result = await executeTool(
+        'update_trip',
+        { destination: 'Paris' },
+        ctx,
+      );
+
+      expect(result).toHaveProperty('error');
+      expect((result as { error: string }).error).toContain(
+        'Failed to update trip',
+      );
+    });
+  });
+
   describe('routing', () => {
     it('throws on unknown tool name', async () => {
       await expect(executeTool('nonexistent_tool', {})).rejects.toThrow(

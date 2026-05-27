@@ -77,11 +77,15 @@ export async function serpApiGet(
       throw new Error(`SerpApi error: ${response.status} ${text}`);
     }
 
+    const data: unknown = await response.json();
+
     // FIN-02: only increment the counter on a successful non-cached
     // response. Cache hits in the tool layer do not touch the real
     // SerpApi endpoint, so they should not count against the cap.
+    // Increment AFTER parsing succeeds so a failed parse does not
+    // consume quota.
     void incrementMonthlyUsage();
 
-    return response.json();
+    return data;
   });
 }

@@ -37,4 +37,11 @@ describe('useSSEChat error handling', () => {
   it('exposes a clearError function for retry flows', () => {
     expect(hookSource).toMatch(/clearError/);
   });
+
+  it('guards JSON.parse against malformed SSE data', () => {
+    // JSON.parse of SSE data must be wrapped in its own try/catch
+    // so that a malformed line does not trigger the misleading
+    // "Could not reach the agent" error from the outer catch.
+    expect(hookSource).toMatch(/try\s*\{[\s\S]*?JSON\.parse[\s\S]*?\}\s*catch/);
+  });
 });

@@ -28,16 +28,17 @@ export async function upsert(
   userId: string,
   preferences: Partial<UserPreferences>,
 ): Promise<UserPreferences> {
-  // Merge with existing preferences
-  const existing = await findByUserId(userId);
-  const merged = { ...(existing ?? {}), ...preferences };
-
+  // Atomic JSONB merge at the DB level eliminates the read-then-write
+  // race condition that existed when we did findByUserId + spread merge
+  // in application code.
   const result = await query<UserPreferencesRow>(
     `INSERT INTO user_preferences (user_id, preferences)
      VALUES ($1, $2)
-     ON CONFLICT (user_id) DO UPDATE SET preferences = $2, updated_at = NOW()
+     ON CONFLICT (user_id) DO UPDATE
+       SET preferences = user_preferences.preferences || $2,
+           updated_at = NOW()
      RETURNING *`,
-    [userId, JSON.stringify(merged)],
+    [userId, JSON.stringify(preferences)],
   );
   const row = result.rows[0];
   if (!row) throw new Error('Failed to upsert preferences');

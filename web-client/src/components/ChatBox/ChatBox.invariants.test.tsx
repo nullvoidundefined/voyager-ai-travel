@@ -1,5 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import type { ChatMessage } from '@voyager/shared-types';
+import fs from 'node:fs';
+import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { VirtualizedChat } from './VirtualizedChat';
@@ -87,9 +89,8 @@ describe('ChatBox invariants', () => {
           type: 'flight_tiles',
           flights: [
             {
-              offer_id: 'F1',
+              id: 'F1',
               airline: 'Delta',
-              airline_logo: null,
               flight_number: 'DL100',
               origin: 'DEN',
               destination: 'SFO',
@@ -98,7 +99,6 @@ describe('ChatBox invariants', () => {
               price: 300,
               currency: 'USD',
               cabin_class: 'ECONOMY',
-              segments: [],
             },
           ],
           selectable: true,
@@ -402,6 +402,16 @@ describe('ChatBox invariants', () => {
       expect(
         screen.getByRole('button', { name: 'Book now' }),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('invariant 9: ChatBox does not use document.getElementById for form values', () => {
+    it('ChatBox.tsx source must not contain document.getElementById (P0 DOM-scraping regression guard)', () => {
+      const chatBoxSource = fs.readFileSync(
+        path.resolve(__dirname, 'ChatBox.tsx'),
+        'utf-8',
+      );
+      expect(chatBoxSource).not.toContain('document.getElementById');
     });
   });
 

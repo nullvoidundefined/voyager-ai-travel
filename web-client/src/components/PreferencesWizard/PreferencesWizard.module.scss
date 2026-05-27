@@ -406,3 +406,12 @@
     border-color: var(--cta);
   }
 }
+
+/* Save error */
+
+.saveError {
+  font-size: 13px;
+  color: var(--danger);
+  text-align: center;
+  margin-top: 12px;
+}

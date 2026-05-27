@@ -3,6 +3,8 @@ import {
   searchExperiencesSchema,
   searchFlightsSchema,
   searchHotelsSchema,
+  selectFlightSchema,
+  selectHotelSchema,
 } from 'app/tools/schemas.js';
 import { describe, expect, it } from 'vitest';
 
@@ -138,4 +140,77 @@ describe('searchCarRentalsSchema pickup_location allowlist', () => {
       expect(result.success).toBe(false);
     });
   }
+});
+
+describe('selectFlightSchema origin/destination allowlist', () => {
+  const baseValid = {
+    airline: 'Delta',
+    flight_number: 'DL100',
+    price: 450,
+    currency: 'USD',
+  };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects origin=${JSON.stringify(bad).slice(0, 60)}`, () => {
+      const result = selectFlightSchema.safeParse({
+        ...baseValid,
+        origin: bad,
+        destination: 'Paris',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it(`rejects destination=${JSON.stringify(bad).slice(0, 60)}`, () => {
+      const result = selectFlightSchema.safeParse({
+        ...baseValid,
+        origin: 'JFK',
+        destination: bad,
+      });
+      expect(result.success).toBe(false);
+    });
+  }
+
+  for (const good of GOOD_INPUTS) {
+    it(`accepts origin=${good}`, () => {
+      const result = selectFlightSchema.safeParse({
+        ...baseValid,
+        origin: good,
+        destination: 'Paris',
+      });
+      expect(result.success).toBe(true);
+    });
+  }
+});
+
+describe('selectHotelSchema city allowlist', () => {
+  const baseValid = {
+    name: 'Hotel Arts',
+    price_per_night: 200,
+    total_price: 1000,
+    currency: 'USD',
+  };
+
+  for (const bad of BAD_INPUTS) {
+    it(`rejects city=${JSON.stringify(bad).slice(0, 60)}`, () => {
+      const result = selectHotelSchema.safeParse({
+        ...baseValid,
+        city: bad,
+      });
+      // Empty string gets rejected by min(1); other bad inputs rejected by regex
+      expect(result.success).toBe(false);
+    });
+  }
+
+  it('accepts valid city', () => {
+    const result = selectHotelSchema.safeParse({
+      ...baseValid,
+      city: 'Barcelona',
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts omitted city (optional)', () => {
+    const result = selectHotelSchema.safeParse(baseValid);
+    expect(result.success).toBe(true);
+  });
 });

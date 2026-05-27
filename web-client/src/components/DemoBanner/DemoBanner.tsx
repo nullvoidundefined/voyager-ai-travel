@@ -5,8 +5,7 @@ import styles from './DemoBanner.module.scss';
  *
  * Voyager is a technical demonstration of an agentic AI travel planning
  * pattern, not a commercial booking service. This banner makes that clear
- * to any viewer at first glance and links to the engineering audit for
- * curious reviewers.
+ * to any viewer at first glance.
  */
 export function DemoBanner() {
   return (
@@ -21,12 +20,6 @@ export function DemoBanner() {
           This is a technical demonstration of an agentic AI travel planning
           pattern, not a commercial booking service.
         </span>
-        <a
-          href='/docs/audits/2026-04-06-engineering.md'
-          className={styles.link}
-        >
-          Read the engineering audit
-        </a>
       </div>
     </aside>
   );

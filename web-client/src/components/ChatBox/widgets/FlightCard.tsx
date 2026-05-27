@@ -34,6 +34,7 @@ export function FlightCard({
       type='button'
       className={`${styles.card} ${selected ? styles.selected : ''}`}
       aria-pressed={selected}
+      aria-label={`${airline} flight ${flightNumber}, ${origin} to ${destination}, ${formatCurrency(price, currency)}`}
       data-tile-card='flight'
       onClick={onClick}
     >

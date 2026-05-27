@@ -8,6 +8,7 @@ import {
   insertTripExperience,
   insertTripFlight,
   insertTripHotel,
+  updateTrip,
 } from './trips.js';
 
 vi.mock('app/db/pool/pool.js', () => ({
@@ -133,5 +134,89 @@ describe('insertTripSelection functions', () => {
     expect(mockQuery).toHaveBeenCalledOnce();
     const sql = mockQuery.mock.calls[0]![0] as string;
     expect(sql).toContain('INSERT INTO trip_experiences');
+  });
+});
+
+describe('updateTrip column allowlist', () => {
+  const tripId = 'trip-789';
+  const userId = 'user-abc';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockQuery.mockResolvedValue({
+      rows: [{ id: tripId, user_id: userId, destination: 'Paris' }],
+      rowCount: 1,
+    } as never);
+  });
+
+  it('should reject keys not in the UpdateTripInput allowlist', async () => {
+    await updateTrip(tripId, userId, {
+      destination: 'Paris',
+      user_id: 'attacker',
+    } as never);
+
+    expect(mockQuery).toHaveBeenCalledOnce();
+    const sql = mockQuery.mock.calls[0]![0] as string;
+    // Extract the SET clause only (between SET and WHERE)
+    const setClause = sql.slice(sql.indexOf('SET'), sql.indexOf('WHERE'));
+    expect(setClause).not.toContain('user_id');
+    expect(setClause).toContain('destination');
+  });
+
+  it('should include only allowed columns in SET clause', async () => {
+    await updateTrip(tripId, userId, {
+      destination: 'Tokyo',
+      status: 'saved',
+      id: 'injected-id',
+      created_at: '2020-01-01',
+    } as never);
+
+    expect(mockQuery).toHaveBeenCalledOnce();
+    const sql = mockQuery.mock.calls[0]![0] as string;
+    // Extract the SET clause only (between SET and WHERE)
+    const setClause = sql.slice(sql.indexOf('SET'), sql.indexOf('WHERE'));
+    expect(setClause).toContain('destination');
+    expect(setClause).toContain('status');
+    expect(setClause).not.toContain('id =');
+    expect(setClause).not.toContain('created_at');
+    // Only 2 allowed columns should produce $1 and $2 params in SET
+    const values = mockQuery.mock.calls[0]![1] as unknown[];
+    expect(values).toHaveLength(4); // 2 SET values + tripId + userId
+  });
+
+  it('should return null when all keys are disallowed', async () => {
+    const result = await updateTrip(tripId, userId, {
+      id: 'injected',
+      created_at: '2020-01-01',
+    } as never);
+
+    expect(result).toBeNull();
+    expect(mockQuery).not.toHaveBeenCalled();
+  });
+
+  it('should accept all valid UpdateTripInput fields', async () => {
+    await updateTrip(tripId, userId, {
+      destination: 'Berlin',
+      origin: 'NYC',
+      departure_date: '2026-07-01',
+      return_date: '2026-07-10',
+      budget_total: 3000,
+      travelers: 2,
+      transport_mode: 'flying',
+      trip_type: 'round_trip',
+      status: 'planning',
+    });
+
+    expect(mockQuery).toHaveBeenCalledOnce();
+    const sql = mockQuery.mock.calls[0]![0] as string;
+    expect(sql).toContain('destination');
+    expect(sql).toContain('origin');
+    expect(sql).toContain('departure_date');
+    expect(sql).toContain('return_date');
+    expect(sql).toContain('budget_total');
+    expect(sql).toContain('travelers');
+    expect(sql).toContain('transport_mode');
+    expect(sql).toContain('trip_type');
+    expect(sql).toContain('status');
   });
 });

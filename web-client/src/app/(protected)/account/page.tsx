@@ -101,7 +101,8 @@ export default function AccountPage() {
         <div className={styles.card}>
           <div className={styles.prefHeader}>
             <span className={styles.prefCompletion}>
-              {completedCount} of 6 categories completed
+              {completedCount} of {PREFERENCE_CATEGORIES.length} categories
+              completed
             </span>
             <button
               type='button'

@@ -131,7 +131,13 @@ export function useSSEChat({
             if (line.startsWith('event: ')) {
               eventType = line.slice(7);
             } else if (line.startsWith('data: ')) {
-              const event = JSON.parse(line.slice(6)) as SSEEvent;
+              let event: SSEEvent;
+              try {
+                event = JSON.parse(line.slice(6)) as SSEEvent;
+              } catch {
+                console.warn('Skipping malformed SSE data:', line.slice(6));
+                continue;
+              }
               // Attach the event type from the SSE envelope if not in the payload
               if (!event.type) {
                 (event as Record<string, unknown>).type = eventType;

@@ -34,6 +34,19 @@ function makeTextResponse(text: string, inputTokens = 10, outputTokens = 20) {
   };
 }
 
+function makeUnexpectedStopResponse(
+  stopReason: string,
+  text = '',
+  inputTokens = 10,
+  outputTokens = 20,
+) {
+  return {
+    content: text ? [{ type: 'text' as const, text }] : [],
+    stop_reason: stopReason,
+    usage: { input_tokens: inputTokens, output_tokens: outputTokens },
+  };
+}
+
 function makeToolUseResponse(
   tools: { id: string; name: string; input: Record<string, unknown> }[],
   inputTokens = 15,
@@ -458,5 +471,43 @@ describe('AgentOrchestrator', () => {
 
     expect(builder).toHaveBeenCalledWith({ destination: 'Paris' }, 'extra');
     expect(mockStream.mock.calls[0]![0].system).toBe('Built prompt');
+  });
+
+  // -----------------------------------------------------------------------
+  // Unexpected stop_reason (e.g. max_tokens) -- loop terminates
+  // -----------------------------------------------------------------------
+  it('breaks the loop on unexpected stop_reason like max_tokens', async () => {
+    streamMock.mockReturnValueOnce(
+      createMockStream(
+        makeUnexpectedStopResponse('max_tokens', 'Partial response...'),
+      ),
+    );
+
+    const orchestrator = new AgentOrchestrator(config);
+    const result = await orchestrator.run(
+      [{ role: 'user', content: 'Go' }],
+      [],
+    );
+
+    // Loop should terminate after 1 iteration, not spin until timeout
+    expect(result.iterations).toBe(1);
+    expect(result.response).toBe('Partial response...');
+    expect(streamMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns fallback message when unexpected stop_reason has no text', async () => {
+    streamMock.mockReturnValueOnce(
+      createMockStream(makeUnexpectedStopResponse('max_tokens')),
+    );
+
+    const orchestrator = new AgentOrchestrator(config);
+    const result = await orchestrator.run(
+      [{ role: 'user', content: 'Go' }],
+      [],
+    );
+
+    expect(result.iterations).toBe(1);
+    expect(result.response).toContain('max_tokens');
+    expect(result.response).toContain('cut short');
   });
 });

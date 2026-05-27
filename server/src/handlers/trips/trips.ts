@@ -83,14 +83,15 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
   if (status !== undefined) input.status = status;
 
   if (departure_date !== undefined) {
-    const today = new Date().toISOString().split('T')[0] as string;
-    if (departure_date < today) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (new Date(departure_date) < today) {
       throw ApiError.badRequest('Departure date cannot be in the past');
     }
   }
 
   if (return_date !== undefined && departure_date !== undefined) {
-    if (return_date < departure_date) {
+    if (new Date(return_date) < new Date(departure_date)) {
       throw ApiError.badRequest('Return date must be after departure date');
     }
   }

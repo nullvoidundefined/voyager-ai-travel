@@ -35,6 +35,7 @@ export function PreferencesWizard({
   const queryClient = useQueryClient();
   const overlayRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Determine first unanswered step
   const firstUnanswered = useMemo(() => {
@@ -156,11 +157,16 @@ export function PreferencesWizard({
   ]);
 
   async function handleNext() {
-    await saveCurrentStep();
-    if (isLastStep) {
-      onClose();
-    } else {
-      setCurrentStepIndex((i) => i + 1);
+    setSaveError(null);
+    try {
+      await saveCurrentStep();
+      if (isLastStep) {
+        onClose();
+      } else {
+        setCurrentStepIndex((i) => i + 1);
+      }
+    } catch {
+      setSaveError('Failed to save your preferences. Please try again.');
     }
   }
 
@@ -280,6 +286,8 @@ export function PreferencesWizard({
             onChange={setBudgetComfort}
           />
         )}
+
+        {saveError && <p className={styles.saveError}>{saveError}</p>}
 
         {/* Navigation */}
         <div className={styles.buttons}>

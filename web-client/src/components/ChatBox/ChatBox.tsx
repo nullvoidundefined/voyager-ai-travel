@@ -35,6 +35,14 @@ export function ChatBox({
   const [pendingUserMessage, setPendingUserMessage] =
     useState<ChatMessage | null>(null);
   const skipFormAutoSave = useRef(false);
+  const formValuesRef = useRef<Record<string, string>>({});
+
+  const handleFormValuesChange = useCallback(
+    (values: Record<string, string>) => {
+      formValuesRef.current = values;
+    },
+    [],
+  );
 
   const { data: serverMessages } = useQuery({
     queryKey: ['messages', tripId],
@@ -101,26 +109,17 @@ export function ChatBox({
       // Auto-save any form data that hasn't been submitted yet.
       // If the user typed in the chat input while the trip details form has values,
       // we treat that data as canonical and persist it before sending the message.
+      // Values are kept in sync via a ref callback from TripDetailsForm.
       if (!skipFormAutoSave.current) {
+        const vals = formValuesRef.current;
         const formData: Record<string, unknown> = {};
-        const formFields = [
-          { id: 'destination', key: 'destination' },
-          { id: 'origin', key: 'origin' },
-          { id: 'departure_date', key: 'departure_date' },
-          { id: 'return_date', key: 'return_date' },
-          { id: 'budget', key: 'budget_total', transform: Number },
-          { id: 'travelers', key: 'travelers', transform: Number },
-        ] as const;
-
-        for (const field of formFields) {
-          const el = document.getElementById(
-            field.id,
-          ) as HTMLInputElement | null;
-          if (el?.value?.trim()) {
-            formData[field.key] =
-              'transform' in field ? field.transform(el.value) : el.value;
-          }
-        }
+        if (vals.destination?.trim()) formData.destination = vals.destination;
+        if (vals.origin?.trim()) formData.origin = vals.origin;
+        if (vals.departure_date?.trim())
+          formData.departure_date = vals.departure_date;
+        if (vals.return_date?.trim()) formData.return_date = vals.return_date;
+        if (vals.budget?.trim()) formData.budget_total = Number(vals.budget);
+        if (vals.travelers?.trim()) formData.travelers = Number(vals.travelers);
 
         if (Object.keys(formData).length > 0) {
           put(`/trips/${tripId}`, formData).catch((err) =>
@@ -231,6 +230,7 @@ export function ChatBox({
         onQuickReply={handleSend}
         onSelectItem={handleSelectItem}
         onFormSubmit={handleFormSubmit}
+        onFormValuesChange={handleFormValuesChange}
         onBookNow={handleBookTrip}
       />
 

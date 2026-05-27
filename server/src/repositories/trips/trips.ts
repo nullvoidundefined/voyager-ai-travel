@@ -95,6 +95,18 @@ export interface UpdateTripInput {
   status?: 'planning' | 'saved' | 'archived';
 }
 
+const UPDATE_TRIP_ALLOWED_COLUMNS: ReadonlySet<string> = new Set([
+  'destination',
+  'origin',
+  'departure_date',
+  'return_date',
+  'budget_total',
+  'travelers',
+  'transport_mode',
+  'trip_type',
+  'status',
+]);
+
 export async function updateTrip(
   tripId: string,
   userId: string,
@@ -105,7 +117,7 @@ export async function updateTrip(
   let paramIndex = 1;
 
   for (const [key, value] of Object.entries(input)) {
-    if (value !== undefined) {
+    if (value !== undefined && UPDATE_TRIP_ALLOWED_COLUMNS.has(key)) {
       setClauses.push(`${key} = $${paramIndex}`);
       values.push(value);
       paramIndex++;
