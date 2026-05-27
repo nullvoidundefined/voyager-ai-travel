@@ -75,19 +75,19 @@ export default function Home() {
       {/* -- Hero (full-bleed, split editorial) -- */}
       <section className={styles.hero}>
         <div className={styles.heroLeft}>
-          <span className={styles.overline}>AI Travel Planner</span>
+          <span className={styles.overline}>Portfolio demo</span>
           <h1 className={styles.headline}>
-            Your next adventure{' '}
-            <em className={styles.headlineAccent}>awaits</em>
+            An agentic trip planner{' '}
+            <em className={styles.headlineAccent}>built with Claude</em>
           </h1>
           <p className={styles.heroBody}>
             Multi-step AI concierge that searches real flights, hotels, and
-            experiences within your budget. Plan a complete itinerary in
-            minutes.
+            experiences within your budget. Grounded in live API data from
+            SerpApi and Google Places.
           </p>
           <div className={styles.heroCtas}>
             <Link href='/register' className={styles.primaryCta}>
-              Start Planning
+              Try the chat demo
             </Link>
             <Link href='/explore' className={styles.secondaryCta}>
               Explore Destinations
