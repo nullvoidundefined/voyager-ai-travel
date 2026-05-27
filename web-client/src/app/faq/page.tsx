@@ -83,7 +83,7 @@ const FAQ_SECTIONS: { heading: string; items: FaqItem[] }[] = [
       {
         question: 'Can I delete my account and data?',
         answer:
-          'Yes. You can delete your account at any time from the Account page. This permanently removes all your trips, conversations, and personal data from our systems within 30 days.',
+          'Yes. To delete your account and associated data, email ian.greenough.developer@gmail.com. We will process your request within 30 days per GDPR requirements.',
       },
     ],
   },

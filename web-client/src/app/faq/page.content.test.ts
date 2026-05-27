@@ -36,4 +36,9 @@ describe('FAQ page content', () => {
   it('frames pricing honestly as a free demo without a commercial tier', () => {
     expect(faqSource).toContain('free to use');
   });
+
+  it('account deletion answer mentions email contact, not a self-serve Account page', () => {
+    expect(faqSource).toContain('ian.greenough.developer@gmail.com');
+    expect(faqSource).not.toContain('from the Account page');
+  });
 });
