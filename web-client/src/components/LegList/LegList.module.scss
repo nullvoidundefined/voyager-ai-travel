@@ -1,0 +1,50 @@
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.leg {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface, #fff);
+  border-radius: 8px;
+  border: 1px solid var(--border, #e0e0e0);
+}
+
+.route {
+  flex: 1;
+  font-weight: 600;
+  color: var(--ocean);
+}
+
+.date {
+  color: var(--sand);
+  font-size: 0.9rem;
+}
+
+.arrow {
+  color: var(--sand);
+}
+
+.removeBtn {
+  background: none;
+  border: none;
+  color: var(--sunset);
+  cursor: pointer;
+  font-size: 0.85rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.empty {
+  color: var(--sand);
+  font-size: 0.9rem;
+}
