@@ -1,6 +1,6 @@
 # Cloud Deployment Guide
 
-This guide covers deployment best practices for fullstack TypeScript applications using Railway (API/workers/Redis), PostgreSQL (Neon or Railway-managed), Vercel (frontend), and Cloudflare R2 (file storage).
+This guide covers deployment best practices for fullstack TypeScript applications using Railway (API/workers/Redis), PostgreSQL (Neon or Railway-managed), and Cloudflare R2 (file storage).
 
 ---
 
@@ -41,8 +41,8 @@ These are hard rules. No exceptions, no shortcuts to facilitate a deploy.
 ### CORS
 
 - **Never use `origin: '*'` with `credentials: true`** — this allows any site to make credentialed requests.
-- `CORS_ORIGIN` must always be set to the exact Vercel production URL in Railway. Using `localhost` in production is a misconfiguration.
-- Use the team-scoped stable URL (`{project-name}.vercel.app`) as the `CORS_ORIGIN` value — never a preview/hash URL.
+- `CORS_ORIGIN` must always be set to the exact frontend production URL. Using `localhost` in production is a misconfiguration.
+- Use the stable frontend URL as the `CORS_ORIGIN` value -- never a preview/hash URL.
 
 ---
 
@@ -147,24 +147,6 @@ Secrets are not fetched from the secret manager in local dev. Set values directl
 
 ---
 
-## Vercel (Frontend)
-
-### Deploying a Frontend
-
-```bash
-cd packages/web   # or web-client/
-vercel deploy --prod --yes
-```
-
-- Always deploy from the frontend package directory — never the repo root
-- Set `NEXT_PUBLIC_API_URL` in Vercel env vars (project settings) pointing to the Railway API service URL
-
-### Naming Convention
-
-The Vercel project name should match the app or repo name for consistency. If a project was created with a wrong name, rename it via the Vercel dashboard or REST API.
-
----
-
 ## Cloudflare R2 (Document / File Storage)
 
 All user-uploaded files and generated documents should be stored in Cloudflare R2 (or equivalent object storage), not on the Railway filesystem (which is ephemeral).
@@ -225,7 +207,7 @@ Before promoting a staging deploy to production:
 | Using the pooled DB URL for migrations              | Use the direct (non-pooled) URL for migrations only                      |
 | Setting API keys as Railway env vars                | Put them in a secret manager                                             |
 | `rejectUnauthorized: false` in db pool              | Always use the env-var-controlled pattern — see Security Rules above     |
-| `CORS_ORIGIN` pointing to `localhost` in production | Set `CORS_ORIGIN` to the Vercel stable URL before first deploy           |
+| `CORS_ORIGIN` pointing to `localhost` in production | Set `CORS_ORIGIN` to the frontend stable URL before first deploy         |
 | `CORS_ORIGIN` containing a preview hash URL         | Use the stable project alias, not a per-deployment hash URL              |
 
 ---
@@ -238,5 +220,5 @@ When the user reports "Failed to fetch" or a CORS error:
 2. **Do not test CORS with curl.** Curl does not enforce CORS — it will always succeed regardless of the server's CORS policy.
 3. **Common rejected origins:**
    - `http://localhost:3000` — local dev frontend hitting production API. Add to `CORS_ORIGIN`.
-   - Vercel deployment-specific URLs — the CORS config should allow these via regex pattern matching, not exact allowlist.
+   - Preview deployment URLs -- the CORS config should allow these via regex pattern matching, not exact allowlist.
 4. **Fix the `CORS_ORIGIN` env var**, then wait for the service to redeploy.

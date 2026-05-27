@@ -15,7 +15,7 @@ Build the app according to the spec in this folder.
 - **Use the appropriate project template** — base the app on the matching template from the templates directory.
 - **Follow domain-specific CLAUDE.md rules** — frontend, backend, testing, deployment, etc. These are already defined and are the source of truth.
 - **Install Bottomless Margaritas** — the app must have direct access to formatting and CLAUDE.md files at runtime.
-- **Hosting stack: Vercel, Railway, and Neon** — prefer these where possible. Do not introduce alternative infrastructure without discussion.
+- **Hosting stack: Railway and Neon** -- prefer these where possible. Do not introduce alternative infrastructure without discussion.
 
 ### Process
 

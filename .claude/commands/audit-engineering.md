@@ -25,13 +25,6 @@ Apply the canonical Engineering role to the Voyager codebase with these project-
 - **Docker & Railway build**: `Dockerfile.server` multi-stage effectiveness, image size, env var hygiene, `railway.toml` `dockerfilePath` correctness.
 - **E2E readiness**: per the canonical role's "Operational Basics" requirement: do E2E tests exist? Are they wired to any trigger (pre-push, CI, nightly)? Voyager currently has only minimal E2E coverage. `e2e/auth.spec.ts` and `e2e/navigation.spec.ts`. Flag the gap.
 
-**Project convention files (read before writing):**
-
-- `.claude/bottomlessmargaritas/CLAUDE-BACKEND.md`
-- `.claude/bottomlessmargaritas/CLAUDE-DATABASE.md`
-- `.claude/bottomlessmargaritas/CLAUDE-FRONTEND.md`
-- `.claude/bottomlessmargaritas/CLOUD-DEPLOYMENT.md`
-
 **Product documents:**
 
 - `docs/FULL_APPLICATION_SPEC.md`

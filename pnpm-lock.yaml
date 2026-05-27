@@ -16,12 +16,6 @@ importers:
       '@babel/eslint-parser':
         specifier: ^7.28.6
         version: 7.28.6(@babel/core@7.29.0)(eslint@9.39.4)
-      '@bottomlessmargaritas/claude-architecture-prompts':
-        specifier: ^2.1.0
-        version: 2.1.0
-      '@bottomlessmargaritas/formatting-configs':
-        specifier: ^2.2.2
-        version: 2.2.2(@babel/eslint-parser@7.28.6(@babel/core@7.29.0)(eslint@9.39.4))(@trivago/prettier-plugin-sort-imports@4.3.0(prettier@3.8.1))(@typescript-eslint/parser@8.57.2(eslint@9.39.4)(typescript@5.9.3))(eslint-config-prettier@10.1.8(eslint@9.39.4))(eslint-plugin-jsx-a11y@6.10.2(eslint@9.39.4))(eslint-plugin-react-hooks@5.2.0(eslint@9.39.4))(eslint-plugin-react@7.37.5(eslint@9.39.4))(eslint-plugin-security@3.0.1)(eslint-plugin-unused-imports@4.4.1(@typescript-eslint/eslint-plugin@8.57.2(@typescript-eslint/parser@8.57.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4)(globals@15.15.0)(prettier@3.8.1)(typescript-eslint@8.57.2(eslint@9.39.4)(typescript@5.9.3))
       '@trivago/prettier-plugin-sort-imports':
         specifier: ^4
         version: 4.3.0(prettier@3.8.1)
@@ -234,12 +228,6 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.13.23
         version: 3.13.23(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@vercel/analytics':
-        specifier: ^1
-        version: 1.6.1(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0))(react@19.2.4)
-      '@vercel/speed-insights':
-        specifier: ^2.0.0
-        version: 2.0.0(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0))(react@19.2.4)
       '@voyager/shared-types':
         specifier: workspace:*
         version: link:../packages/shared-types
@@ -491,39 +479,6 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
-
-  '@bottomlessmargaritas/claude-architecture-prompts@2.1.0':
-    resolution: {integrity: sha512-PFYlYE6heyYZDdfqYtbu+q6V3sUNUpRgze8NmF4Lv8eHQsky3HL2s1+kWDgh7EBu4yUPQBa85rCRsP8HArvosQ==}
-    engines: {node: '>=18'}
-    hasBin: true
-
-  '@bottomlessmargaritas/formatting-configs@2.2.2':
-    resolution: {integrity: sha512-azd0u39HgRIwTSDMaP5SwwLyO9hY2u3RERVWjWtx4GagtFufq0c1myqyg7qGcAyH6Piur7Jm/sPC+WIn/YZl/g==}
-    engines: {node: '>=18'}
-    hasBin: true
-    peerDependencies:
-      '@babel/eslint-parser': '>=7'
-      '@trivago/prettier-plugin-sort-imports': '>=4'
-      '@typescript-eslint/parser': '>=8'
-      eslint: '>=9 <10'
-      eslint-config-prettier: '>=10'
-      eslint-plugin-jsx-a11y: '>=6'
-      eslint-plugin-react: '>=7'
-      eslint-plugin-react-hooks: '>=5'
-      eslint-plugin-security: '>=3'
-      eslint-plugin-unused-imports: '>=4'
-      globals: '>=15'
-      prettier: '>=3'
-      typescript-eslint: '>=8'
-    peerDependenciesMeta:
-      '@babel/eslint-parser':
-        optional: true
-      eslint-plugin-jsx-a11y:
-        optional: true
-      eslint-plugin-react:
-        optional: true
-      eslint-plugin-react-hooks:
-        optional: true
 
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
@@ -1857,58 +1812,6 @@ packages:
     resolution: {integrity: sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==}
     cpu: [x64]
     os: [win32]
-
-  '@vercel/analytics@1.6.1':
-    resolution: {integrity: sha512-oH9He/bEM+6oKlv3chWuOOcp8Y6fo6/PSro8hEkgCW3pu9/OiCXiUpRUogDh3Fs3LH2sosDrx8CxeOLBEE+afg==}
-    peerDependencies:
-      '@remix-run/react': ^2
-      '@sveltejs/kit': ^1 || ^2
-      next: '>= 13'
-      react: ^18 || ^19 || ^19.0.0-rc
-      svelte: '>= 4'
-      vue: ^3
-      vue-router: ^4
-    peerDependenciesMeta:
-      '@remix-run/react':
-        optional: true
-      '@sveltejs/kit':
-        optional: true
-      next:
-        optional: true
-      react:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
-      vue-router:
-        optional: true
-
-  '@vercel/speed-insights@2.0.0':
-    resolution: {integrity: sha512-jwkNcrTeafWxjmWq4AHBaptSqZiJkYU5adLC9QBSqeim0GcqDMgN5Ievh8OG1rJ6W3A4l1oiP7qr9CWxGuzu3w==}
-    peerDependencies:
-      '@sveltejs/kit': ^1 || ^2
-      next: '>= 13'
-      nuxt: '>= 3'
-      react: ^18 || ^19 || ^19.0.0-rc
-      svelte: '>= 4'
-      vue: ^3
-      vue-router: ^4
-    peerDependenciesMeta:
-      '@sveltejs/kit':
-        optional: true
-      next:
-        optional: true
-      nuxt:
-        optional: true
-      react:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
-      vue-router:
-        optional: true
 
   '@vitejs/plugin-react@6.0.1':
     resolution: {integrity: sha512-l9X/E3cDb+xY3SWzlG1MOGt2usfEHGMNIaegaUGFsLkb3RCn/k8/TOXBcab+OndDI4TBtktT8/9BwwW8Vi9KUQ==}
@@ -4948,25 +4851,6 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@bottomlessmargaritas/claude-architecture-prompts@2.1.0': {}
-
-  '@bottomlessmargaritas/formatting-configs@2.2.2(@babel/eslint-parser@7.28.6(@babel/core@7.29.0)(eslint@9.39.4))(@trivago/prettier-plugin-sort-imports@4.3.0(prettier@3.8.1))(@typescript-eslint/parser@8.57.2(eslint@9.39.4)(typescript@5.9.3))(eslint-config-prettier@10.1.8(eslint@9.39.4))(eslint-plugin-jsx-a11y@6.10.2(eslint@9.39.4))(eslint-plugin-react-hooks@5.2.0(eslint@9.39.4))(eslint-plugin-react@7.37.5(eslint@9.39.4))(eslint-plugin-security@3.0.1)(eslint-plugin-unused-imports@4.4.1(@typescript-eslint/eslint-plugin@8.57.2(@typescript-eslint/parser@8.57.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4)(globals@15.15.0)(prettier@3.8.1)(typescript-eslint@8.57.2(eslint@9.39.4)(typescript@5.9.3))':
-    dependencies:
-      '@trivago/prettier-plugin-sort-imports': 4.3.0(prettier@3.8.1)
-      '@typescript-eslint/parser': 8.57.2(eslint@9.39.4)(typescript@5.9.3)
-      eslint: 9.39.4
-      eslint-config-prettier: 10.1.8(eslint@9.39.4)
-      eslint-plugin-security: 3.0.1
-      eslint-plugin-unused-imports: 4.4.1(@typescript-eslint/eslint-plugin@8.57.2(@typescript-eslint/parser@8.57.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)
-      globals: 15.15.0
-      prettier: 3.8.1
-      typescript-eslint: 8.57.2(eslint@9.39.4)(typescript@5.9.3)
-    optionalDependencies:
-      '@babel/eslint-parser': 7.28.6(@babel/core@7.29.0)(eslint@9.39.4)
-      eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.4)
-      eslint-plugin-react: 7.37.5(eslint@9.39.4)
-      eslint-plugin-react-hooks: 5.2.0(eslint@9.39.4)
-
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
@@ -6073,16 +5957,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
-
-  '@vercel/analytics@1.6.1(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0))(react@19.2.4)':
-    optionalDependencies:
-      next: 15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0)
-      react: 19.2.4
-
-  '@vercel/speed-insights@2.0.0(next@15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0))(react@19.2.4)':
-    optionalDependencies:
-      next: 15.5.18(@babel/core@7.29.0)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.98.0)
-      react: 19.2.4
 
   '@vitejs/plugin-react@6.0.1(vite@7.3.1(@types/node@20.19.37)(sass@1.98.0)(tsx@4.21.0))':
     dependencies:

@@ -23,11 +23,6 @@ Apply the canonical Design role to the Voyager web-client with these project-spe
 - **Itinerary display**: how is a completed trip presented? Visual hierarchy across flights, hotels, activities.
 - **Mobile breakpoints**: test at 375, 390, 414 widths. The itinerary and chat experience on mobile are critical.
 
-**Project convention files (read before writing):**
-
-- `.claude/bottomlessmargaritas/CLAUDE-FRONTEND.md`
-- `.claude/bottomlessmargaritas/CLAUDE-STYLING.md`
-
 **Product documents:**
 
 - `docs/FULL_APPLICATION_SPEC.md`

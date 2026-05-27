@@ -26,8 +26,8 @@ This directory contains standardized architecture and coding conventions for ful
 
 ## Stack
 
-- **Frontend:** Next.js (App Router) deployed to Vercel
-- **API:** Express + TypeScript deployed to Railway
+- **Frontend:** Next.js (App Router)
+- **API:** Express + TypeScript
 - **Database:** PostgreSQL (with pgvector where needed)
 - **Auth:** Supabase Auth via `@supabase/ssr`
 - **Queue/Cache:** Redis + BullMQ (where needed)
