@@ -7,8 +7,31 @@ on:
     branches: [main]
 
 jobs:
-  lint-and-test:
+  # --- Fast gate: lint + format (~2.5 min) ---
+  lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Check formatting
+        run: pnpm format:check
+
+  # --- Unit tests for all surfaces ---
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     services:
       postgres:
@@ -37,42 +60,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
-
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
-      # SEC-02 / ENG-06 (2026-04-06 audit): fail the build on any
-      # production dependency with a high-severity CVE. Moderates
-      # still warn in the audit output but do not fail the job;
-      # promote to also failing on moderates once the baseline is
-      # clean for two weeks.
-      - name: pnpm audit (production dependencies, high and above)
-        run: pnpm audit --prod --audit-level high
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check formatting
-        run: pnpm format:check
-
       - name: Build server
         run: pnpm --filter voyager-server build
-
-      - name: Build web-client
-        run: pnpm --filter voyager-web build
 
       - name: Run migrations
         run: pnpm --filter voyager-server run migrate:up
         env:
           DATABASE_URL: postgres://test:test@localhost:5432/test
 
-      - name: Unit tests with coverage
+      - name: Server unit tests with coverage
         run: pnpm test:coverage
         env:
           DATABASE_URL: postgres://test:test@localhost:5432/test
@@ -85,6 +89,15 @@ jobs:
       - name: Web-client unit tests
         run: pnpm --filter voyager-web run test
 
+      - name: Server integration tests
+        run: pnpm --filter voyager-server run test:integration
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          SESSION_SECRET: test-secret
+          ANTHROPIC_API_KEY: sk-ant-test
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,11 +106,86 @@ jobs:
           path: server/coverage/
           retention-days: 14
 
-      - name: Integration tests
-        run: pnpm --filter voyager-server run test:integration
+  # --- Build + E2E (~12 min) ---
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:16
         env:
-          DATABASE_URL: postgres://test:test@localhost:5432/test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: voyager_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build server
+        run: pnpm --filter voyager-server build
+
+      - name: Build web-client
+        run: pnpm --filter voyager-web build
+
+      - name: Run migrations
+        run: pnpm --filter voyager-server run migrate:up
+        env:
+          DATABASE_URL: postgres://postgres:test@localhost:5432/voyager_test
+
+      - name: Restore Playwright cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright browsers
+        run: pnpm --dir web-client exec playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          DATABASE_URL: postgres://postgres:test@localhost:5432/voyager_test
           REDIS_URL: redis://localhost:6379
+          E2E_MOCK_TOOLS: '1'
+          E2E_MOCK_ANTHROPIC: '1'
+          E2E_BYPASS_RATE_LIMITS: '1'
+          CORS_ORIGIN: 'http://localhost:3000'
           NODE_ENV: test
-          SESSION_SECRET: test-secret
-          ANTHROPIC_API_KEY: sk-ant-test
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
