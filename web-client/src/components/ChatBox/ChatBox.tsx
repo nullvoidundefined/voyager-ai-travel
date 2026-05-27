@@ -11,6 +11,8 @@ import styles from './ChatBox.module.scss';
 import { VirtualizedChat } from './VirtualizedChat';
 import { useSSEChat } from './useSSEChat';
 
+const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary';
+
 interface ChatBoxProps {
   tripId: string;
   hasFlights?: boolean;
@@ -72,7 +74,7 @@ export function ChatBox({
   } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
 
   // Suppress booking actions when the most recent assistant message contains
-  // selectable tile nodes — the SelectableCardGroup "Confirm Selection" button
+  // selectable tile nodes -- the SelectableCardGroup "Confirm Selection" button
   // serves as the confirmation mechanism in that case.
   const lastAssistantMessage = serverMessages
     ?.slice()
@@ -100,8 +102,8 @@ export function ChatBox({
     (msg: string) => {
       if (!msg.trim()) return;
 
-      // Intercept booking confirmation — open modal instead of sending chat message
-      if (msg.trim() === 'Save itinerary') {
+      // Intercept booking confirmation -- open modal instead of sending chat message
+      if (msg.trim() === BOOKING_CONFIRMATION_TRIGGER) {
         onBookTrip?.();
         return;
       }

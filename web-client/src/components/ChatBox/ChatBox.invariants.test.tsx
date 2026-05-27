@@ -479,4 +479,17 @@ describe('ChatBox invariants', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('invariant 11: ChatBox booking magic string uses named constant', () => {
+    it('BOOKING_CONFIRMATION_TRIGGER constant exists and no bare string comparison remains', () => {
+      const src = fs.readFileSync(
+        path.resolve(__dirname, 'ChatBox.tsx'),
+        'utf-8',
+      );
+      expect(src).toContain(
+        "const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary'",
+      );
+      expect(src).not.toMatch(/===\s*['"]Save itinerary['"]/);
+    });
+  });
 });
