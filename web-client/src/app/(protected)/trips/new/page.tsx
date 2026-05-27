@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { post } from '@/lib/api';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import styles from './newTrip.module.scss';
 
@@ -14,8 +14,11 @@ interface Trip {
 
 export default function NewTripPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState('');
   const creating = useRef(false);
+
+  const destination = searchParams.get('destination') || 'New trip';
 
   useEffect(() => {
     if (creating.current) {
@@ -24,7 +27,7 @@ export default function NewTripPage() {
     creating.current = true;
     let aborted = false;
 
-    post<{ trip: Trip }>('/trips', { destination: 'New trip' })
+    post<{ trip: Trip }>('/trips', { destination })
       .then(({ trip }) => {
         if (!aborted) {
           router.replace(`/trips/${trip.id}`);
@@ -40,7 +43,7 @@ export default function NewTripPage() {
     return () => {
       aborted = true;
     };
-  }, [router]);
+  }, [router, destination]);
 
   if (error) {
     return (

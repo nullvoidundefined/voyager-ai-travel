@@ -21,10 +21,13 @@ describe('new trip page content', () => {
   });
 
   it('seeds the new trip with a human-readable fallback', () => {
-    // Accept either "New trip" or empty string with explicit handling
-    const hasFallback =
-      /destination:\s*'New trip'|destination:\s*"New trip"/.test(newTripSource);
+    const hasFallback = /['"]New trip['"]/.test(newTripSource);
     expect(hasFallback).toBe(true);
+  });
+
+  it('reads destination from search params for pre-fill', () => {
+    expect(newTripSource).toContain('useSearchParams');
+    expect(newTripSource).toContain("searchParams.get('destination')");
   });
 
   it('has a cleanup function that prevents acting after unmount', () => {
