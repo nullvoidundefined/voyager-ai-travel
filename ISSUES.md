@@ -37,6 +37,7 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-04] `chat.ts:47` non-null assertions on `req.user!.id` across 10+ handlers
 
 - **Severity:** P1 . **Effort:** M . **Category:** type-safety
+- **Status:** RESOLVED. Added `getAuthUser(req)` helper, replaced all 11 `req.user!` assertions.
 - Safe behind `requireAuth` but creates hidden contract not enforced by types
 - Fix: add a typed `getAuthUser(req)` helper that throws `ApiError.unauthorized()` if missing
 

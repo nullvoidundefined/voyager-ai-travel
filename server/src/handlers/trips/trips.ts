@@ -1,3 +1,4 @@
+import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
 import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
 import {
   getOrCreateConversation,
@@ -29,7 +30,7 @@ export async function createTrip(req: Request, res: Response): Promise<void> {
     throw ApiError.badRequest(message);
   }
 
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const trip = await tripRepo.createTrip(userId, parsed.data);
   logger.info(
     { event: 'trip_created', tripId: trip.id, userId },
@@ -39,13 +40,13 @@ export async function createTrip(req: Request, res: Response): Promise<void> {
 }
 
 export async function listTrips(req: Request, res: Response): Promise<void> {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const trips = await tripRepo.listTrips(userId);
   res.json({ trips });
 }
 
 export async function getTrip(req: Request, res: Response): Promise<void> {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
 
   const trip = await tripRepo.getTripWithDetails(tripId, userId);
@@ -57,7 +58,7 @@ export async function getTrip(req: Request, res: Response): Promise<void> {
 }
 
 export async function updateTrip(req: Request, res: Response): Promise<void> {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
 
   const {
@@ -143,7 +144,7 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
 }
 
 export async function deleteTrip(req: Request, res: Response): Promise<void> {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
 
   const deleted = await tripRepo.deleteTrip(tripId, userId);
@@ -165,7 +166,7 @@ export async function deleteTrip(req: Request, res: Response): Promise<void> {
  * via getTripWithDetails, so it can acknowledge them naturally.
  */
 export async function selectItem(req: Request, res: Response): Promise<void> {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
   const { type, data } = (req.body ?? {}) as {
     type?: string;
@@ -262,7 +263,7 @@ export async function seedSelections(
     throw ApiError.notFound('Not found');
   }
 
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const tripId = req.params.id as string;
 
   // Ownership check: ensure the caller owns this trip.

@@ -1,3 +1,4 @@
+import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
 import {
   findByUserId,
   upsert,
@@ -5,13 +6,13 @@ import {
 import type { Request, Response } from 'express';
 
 export async function getPreferences(req: Request, res: Response) {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const prefs = await findByUserId(userId);
   res.json({ preferences: prefs });
 }
 
 export async function upsertPreferences(req: Request, res: Response) {
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const input = req.body as Record<string, unknown>;
 
   // Validate: only allow known preference fields

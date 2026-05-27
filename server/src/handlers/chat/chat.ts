@@ -1,4 +1,5 @@
 import type { ChatMessage, ChatNode } from '@voyager/shared-types';
+import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
 import {
   DEFAULT_COMPLETION_TRACKER,
   computeNudge,
@@ -44,7 +45,7 @@ export function getActiveConversationCount(): number {
 
 export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
   const { message } = req.body;
 
   if (!message || typeof message !== 'string') {
@@ -233,7 +234,7 @@ export async function chat(req: Request, res: Response) {
 
 export async function getMessages(req: Request, res: Response) {
   const tripId = req.params.id as string;
-  const userId = req.user!.id;
+  const userId = getAuthUser(req).id;
 
   const trip = await getTripWithDetails(tripId, userId);
   if (!trip) {
