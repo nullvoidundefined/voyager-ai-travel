@@ -1,68 +1,71 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap');
 
 :root {
-  /*
-   * DES-01 (2026-04-06 audit): type scale tokens.
-   * The design audit found 140+ raw `font-size: Npx` literals and
-   * H2 section titles shipping at 24, 28, 36, 40, and 42 px across
-   * five different files. This is the canonical scale. New
-   * components must use these tokens; legacy raw literals are
-   * being migrated. Roughly a 1.25 minor third with tuning for
-   * display headings.
-   */
-  --text-xs: 12px;
+  /* -- Typography scale -- */
+  --text-display: 56px;
+  --text-h1: 36px;
+  --text-h2: 28px;
+  --text-h3: 22px;
+  --text-h4: 17px;
+  --text-body: 16px;
   --text-sm: 14px;
-  --text-base: 16px;
-  --text-lg: 18px;
-  --text-xl: 22px;
-  --text-2xl: 28px;
-  --text-3xl: 36px;
-  --text-4xl: 48px;
-  --text-5xl: 64px;
+  --text-xs: 13px;
+  --text-label: 11px;
 
-  /* — Typography — */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Outfit', system-ui, sans-serif;
+  /* -- Typography -- */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
 
-  /* — Palette: Mediterranean Warmth — */
-  --background: #faf8f5;
-  --background-alt: #f5f2ee;
-  --foreground: #1a2332;
-  --foreground-muted: #6b7b8d;
-  --border: #e2ddd5;
-  --border-light: #ebe7e0;
-  --surface: #ffffff;
-  --surface-alt: #f8f6f2;
-  --surface-hover: #f0ece5;
-  --surface-active: #e8e3da;
-  --accent: #1e56a0;
-  --accent-hover: #164785;
-  --accent-light: rgba(30, 86, 160, 0.08);
-  --accent-text: #1e56a0;
-  --background-translucent: rgba(250, 248, 245, 0.92);
-  --success: #16a34a;
-  --danger: #dc2626;
-  --cta: #e8614d;
-  --cta-hover: #d4513d;
-  --cta-text: #ffffff;
-  --highlight: #f5a623;
-  --warning: #f59e0b;
-  --warning-dark: #d97706;
-  --user-bubble: #e8f0fa;
+  /* -- Backgrounds -- */
+  --canvas: #f8fbfe;
+  --surface: #eef6fb;
+  --card: #ffffff;
+  --border: #e4eff5;
+  --border-strong: #d6e8f0;
 
-  /* — Shadows — */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 4px 20px rgba(232, 97, 77, 0.2);
+  /* -- Text -- */
+  --ink: #1a3a5c;
+  --muted: #7da0b8;
+  --subtle: #a8c4d4;
 
-  /* — Radii — */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* -- Brand accents -- */
+  --ocean: #0c8ce9;
+  --ocean-deep: #0a72c0;
+  --sand: #e8b44c;
+  --lagoon: #2dbfa8;
+  --sunset: #f08c5a;
+  --sunset-deep: #e07040;
 
-  /* — Transitions — */
+  /* -- Semantic -- */
+  --success: #1a9a6b;
+  --warning: #e8a830;
+  --error: #d94b3a;
+  --info: #0c8ce9;
+
+  /* -- Derived light variants (8-10% opacity backgrounds) -- */
+  --ocean-light: rgba(12, 140, 233, 0.08);
+  --sand-light: rgba(232, 180, 76, 0.1);
+  --lagoon-light: rgba(45, 191, 168, 0.08);
+  --sunset-light: rgba(240, 140, 90, 0.08);
+  --success-light: rgba(26, 154, 107, 0.08);
+  --warning-light: rgba(232, 168, 48, 0.1);
+  --error-light: rgba(217, 75, 58, 0.08);
+  --info-light: rgba(12, 140, 233, 0.08);
+
+  /* -- Shadows (ink-based for warmth) -- */
+  --shadow-sm: 0 1px 3px rgba(26, 58, 92, 0.06);
+  --shadow-md: 0 4px 16px rgba(26, 58, 92, 0.08);
+  --shadow-lg: 0 8px 32px rgba(26, 58, 92, 0.1);
+
+  /* -- Radii -- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-pill: 9999px;
+
+  /* -- Transitions -- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --transition-fast: 0.15s var(--ease-out);
   --transition-med: 0.3s var(--ease-out);
@@ -97,8 +100,8 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--ink);
+  background: var(--canvas);
   font-family: var(--font-body);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
@@ -128,14 +131,14 @@ h2,
 h3,
 h4 {
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
 
 /* — Focus styles — */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--ocean);
   outline-offset: 2px;
 }
 
@@ -153,14 +156,14 @@ h4 {
   border-radius: 3px;
 
   &:hover {
-    background: var(--foreground-muted);
+    background: var(--muted);
   }
 }
 
 /* — Selection — */
 ::selection {
-  background: rgba(30, 86, 160, 0.15);
-  color: var(--foreground);
+  background: rgba(12, 140, 233, 0.15);
+  color: var(--ink);
 }
 
 /*
