@@ -10,6 +10,8 @@ import { LegList } from '@/components/LegList/LegList';
 import type { Leg } from '@/components/LegList/LegList';
 import { Skeleton } from '@/components/Skeleton/Skeleton';
 import { Toast } from '@/components/Toast/Toast';
+import type { MapPin } from '@/components/TripMap/TripMap';
+import { TripMap } from '@/components/TripMap/TripMap';
 import { del, get, put } from '@/lib/api';
 import {
   getDestinationImage,
@@ -178,6 +180,10 @@ export default function TripDetailPage() {
   const { url, unsplashId } = getDestinationImage(trip.destination);
   const hasHero = url !== null && unsplashId !== null;
 
+  // Hotels and experiences don't carry coordinates yet; pins will be populated
+  // once the data model includes lat/lng fields.
+  const pins: MapPin[] = [];
+
   return (
     <div className={styles.page}>
       {/* Full-bleed destination banner */}
@@ -249,6 +255,9 @@ export default function TripDetailPage() {
         <div
           className={`${styles.itineraryPane} ${activeTab === 'itinerary' ? styles.paneActive : ''}`}
         >
+          {/* Interactive map */}
+          <TripMap pins={pins} />
+
           {/* Multi-city legs */}
           {trip.trip_structure === 'multi_city' && (
             <div data-testid='leg-list' className={styles.legsSection}>
