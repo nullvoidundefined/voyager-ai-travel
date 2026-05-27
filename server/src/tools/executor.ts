@@ -1,4 +1,10 @@
 import {
+  createLeg,
+  deleteLeg,
+  listLegs,
+  reorderLegs,
+} from 'app/repositories/trips/trip-legs.repository.js';
+import {
   insertTripCarRental,
   insertTripExperience,
   insertTripFlight,
@@ -11,6 +17,11 @@ import { getDestinationInfo } from 'app/tools/destination.tool.js';
 import { searchExperiences } from 'app/tools/experiences.tool.js';
 import { searchFlights } from 'app/tools/flights.tool.js';
 import { searchHotels } from 'app/tools/hotels.tool.js';
+import {
+  handleAddLeg,
+  handleRemoveLeg,
+  handleReorderLegs,
+} from 'app/tools/legs.tool.js';
 import {
   calculateBudgetSchema,
   formatResponseSchema,
@@ -181,6 +192,39 @@ export async function executeTool(
       const parsed = parseInput(toolName, formatResponseSchema, input);
       if ('error' in parsed) return parsed;
       return parsed.data;
+    }
+
+    case 'add_leg': {
+      if (!context) throw new Error('add_leg requires trip context');
+      return handleAddLeg(
+        input as {
+          origin: string;
+          destination: string;
+          depart_date: string;
+          leg_order: number;
+        },
+        context,
+        { createLeg, listLegs, deleteLeg, reorderLegs },
+      );
+    }
+
+    case 'remove_leg': {
+      if (!context) throw new Error('remove_leg requires trip context');
+      return handleRemoveLeg(input as { leg_id: string }, context, {
+        createLeg,
+        listLegs,
+        deleteLeg,
+        reorderLegs,
+      });
+    }
+
+    case 'reorder_legs': {
+      if (!context) throw new Error('reorder_legs requires trip context');
+      return handleReorderLegs(
+        input as { ordered_leg_ids: string[] },
+        context,
+        { createLeg, listLegs, deleteLeg, reorderLegs },
+      );
     }
 
     default:

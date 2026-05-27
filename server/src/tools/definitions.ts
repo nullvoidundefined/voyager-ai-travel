@@ -315,6 +315,57 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: 'add_leg',
+    description:
+      'Add a leg to a multi-city trip. Call this when the user adds a new city segment to their itinerary.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        origin: { type: 'string', description: 'Origin city or airport code' },
+        destination: {
+          type: 'string',
+          description: 'Destination city or airport code',
+        },
+        depart_date: {
+          type: 'string',
+          description: 'Departure date in YYYY-MM-DD format',
+        },
+        leg_order: {
+          type: 'number',
+          description: 'Position of this leg in the itinerary (1-indexed)',
+        },
+      },
+      required: ['origin', 'destination', 'depart_date', 'leg_order'],
+    },
+  },
+  {
+    name: 'remove_leg',
+    description: 'Remove a leg from a multi-city trip by its ID.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        leg_id: { type: 'string', description: 'UUID of the leg to remove' },
+      },
+      required: ['leg_id'],
+    },
+  },
+  {
+    name: 'reorder_legs',
+    description:
+      'Reorder the legs of a multi-city trip by providing the desired leg ID sequence.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        ordered_leg_ids: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Leg UUIDs in the desired display order',
+        },
+      },
+      required: ['ordered_leg_ids'],
+    },
+  },
+  {
     name: 'format_response',
     description:
       'REQUIRED: Call this as your LAST tool call every turn. Provides your text response, citations, suggested quick replies, and optional advisory escalation. Do NOT write text outside of this tool — all your text goes in the text field.',
