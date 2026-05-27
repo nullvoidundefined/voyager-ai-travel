@@ -5,6 +5,11 @@
   background: var(--canvas);
 }
 
+.appShell:has([data-auth-layout]) > :global(header),
+.appShell:has([data-auth-layout]) > :global(footer) {
+  display: none;
+}
+
 .main {
   flex: 1;
 }

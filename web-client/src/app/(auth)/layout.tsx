@@ -9,7 +9,9 @@ export default function AuthLayout({
 }) {
   return (
     <Suspense>
-      <div className={styles.authLayout}>{children}</div>
+      <div className={styles.authLayout} data-auth-layout>
+        {children}
+      </div>
     </Suspense>
   );
 }
