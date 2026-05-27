@@ -1,6 +1,6 @@
 .footer {
   border-top: 1px solid var(--border);
-  background: var(--background-alt);
+  background: var(--canvas);
 }
 
 .inner {
@@ -20,14 +20,14 @@
 
 .logo {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: var(--cta);
+  color: var(--ink);
 }
 
 .tagline {
   font-size: 13px;
-  color: var(--foreground-muted);
+  color: var(--muted);
   letter-spacing: 0.02em;
 }
 
@@ -38,11 +38,11 @@
 
   a {
     font-size: 13px;
-    color: var(--foreground-muted);
+    color: var(--muted);
     transition: color var(--transition-fast);
 
     &:hover {
-      color: var(--accent);
+      color: var(--ocean);
     }
   }
 }
