@@ -201,9 +201,9 @@ describe('agent.service', () => {
       expect(toolProgressEvents).toHaveLength(2);
     });
 
-    it('enforces max 15 tool calls per turn', async () => {
+    it('enforces max 8 tool calls per turn', async () => {
       // Make Claude always want to call a tool
-      for (let i = 0; i < 16; i++) {
+      for (let i = 0; i < 9; i++) {
         mockStream.mockReturnValueOnce(
           createMockStream({
             stop_reason: 'tool_use',
@@ -232,8 +232,8 @@ describe('agent.service', () => {
         () => {},
       );
 
-      // Should stop at 15 tool calls
-      expect(result.tool_calls.length).toBeLessThanOrEqual(15);
+      // Should stop at 8 tool calls (DEFAULT_MAX_ITERATIONS)
+      expect(result.tool_calls.length).toBeLessThanOrEqual(8);
       expect(result.response).toContain('limit');
     });
 
