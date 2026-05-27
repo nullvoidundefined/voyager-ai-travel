@@ -1,0 +1,70 @@
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.done {
+  background: color-mix(in srgb, var(--ocean) 10%, transparent);
+  border-color: var(--ocean);
+  color: var(--ocean);
+}
+
+.running {
+  background: color-mix(in srgb, var(--sunset) 10%, transparent);
+  border-color: var(--sunset);
+  color: var(--sunset);
+}
+
+.error {
+  background: color-mix(in srgb, red 10%, transparent);
+  border-color: red;
+  color: red;
+}
+
+.toolName {
+  font-family: monospace;
+}
+
+.duration {
+  font-size: 0.65rem;
+  opacity: 0.75;
+}
+
+.spinner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.empty {
+  font-size: 0.8rem;
+  color: var(--muted);
+}

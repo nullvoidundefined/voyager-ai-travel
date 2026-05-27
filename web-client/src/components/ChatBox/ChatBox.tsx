@@ -4,6 +4,8 @@ import { type FormEvent, useCallback, useMemo, useRef, useState } from 'react';
 
 import { CostCounter } from '@/components/CostCounter/CostCounter';
 import { Toast } from '@/components/Toast/Toast';
+import { ToolTimeline } from '@/components/ToolTimeline/ToolTimeline';
+import type { ToolCall } from '@/components/ToolTimeline/ToolTimeline';
 import { get, post, put } from '@/lib/api';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage } from '@voyager/shared-types';
@@ -84,6 +86,22 @@ export function ChatBox({
     error: sseError,
     clearError: clearSseError,
   } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
+
+  const timelineToolCalls = useMemo<ToolCall[]>(
+    () =>
+      toolProgress
+        .filter((n) => n.type === 'tool_progress')
+        .map((n) => {
+          const node = n as Extract<typeof n, { type: 'tool_progress' }>;
+          return {
+            id: node.tool_id,
+            toolName: node.tool_name,
+            status: node.status === 'running' ? 'running' : 'done',
+            durationMs: 0,
+          };
+        }),
+    [toolProgress],
+  );
 
   // Suppress booking actions when the most recent assistant message contains
   // selectable tile nodes -- the SelectableCardGroup "Confirm Selection" button
@@ -257,6 +275,12 @@ export function ChatBox({
         onBookNow={handleBookTrip}
         initialDestination={initialDestination}
       />
+
+      {timelineToolCalls.length > 0 && (
+        <div className={styles.timeline}>
+          <ToolTimeline toolCalls={timelineToolCalls} />
+        </div>
+      )}
 
       <div className={styles.srOnly} aria-live='polite' aria-atomic='true'>
         {isSending ? 'Agent is searching...' : ''}
