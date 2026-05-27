@@ -315,6 +315,51 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: 'plan_daily_schedule',
+    description:
+      'Write a structured day-by-day itinerary for the trip. Call once with all days. Each day has morning/afternoon/evening slots.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        days: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              day_number: { type: 'number' },
+              day_date: { type: 'string', description: 'YYYY-MM-DD' },
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    time_of_day: {
+                      type: 'string',
+                      enum: ['morning', 'afternoon', 'evening'],
+                    },
+                    title: { type: 'string' },
+                    description: { type: 'string' },
+                    item_type: {
+                      type: 'string',
+                      enum: ['activity', 'meal', 'transport', 'accommodation'],
+                    },
+                    item_order: { type: 'number' },
+                    place_id: { type: 'string' },
+                    booking_url: { type: 'string' },
+                    price_usd: { type: 'number' },
+                  },
+                  required: ['time_of_day', 'title', 'item_type', 'item_order'],
+                },
+              },
+            },
+            required: ['day_number', 'day_date', 'items'],
+          },
+        },
+      },
+      required: ['days'],
+    },
+  },
+  {
     name: 'add_leg',
     description:
       'Add a leg to a multi-city trip. Call this when the user adds a new city segment to their itinerary.',

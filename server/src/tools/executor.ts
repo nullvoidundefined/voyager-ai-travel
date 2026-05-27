@@ -1,4 +1,8 @@
 import {
+  addScheduleItem,
+  upsertScheduleDay,
+} from 'app/repositories/trips/schedule.repository.js';
+import {
   createLeg,
   deleteLeg,
   listLegs,
@@ -22,6 +26,7 @@ import {
   handleRemoveLeg,
   handleReorderLegs,
 } from 'app/tools/legs.tool.js';
+import { handlePlanDailySchedule } from 'app/tools/schedule.tool.js';
 import {
   calculateBudgetSchema,
   formatResponseSchema,
@@ -192,6 +197,22 @@ export async function executeTool(
       const parsed = parseInput(toolName, formatResponseSchema, input);
       if ('error' in parsed) return parsed;
       return parsed.data;
+    }
+
+    case 'plan_daily_schedule': {
+      if (!context)
+        throw new Error('plan_daily_schedule requires trip context');
+      return handlePlanDailySchedule(
+        input as {
+          days: Array<{
+            day_number: number;
+            day_date: string;
+            items: unknown[];
+          }>;
+        },
+        context,
+        { upsertScheduleDay, addScheduleItem },
+      );
     }
 
     case 'add_leg': {
