@@ -234,6 +234,10 @@ export function ChatBox({
         onBookNow={handleBookTrip}
       />
 
+      <div className={styles.srOnly} aria-live='polite' aria-atomic='true'>
+        {isSending ? 'Agent is searching...' : ''}
+      </div>
+
       <form onSubmit={handleSubmit} className={styles.inputArea}>
         <input
           type='text'
@@ -256,6 +260,7 @@ export function ChatBox({
           type='submit'
           className={styles.sendButton}
           disabled={isSending || isBooked || !input.trim()}
+          aria-label={isSending ? 'Sending message' : 'Send message'}
         >
           {isSending ? '...' : 'Send'}
         </button>

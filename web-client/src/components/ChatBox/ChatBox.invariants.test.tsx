@@ -415,6 +415,17 @@ describe('ChatBox invariants', () => {
     });
   });
 
+  describe('invariant 10: aria-live region announces agent status', () => {
+    it('ChatBox.tsx contains an aria-live polite region for screen reader announcements', () => {
+      const chatBoxSource = fs.readFileSync(
+        path.resolve(__dirname, 'ChatBox.tsx'),
+        'utf-8',
+      );
+      expect(chatBoxSource).toContain("aria-live='polite'");
+      expect(chatBoxSource).toContain('Agent is searching...');
+    });
+  });
+
   describe('invariant 7: pending indicator renders synchronously after send', () => {
     it('shows an indeterminate progress bar with "Thinking" while isSending=true and no nodes have arrived yet', () => {
       const userMsg = makeUserMessage('m1', 'Plan a Beijing trip');
