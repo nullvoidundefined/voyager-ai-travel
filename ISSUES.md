@@ -23,12 +23,14 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-02] `server/src/schemas/trips.ts` has no test file
 
 - **Severity:** P1 . **Effort:** M . **Category:** test-quality
+- **Status:** RESOLVED. Added `trips.test.ts` with 9 tests covering validation, defaults, and enum constraints.
 - Contains non-trivial validation: `budget_total: z.number().positive()`, `travelers: z.number().int().positive().default(1)`, nested `preferences.style` enum
 - Only server-side gate for `POST /trips` body
 
 ### [CQS-03] `chat.ts:198-199` double-cast `as unknown as Record<string, unknown>`
 
 - **Severity:** P1 . **Effort:** M . **Category:** type-safety
+- **Status:** RESOLVED. Changed `updateBookingState` param to `CompletionTracker`, removed double-casts in chat.ts and trips.ts.
 - `updateBookingState(conversation.id, newTracker as unknown as Record<string, unknown>)` bypasses type safety
 - Fix: align `CompletionTracker` type with `updateBookingState` parameter type
 
@@ -41,6 +43,7 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-05] `chat.ts:250` `as string` cast hiding type mismatch
 
 - **Severity:** P1 . **Effort:** S . **Category:** type-safety
+- **Status:** RESOLVED. Widened `Message.role` to `'user' | 'assistant' | 'tool'`, removed cast.
 - `.filter((m) => m.role !== ('tool' as string))` -- investigate real type of `m.role` and fix upstream
 
 ### [CQS-06] Three duplicate Redis singletons across services
@@ -52,11 +55,13 @@ Fixed in this sweep: 2 P0, 17 P1 (inline). Remaining items below.
 ### [CQS-07] `agent.service.test.ts:204` stale tool-call limit assertion
 
 - **Severity:** P1 . **Effort:** S . **Category:** test-quality
+- **Status:** RESOLVED. Updated test to assert max 8 (matching `DEFAULT_MAX_ITERATIONS`).
 - Test says "Should stop at 15 tool calls" but limit is 8. Assertion `toBeLessThanOrEqual(15)` passes trivially.
 
 ### [CQS-08] Inline style duplication across 4 tile components
 
 - **Severity:** P1 . **Effort:** S . **Category:** consistency
+- **Status:** RESOLVED. Extracted to `TileLayout.module.scss` with `.verticalStack` and `.horizontalScroll` classes.
 - `FlightTiles`, `HotelTiles`, `CarRentalTiles`, `ExperienceTiles` all repeat identical inline flex styles
 - Fix: extract to shared SCSS module class
 
