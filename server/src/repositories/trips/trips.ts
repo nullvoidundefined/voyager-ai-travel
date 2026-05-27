@@ -166,6 +166,7 @@ export async function insertTripFlight(
       'arrival_time',
       'price',
       'currency',
+      'booking_url',
     ],
     input,
   );
@@ -187,6 +188,7 @@ export async function insertTripHotel(
       'currency',
       'check_in',
       'check_out',
+      'booking_url',
     ],
     input,
   );
@@ -206,6 +208,7 @@ export async function insertTripCarRental(
       'price_per_day',
       'total_price',
       'currency',
+      'booking_url',
     ],
     input,
   );
@@ -218,7 +221,7 @@ export async function insertTripExperience(
   await insertTripSelection(
     'trip_experiences',
     tripId,
-    ['name', 'category', 'estimated_cost', 'rating'],
+    ['name', 'category', 'estimated_cost', 'rating', 'booking_url'],
     input,
   );
 }
