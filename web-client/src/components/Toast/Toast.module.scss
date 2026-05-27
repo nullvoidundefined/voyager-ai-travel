@@ -7,9 +7,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 24px;
-  border-radius: var(--radius-md);
-  color: var(--cta-text);
+  padding: 14px 20px;
+  border-radius: var(--radius-lg);
   font-size: 14px;
   font-weight: 500;
   font-family: var(--font-body);
@@ -18,22 +17,53 @@
   max-width: min(90vw, 480px);
 }
 
+.icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
 .danger {
-  background: var(--danger);
+  background: var(--error-light);
+  color: #a83225;
+  border: 1px solid rgba(217, 75, 58, 0.3);
+
+  .icon {
+    background: var(--error);
+  }
 }
 
 .success {
-  background: var(--success);
+  background: var(--success-light);
+  color: #15794f;
+  border: 1px solid rgba(26, 154, 107, 0.3);
+
+  .icon {
+    background: var(--success);
+  }
 }
 
 .info {
-  background: var(--accent);
+  background: var(--info-light);
+  color: #0a6fc0;
+  border: 1px solid rgba(12, 140, 233, 0.3);
+
+  .icon {
+    background: var(--info);
+  }
 }
 
 .close {
   background: none;
   border: none;
-  color: var(--cta-text);
+  color: inherit;
   font-size: 18px;
   cursor: pointer;
   opacity: 0.6;

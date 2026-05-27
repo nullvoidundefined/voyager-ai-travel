@@ -13,6 +13,12 @@ interface ToastProps {
   variant?: ToastVariant;
 }
 
+const VARIANT_ICONS: Record<ToastVariant, string> = {
+  success: '✓',
+  danger: '✗',
+  info: 'i',
+};
+
 export function Toast({
   message,
   onClose,
@@ -30,6 +36,9 @@ export function Toast({
       role='alert'
       aria-live='assertive'
     >
+      <span className={styles.icon} aria-hidden='true'>
+        {VARIANT_ICONS[variant]}
+      </span>
       <span>{message}</span>
       <button
         type='button'
