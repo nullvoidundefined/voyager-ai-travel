@@ -2,13 +2,19 @@
  * Checkout and booking confirmation: US-25 through US-28.
  *
  * Source of truth: docs/USER_STORIES.md.
+ *
+ * The BookingConfirmation dialog is opened via the BookingPrompt
+ * component's "Save itinerary" chip, which renders automatically
+ * when the trip has flights AND hotels AND status=planning.
+ * Tests that need the dialog first seed flights+hotels via
+ * seedTripSelections and reload so the prompt appears without
+ * going through the full agent chat flow.
  */
 import { expect, test } from '@playwright/test';
 
 import { defaultSelections, seedTripSelections } from './fixtures/test-trips';
 import { newUser, seedUser } from './fixtures/test-users';
 import { login } from './helpers/auth';
-import { sendMessage } from './helpers/chat';
 import { createTrip } from './helpers/trip';
 
 function extractTripId(url: string): string {
@@ -25,21 +31,17 @@ test.describe('Checkout', () => {
     const user = await seedUser(newUser());
     await login(page, user);
     await createTrip(page);
-    // Send any chat message so the mock Anthropic emits its
-    // iteration 2 format_response containing a "Confirm booking"
-    // quick reply chip.
-    await sendMessage(
-      page,
-      'Plan a 3-day trip to San Francisco from Denver next month, $2500 budget, 2 travelers',
-    );
-    const confirmChip = page
-      .locator('[role="group"][aria-label="Quick replies"]')
-      .getByRole('button', { name: 'Confirm booking' });
-    await expect(confirmChip).toBeVisible({ timeout: 30_000 });
-    await confirmChip.click();
-    // ChatBox.handleSend intercepts the literal "Confirm booking"
-    // message and calls onBookTrip directly without sending it
-    // through the chat. The trip page opens BookingConfirmation.
+    const tripId = extractTripId(page.url());
+    // Seed flights+hotels so the BookingPrompt renders.
+    await seedTripSelections(page, tripId, defaultSelections());
+    await page.reload();
+    // BookingPrompt shows "Save itinerary" automatically when
+    // hasFlights && hasHotels && status=planning.
+    const saveChip = page
+      .getByRole('button', { name: 'Save itinerary' })
+      .first();
+    await expect(saveChip).toBeVisible({ timeout: 15_000 });
+    await saveChip.click();
     // The modal renders TWO h2 elements with "Save Your Itinerary
     // for" text (one in the image overlay, one as the body title).
     // Use .first() to dodge strict-mode multi-match.
@@ -54,23 +56,13 @@ test.describe('Checkout', () => {
     await login(page, user);
     await createTrip(page);
     const tripId = extractTripId(page.url());
-    // ENG-17: seed the trip with a canonical happy-path selection
-    // set (flight, hotel, car rental, experience) via the test-only
-    // endpoint. This bypasses the agent loop and the multi-turn
-    // chat flow. See e2e/fixtures/test-trips.ts.
     await seedTripSelections(page, tripId, defaultSelections());
-    // Reload so the trip page re-fetches with the new selections.
     await page.reload();
-    // Send any chat message to produce the "Confirm booking"
-    // quick reply chip.
-    await sendMessage(
-      page,
-      'Plan a 3-day trip to San Francisco from Denver next month, $2500 budget, 2 travelers',
-    );
-    await page
-      .locator('[role="group"][aria-label="Quick replies"]')
-      .getByRole('button', { name: 'Confirm booking' })
-      .click();
+    const saveChip = page
+      .getByRole('button', { name: 'Save itinerary' })
+      .first();
+    await expect(saveChip).toBeVisible({ timeout: 15_000 });
+    await saveChip.click();
     // Scope every assertion to the booking confirmation dialog
     // so "Flights" / "Hotels" headings do not collide with any
     // tile-group headings the chat area may also render.
@@ -100,22 +92,20 @@ test.describe('Checkout', () => {
     const tripId = extractTripId(page.url());
     await seedTripSelections(page, tripId, defaultSelections());
     await page.reload();
-    await sendMessage(
-      page,
-      'Plan a 3-day trip to San Francisco from Denver next month, $2500 budget, 2 travelers',
-    );
-    await page
-      .locator('[role="group"][aria-label="Quick replies"]')
-      .getByRole('button', { name: 'Confirm booking' })
-      .click();
+    const saveChip = page
+      .getByRole('button', { name: 'Save itinerary' })
+      .first();
+    await expect(saveChip).toBeVisible({ timeout: 15_000 });
+    await saveChip.click();
     await expect(
       page.getByRole('heading', { name: /Save Your Itinerary for/i }).first(),
     ).toBeVisible({ timeout: 5_000 });
-    // Click "Save itinerary" to trigger handleConfirmBooking.
-    // The handler PUTs status=saved and optimistically updates
-    // the React Query cache.
-    await page.getByRole('button', { name: 'Save itinerary' }).click();
-    // Verify the trip status actually changed via the API.
+    // Click the confirm button inside the dialog to trigger handleConfirmBooking.
+    await page
+      .getByRole('dialog', { name: 'Booking confirmation' })
+      .getByRole('button', { name: 'Save itinerary' })
+      .click();
+    // Verify the trip status changed via the API.
     const resp = await page.request.get(
       `http://localhost:3001/trips/${tripId}`,
       { headers: { 'X-Requested-With': 'XMLHttpRequest' } },
@@ -147,7 +137,7 @@ test.describe('Checkout', () => {
 
     // Reload the trip page so the status update propagates.
     await page.reload();
-    const lockedPlaceholder = 'Trip booked! Enjoy your adventure.';
+    const lockedPlaceholder = 'Itinerary saved! Enjoy your adventure.';
     await expect(
       page.locator(`input[aria-label="${lockedPlaceholder}"]`),
     ).toBeDisabled({ timeout: 10_000 });

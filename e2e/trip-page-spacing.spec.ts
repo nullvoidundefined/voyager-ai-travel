@@ -1,17 +1,15 @@
 /**
  * Trip detail page spacing regression guard (B5).
  *
- * The chat section used to render flush against the Flights heading
- * because `.chatSection` had no `margin-bottom` and `.itinerary` had
- * no `margin-top`. This spec asserts a minimum 32px vertical gap
- * between the bottom of the chat section and the top of the Flights
- * heading.
+ * The itinerary pane renders category sections (Flights, Hotels, etc.)
+ * only when the trip has matching data. This spec intercepts the GET
+ * /trips/:id response, injects a synthetic flight, and asserts the
+ * Flights section renders with its item cards visible.
  *
- * The trip detail page only renders the Flights section when the
- * trip record has at least one flight. Rather than driving the
- * full chat-and-book flow (slow, brittle), this spec intercepts
- * the GET /trips/:id response and injects a synthetic flight so
- * the conditional renders deterministically.
+ * Note: the original B5 regression (chat flush against Flights) no
+ * longer applies in the split-pane layout; chat and itinerary are now
+ * in separate panes. The guard is preserved to ensure the route
+ * intercept pattern and conditional rendering still work.
  */
 import { expect, test } from '@playwright/test';
 
@@ -20,16 +18,13 @@ import { login } from './helpers/auth';
 import { createTrip } from './helpers/trip';
 
 test.describe('Trip detail page spacing (B5)', () => {
-  test('chat section and Flights heading have a visible vertical gap', async ({
-    page,
-  }) => {
+  test('Flights section renders when trip has flights', async ({ page }) => {
     test.setTimeout(45_000);
 
     const user = await seedUser(newUser());
     await login(page, user);
     await createTrip(page);
 
-    // Capture the trip id from the URL after createTrip resolves.
     const match = page
       .url()
       .match(
@@ -40,14 +35,7 @@ test.describe('Trip detail page spacing (B5)', () => {
     }
     const tripId = match[1];
 
-    // Intercept the trip fetch and inject a synthetic flight so
-    // the Flights section renders. The interception is set up
-    // AFTER createTrip so the create-trip POST is unaffected; the
-    // reload below triggers a fresh GET that the route catches.
-    // Match the API call only, not the Next.js page navigation
-    // (which is also at /trips/:id but on port 3000 and returns
-    // HTML). The API runs on :3001.
-    await page.route(`http://localhost:3001/trips/${tripId}`, async (route) => {
+    await page.route(`**/api/trips/${tripId}`, async (route) => {
       if (route.request().method() !== 'GET') {
         await route.fallback();
         return;
@@ -64,50 +52,30 @@ test.describe('Trip detail page spacing (B5)', () => {
         price: 350,
         currency: 'USD',
         departure_time: '2026-06-01T09:00:00.000Z',
-      };
-      const patchedBody = {
-        ...body,
-        trip: {
-          ...trip,
-          flights: [injectedFlight, ...(trip.flights ?? [])],
-        },
+        booking_url: null,
       };
       await route.fulfill({
         response,
-        json: patchedBody,
+        json: {
+          ...body,
+          trip: {
+            ...trip,
+            flights: [injectedFlight, ...(trip.flights ?? [])],
+          },
+        },
       });
     });
 
     await page.reload();
 
-    // Wait for both anchors. The chat heading is "Chat with Voyager"
-    // (APP_NAME = 'Voyager' in apps/client/web/src/lib/constants.ts).
-    // The Flights section heading is the literal h2 inside the
-    // first .itinerary block.
-    const chatHeading = page
-      .locator('h2', { hasText: /Chat with Voyager/i })
-      .first();
-    const flightsHeading = page.locator('h2', { hasText: 'Flights' }).first();
-    await expect(chatHeading).toBeVisible({ timeout: 15_000 });
-    await expect(flightsHeading).toBeVisible({ timeout: 15_000 });
+    // The Flights section uses a <p> category label, not an h2.
+    await expect(
+      page.locator('p', { hasText: /^Flights$/ }).first(),
+    ).toBeVisible({ timeout: 15_000 });
 
-    // Measure the chat SECTION container, not just the heading,
-    // because the gap we care about is between the bottom of the
-    // entire chat module and the Flights heading above the
-    // itinerary list.
-    const chatBox = await chatHeading.evaluate((el) => {
-      // The chatSection wrapper is the heading's parent div.
-      const container = el.parentElement;
-      const rect = (container ?? el).getBoundingClientRect();
-      return { y: rect.y, height: rect.height };
+    // At least one flight item card must be rendered below the label.
+    await expect(page.locator('text=UA123').first()).toBeVisible({
+      timeout: 5_000,
     });
-
-    const flightsBox = await flightsHeading.boundingBox();
-    if (!flightsBox) {
-      throw new Error('Could not measure Flights heading bounding box');
-    }
-
-    const gap = flightsBox.y - (chatBox.y + chatBox.height);
-    expect(gap).toBeGreaterThanOrEqual(32);
   });
 });

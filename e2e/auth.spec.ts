@@ -39,7 +39,11 @@ test.describe('Authentication', () => {
     await page.fill('input[type="password"]', 'wrongpassword');
     await page.click('button[type="submit"]');
     await expect(
-      page.locator('[role="alert"], .error, [class*="error" i]'),
+      page
+        .locator(
+          '[role="alert"]:not([id="__next-route-announcer__"]), .error, [class*="error" i]',
+        )
+        .first(),
     ).toBeVisible({ timeout: 5_000 });
     await expect(page).toHaveURL(/\/login/);
   });

@@ -27,7 +27,8 @@ test.describe('Preferences', () => {
     await register(page, user);
 
     // Step 1 of 6 should be visible after registration.
-    const wizard = page.locator('[role="dialog"][aria-label*="preferences" i]');
+    // Radix Dialog uses aria-labelledby, not aria-label; use getByRole with name.
+    const wizard = page.getByRole('dialog', { name: /preferences/i });
     await expect(wizard).toBeVisible({ timeout: 5_000 });
     await expect(wizard.locator('text=/Step 1 of 6/i')).toBeVisible();
 
