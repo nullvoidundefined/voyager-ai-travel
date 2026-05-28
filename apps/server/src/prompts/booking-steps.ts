@@ -9,6 +9,50 @@ export type TrackerStatus =
   | 'skipped'
   | 'not_applicable';
 
+// --- Status predicates (exhaustive switches so TS errors on new variants) ---
+
+/** Category needs agent attention: not yet started or results shown but unselected. */
+export function needsWork(status: TrackerStatus): boolean {
+  switch (status) {
+    case 'pending':
+    case 'searching':
+      return true;
+    case 'selected':
+    case 'skipped':
+    case 'not_applicable':
+      return false;
+  }
+}
+
+/** Category requires no further action. */
+export function isResolved(status: TrackerStatus): boolean {
+  switch (status) {
+    case 'selected':
+    case 'skipped':
+    case 'not_applicable':
+      return true;
+    case 'pending':
+    case 'searching':
+      return false;
+  }
+}
+
+/** Human-readable label for checklist display. */
+export function statusLabel(status: TrackerStatus): string {
+  switch (status) {
+    case 'pending':
+      return 'Not yet discussed';
+    case 'searching':
+      return 'Browsing options';
+    case 'selected':
+      return 'Selected';
+    case 'skipped':
+      return 'Skipped';
+    case 'not_applicable':
+      return 'N/A';
+  }
+}
+
 export interface CompletionTracker {
   version: number;
   transport: 'pending' | 'flying' | 'driving';
@@ -256,14 +300,11 @@ export function updateCompletionTracker(
     }
   }
 
-  // 2. Search tools → searching
+  // 2. Search tools → searching (don't downgrade selected/not_applicable)
   for (const cat of CATEGORIES) {
     const searchTool = SEARCH_TOOLS[cat];
     if (agentResult.tool_calls.some((tc) => tc.tool_name === searchTool)) {
-      if (
-        newTracker[cat] !== 'selected' &&
-        newTracker[cat] !== 'not_applicable'
-      ) {
+      if (needsWork(newTracker[cat]) || newTracker[cat] === 'skipped') {
         newTracker[cat] = 'searching';
         changed = true;
       }
@@ -335,16 +376,28 @@ export function updateCompletionTracker(
 export function computeNudge(tracker: CompletionTracker): string | null {
   if (tracker.turns_since_last_progress < 3) return null;
 
-  const pending: string[] = [];
+  const unstarted: string[] = [];
+  const stalled: string[] = [];
   for (const cat of CATEGORIES) {
-    if (tracker[cat] === 'pending') {
-      pending.push(cat.replace('_', ' '));
-    }
+    const label = cat.replace('_', ' ');
+    if (tracker[cat] === 'pending') unstarted.push(label);
+    else if (tracker[cat] === 'searching') stalled.push(label);
   }
 
-  if (pending.length === 0) return null;
+  const parts: string[] = [];
+  if (unstarted.length > 0) {
+    parts.push(
+      `you haven't discussed ${unstarted.join(', ')} with the user yet`,
+    );
+  }
+  if (stalled.length > 0) {
+    parts.push(
+      `${stalled.join(', ')} results were shown but the user hasn't selected yet -- ask them to pick or skip`,
+    );
+  }
 
-  return `Note: you haven't discussed ${pending.join(', ')} with the user yet. Find a natural moment to bring this up.`;
+  if (parts.length === 0) return null;
+  return `Note: ${parts.join('; ')}. Find a natural moment to address this.`;
 }
 
 // --- Empty itinerary check ---
@@ -354,10 +407,12 @@ export function hasAnySelection(tracker: CompletionTracker): boolean {
 }
 
 export function allCategoriesResolved(tracker: CompletionTracker): boolean {
+  return CATEGORIES.every((cat) => isResolved(tracker[cat]));
+}
+
+/** Every category is either unstarted or explicitly skipped -- no active engagement. */
+export function noEngagement(tracker: CompletionTracker): boolean {
   return CATEGORIES.every(
-    (cat) =>
-      tracker[cat] === 'selected' ||
-      tracker[cat] === 'skipped' ||
-      tracker[cat] === 'not_applicable',
+    (cat) => tracker[cat] === 'pending' || tracker[cat] === 'skipped',
   );
 }

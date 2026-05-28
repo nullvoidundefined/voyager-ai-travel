@@ -1,4 +1,8 @@
-import type { CompletionTracker } from './booking-steps.js';
+import {
+  type CompletionTracker,
+  type TrackerStatus,
+  statusLabel,
+} from './booking-steps.js';
 
 export interface TripContext {
   destination: string;
@@ -186,8 +190,12 @@ export function formatChecklist(
   tracker: CompletionTracker,
   ctx: TripContext,
 ): string {
-  const icon = (status: string) =>
-    status === 'selected' ? '✅' : status === 'skipped' ? '⏭️' : '⬜';
+  const icon = (status: TrackerStatus) =>
+    status === 'selected'
+      ? '✅'
+      : status === 'skipped' || status === 'not_applicable'
+        ? '⏭️'
+        : '⬜';
 
   const lines: string[] = ['## Trip Planning Checklist'];
 
@@ -206,7 +214,7 @@ export function formatChecklist(
     lines.push(`- ✅ Flights: ${f.airline} ${f.flight_number} — $${f.price}`);
   } else {
     lines.push(
-      `- ${icon(tracker.flights)} Flights: ${tracker.flights === 'skipped' ? 'Skipped' : tracker.flights === 'searching' ? 'Browsing options' : 'Not yet discussed'}`,
+      `- ${icon(tracker.flights)} Flights: ${statusLabel(tracker.flights)}`,
     );
   }
 
@@ -216,7 +224,7 @@ export function formatChecklist(
     lines.push(`- ✅ Hotels: ${h.name} — $${h.total_price} total`);
   } else {
     lines.push(
-      `- ${icon(tracker.hotels)} Hotels: ${tracker.hotels === 'skipped' ? 'Skipped' : tracker.hotels === 'searching' ? 'Browsing options' : 'Not yet discussed'}`,
+      `- ${icon(tracker.hotels)} Hotels: ${statusLabel(tracker.hotels)}`,
     );
   }
 
@@ -231,7 +239,7 @@ export function formatChecklist(
     );
   } else {
     lines.push(
-      `- ${icon(tracker.car_rental)} Car Rental: ${tracker.car_rental === 'skipped' ? 'Skipped' : tracker.car_rental === 'searching' ? 'Browsing options' : 'Not yet discussed'}`,
+      `- ${icon(tracker.car_rental)} Car Rental: ${statusLabel(tracker.car_rental)}`,
     );
   }
 
@@ -245,7 +253,7 @@ export function formatChecklist(
     );
   } else {
     lines.push(
-      `- ${icon(tracker.experiences)} Experiences: ${tracker.experiences === 'skipped' ? 'Skipped' : tracker.experiences === 'searching' ? 'Browsing options' : 'Not yet discussed'}`,
+      `- ${icon(tracker.experiences)} Experiences: ${statusLabel(tracker.experiences)}`,
     );
   }
 

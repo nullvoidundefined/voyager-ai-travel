@@ -3,10 +3,16 @@ import { describe, expect, it } from 'vitest';
 import {
   type CompletionTracker,
   DEFAULT_COMPLETION_TRACKER,
+  type TrackerStatus,
   type TripState,
   allCategoriesResolved,
+  computeNudge,
   getFlowPosition,
+  isResolved,
+  needsWork,
+  noEngagement,
   normalizeCompletionTracker,
+  statusLabel,
   updateCompletionTracker,
 } from './booking-steps.js';
 
@@ -402,5 +408,148 @@ describe('updateCompletionTracker', () => {
       );
       expect(result.hotels).toBe('skipped');
     });
+  });
+
+  it('does not overwrite selected with searching', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+    };
+    const result = updateCompletionTracker(
+      tracker,
+      { tool_calls: [{ tool_name: 'search_flights' }], formatResponse: null },
+      baseTripState,
+    );
+    expect(result.flights).toBe('selected');
+  });
+
+  it('overwrites skipped with searching when search tool fires', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      hotels: 'skipped',
+    };
+    const result = updateCompletionTracker(
+      tracker,
+      { tool_calls: [{ tool_name: 'search_hotels' }], formatResponse: null },
+      baseTripState,
+    );
+    expect(result.hotels).toBe('searching');
+  });
+});
+
+describe('needsWork', () => {
+  it.each<[TrackerStatus, boolean]>([
+    ['pending', true],
+    ['searching', true],
+    ['selected', false],
+    ['skipped', false],
+    ['not_applicable', false],
+  ])('%s -> %s', (status, expected) => {
+    expect(needsWork(status)).toBe(expected);
+  });
+});
+
+describe('isResolved', () => {
+  it.each<[TrackerStatus, boolean]>([
+    ['pending', false],
+    ['searching', false],
+    ['selected', true],
+    ['skipped', true],
+    ['not_applicable', true],
+  ])('%s -> %s', (status, expected) => {
+    expect(isResolved(status)).toBe(expected);
+  });
+});
+
+describe('statusLabel', () => {
+  it.each<[TrackerStatus, string]>([
+    ['pending', 'Not yet discussed'],
+    ['searching', 'Browsing options'],
+    ['selected', 'Selected'],
+    ['skipped', 'Skipped'],
+    ['not_applicable', 'N/A'],
+  ])('%s -> %s', (status, expected) => {
+    expect(statusLabel(status)).toBe(expected);
+  });
+});
+
+describe('noEngagement', () => {
+  it('returns true when all categories are pending', () => {
+    expect(noEngagement(DEFAULT_COMPLETION_TRACKER)).toBe(true);
+  });
+
+  it('returns true when categories are pending or skipped', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'skipped',
+      car_rental: 'skipped',
+    };
+    expect(noEngagement(tracker)).toBe(true);
+  });
+
+  it('returns false when any category is searching', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'searching',
+    };
+    expect(noEngagement(tracker)).toBe(false);
+  });
+
+  it('returns false when any category is selected', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      hotels: 'selected',
+    };
+    expect(noEngagement(tracker)).toBe(false);
+  });
+});
+
+describe('computeNudge', () => {
+  it('returns null when turns_since_last_progress < 3', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      turns_since_last_progress: 2,
+    };
+    expect(computeNudge(tracker)).toBeNull();
+  });
+
+  it('mentions pending categories as not discussed', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+      hotels: 'selected',
+      car_rental: 'skipped',
+      experiences: 'pending',
+      turns_since_last_progress: 3,
+    };
+    const nudge = computeNudge(tracker);
+    expect(nudge).toContain('experiences');
+    expect(nudge).toContain("haven't discussed");
+  });
+
+  it('mentions searching categories as stalled', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+      hotels: 'searching',
+      car_rental: 'skipped',
+      experiences: 'selected',
+      turns_since_last_progress: 3,
+    };
+    const nudge = computeNudge(tracker);
+    expect(nudge).toContain('hotels');
+    expect(nudge).toContain('pick or skip');
+  });
+
+  it('returns null when all categories are resolved', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+      hotels: 'selected',
+      car_rental: 'skipped',
+      experiences: 'selected',
+      turns_since_last_progress: 5,
+    };
+    expect(computeNudge(tracker)).toBeNull();
   });
 });

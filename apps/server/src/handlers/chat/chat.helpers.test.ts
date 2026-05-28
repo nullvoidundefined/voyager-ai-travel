@@ -105,10 +105,19 @@ describe('chat.helpers', () => {
       expect(result[result.length - 1]!.content).toBe('Latest');
     });
 
-    it('handles null content as empty string', () => {
-      const history = [{ role: 'user', content: null }];
+    it('filters out messages with null or empty content', () => {
+      const history = [
+        { role: 'user', content: 'Hello' },
+        { role: 'assistant', content: null },
+        { role: 'user', content: '' },
+        { role: 'assistant', content: 'Real response' },
+      ];
       const result = buildClaudeMessages(history, 'Hi');
-      expect(result[0]!.content).toBe('');
+      expect(result).toEqual([
+        { role: 'user', content: 'Hello' },
+        { role: 'assistant', content: 'Real response' },
+        { role: 'user', content: 'Hi' },
+      ]);
     });
   });
 

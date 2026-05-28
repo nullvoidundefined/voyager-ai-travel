@@ -4,6 +4,7 @@ import {
   DEFAULT_COMPLETION_TRACKER,
   computeNudge,
   hasAnySelection,
+  noEngagement,
   normalizeCompletionTracker,
   updateCompletionTracker,
 } from 'app/prompts/booking-steps.js';
@@ -273,21 +274,14 @@ export async function chat(req: Request, res: Response) {
       // Empty itinerary guard -- only relevant once the user is actively booking
       if (
         updatedPosition.phase === 'PLANNING' &&
-        !hasAnySelection(newTracker)
+        !hasAnySelection(newTracker) &&
+        noEngagement(newTracker)
       ) {
-        const allSkippedOrPending = (
-          ['flights', 'hotels', 'car_rental', 'experiences'] as const
-        ).every((cat) => {
-          const status = newTracker[cat];
-          return status === 'skipped' || status === 'pending';
+        result.nodes.push({
+          type: 'text',
+          content:
+            "You haven't selected anything for your trip yet. Want to go back and explore some options?",
         });
-        if (allSkippedOrPending) {
-          result.nodes.push({
-            type: 'text',
-            content:
-              "You haven't selected anything for your trip yet. Want to go back and explore some options?",
-          });
-        }
       }
 
       await updateBookingState(conversation.id, newTracker);

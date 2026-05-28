@@ -106,10 +106,15 @@ export function buildClaudeMessages(
   const MAX_HISTORY_MESSAGES = 20;
 
   const messages = history
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .filter(
+      (m) =>
+        (m.role === 'user' || m.role === 'assistant') &&
+        m.content !== null &&
+        m.content !== '',
+    )
     .map((m) => ({
       role: m.role as 'user' | 'assistant',
-      content: m.content ?? '',
+      content: m.content!,
     }));
 
   messages.push({ role: 'user', content: currentMessage });

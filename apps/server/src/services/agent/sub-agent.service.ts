@@ -1,6 +1,7 @@
 import type { CompletionTracker } from 'app/prompts/booking-steps.js';
 import type { FlowPosition } from 'app/prompts/booking-steps.js';
 import type { TripState } from 'app/prompts/booking-steps.js';
+import { isResolved, needsWork } from 'app/prompts/booking-steps.js';
 import {
   EXPERIENCE_INTEREST_OPTIONS,
   FLIGHT_TRIP_TYPE_OPTIONS,
@@ -63,20 +64,12 @@ export function selectSubAgent(
   if (flowPosition.phase === 'COMPLETE') return 'conversation';
 
   // PLANNING phase -- route by tracker state
-  const flightReady =
-    tracker.flights === 'selected' ||
-    tracker.flights === 'skipped' ||
-    tracker.flights === 'not_applicable';
-
-  const hotelReady =
-    tracker.hotels === 'selected' ||
-    tracker.hotels === 'skipped' ||
-    tracker.hotels === 'not_applicable';
-
-  if (tracker.flights === 'pending') return 'flight';
-  if (tracker.hotels === 'pending' && flightReady) return 'hotel';
-  if (tracker.experiences === 'pending' && flightReady) return 'experience';
-  if (tracker.car_rental === 'pending' && hotelReady) return 'ground';
+  if (needsWork(tracker.flights)) return 'flight';
+  if (needsWork(tracker.hotels) && isResolved(tracker.flights)) return 'hotel';
+  if (needsWork(tracker.experiences) && isResolved(tracker.flights))
+    return 'experience';
+  if (needsWork(tracker.car_rental) && isResolved(tracker.hotels))
+    return 'ground';
 
   return 'conversation';
 }

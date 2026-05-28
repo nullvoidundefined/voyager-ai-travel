@@ -318,6 +318,44 @@ describe('selectSubAgent', () => {
       };
       expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
     });
+
+    it('routes to flight agent when flights are searching (user selecting)', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'searching',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('flight');
+    });
+
+    it('routes to hotel agent when hotels are searching and flights resolved', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'searching',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
+    });
+
+    it('routes to experience agent when experiences are searching and flights resolved', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'selected',
+        experiences: 'searching',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('experience');
+    });
+
+    it('routes to ground agent when car_rental is searching and hotels resolved', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'selected',
+        experiences: 'selected',
+        car_rental: 'searching',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('ground');
+    });
   });
 });
 
