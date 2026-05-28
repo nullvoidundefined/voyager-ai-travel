@@ -145,3 +145,147 @@ The final-section CTA says "Get Started Free" which signals a commercial product
 **Scope:** Replace with "Try the live demo" or similar portfolio-appropriate language.
 
 **Roles:** Marketing
+
+---
+
+## Fix CQS-16: Hotel Address Always Empty in Production
+
+`hotels.tool.ts` hardcodes `address: ''` in production. Every hotel card shown to any user has no address. Mock returns a real address, so tests pass while production is broken.
+
+**Why P1:** Most visible data quality failure in the core product loop. Escalated from P2 by 2026-05-28 criticism audit.
+
+**Scope:** Parse the address from SerpApi hotel response and populate the field. Update mock to match.
+
+**Source:** 2026-05-28 criticism audit, 2026-05-27 code quality sweep (CQS-16)
+
+---
+
+## Fix CQS-11: Enrichment Sources Silently Swallow Errors
+
+`fetchStateDeptAdvisory`, `fetchFCDOAdvisory`, `fetchWeatherForecast` have 0% function coverage. `enrichment.ts` drops rejected `Promise.allSettled` results with no `logger.warn`. A production advisory API outage is invisible.
+
+**Why P1:** Escalated from P2 by 2026-05-28 engineering audit. Silent failure in a user-facing enrichment panel.
+
+**Scope:** Add `logger.warn` to the `allSettled` rejection path. Add fetch-mocked unit tests for all three async sources.
+
+**Source:** 2026-05-28 engineering audit
+
+---
+
+## Fix: Toast Has No `role="alert"`
+
+`Toast.tsx` renders `<div className={styles.toast}>` with no `role="alert"` or `aria-live`. SSE errors, booking failures, and all status messages surfaced via Toast are invisible to screen readers.
+
+**Why P1:** Toast is the primary mechanism for server error communication. WCAG 2.1 violation.
+
+**Scope:** Add `role="alert"` to the Toast root div.
+
+**Source:** 2026-05-27 UX audit
+
+---
+
+## Fix: PreferencesWizard and BookingConfirmation Missing Focus Traps
+
+Neither component uses `focus-trap-react` or Radix Dialog. Keyboard users can Tab past the modal boundary into background page elements. WCAG 2.1 SC 2.1.2 violation.
+
+**Why P1:** The two highest-traffic modals leak keyboard focus. Radix AlertDialog (used for trip deletion) has proper focus trapping; these don't.
+
+**Scope:** Migrate both to Radix Dialog or add `focus-trap-react`. Also restore focus to trigger element when BookingConfirmation closes (WCAG 2.1 SC 2.4.3).
+
+**Source:** 2026-05-27 UX audit
+
+---
+
+## Fix US-5: Destination Pre-fill Silently Broken
+
+`explore/[slug]/page.tsx` generates a link to `/trips/new?destination=Paris` but `trips/new/page.tsx` never reads `useSearchParams`. The query param is silently discarded.
+
+**Why P1:** Breaks the documented acceptance criteria for US-5. The CTA says "Plan a trip to Paris" but the trip is created with destination "New trip."
+
+**Scope:** Read `?destination=` query param in `trips/new/page.tsx` and seed the trip with the value.
+
+**Source:** 2026-05-27 UX audit
+
+---
+
+## Fix US-12: AuthGuard Redirect Loses Intended Destination
+
+`AuthGuard.tsx` always redirects to `/login` with no `?next=` parameter. A user who clicks "Plan a trip to Paris" logs in and lands on `/trips`, never returning to the destination page.
+
+**Why P1:** US-12 acceptance criterion says "After login, redirected back to the original page." Not implemented.
+
+**Scope:** Preserve `?next=` in AuthGuard redirect; restore after login.
+
+**Source:** 2026-05-27 UX audit
+
+---
+
+## Fix: `DemoBanner.tsx:25` Broken Audit Link
+
+"Read the engineering audit" link href is `/docs/audits/2026-04-06-engineering.md` -- a git repo path, not a served Next.js route. 404s in production.
+
+**Why P1:** Prominent link on every page that leads to a 404.
+
+**Scope:** Either serve the audit file via a Next.js route, link to the GitHub raw file, or remove the link.
+
+**Source:** 2026-05-27 code quality sweep
+
+---
+
+## Fix: `useSSEChat.ts:134` JSON.parse Not Wrapped in try/catch
+
+Malformed SSE data line throws, caught by outer catch which shows misleading "Could not reach the agent" message instead of a parse error.
+
+**Why P1:** Any malformed SSE event crashes the chat with a misleading error.
+
+**Scope:** Wrap `JSON.parse(line.slice(6))` in try/catch with a specific parse-error message.
+
+**Source:** 2026-05-27 code quality sweep
+
+---
+
+## Fix: `trips/new/page.tsx` Double-Create in React Strict Mode
+
+`creating` ref guard does not cancel the in-flight POST on unmount. In React Strict Mode (double-invoke), two trips can be created.
+
+**Why P1:** Every developer running in dev mode creates duplicate trips.
+
+**Scope:** Add `controller.abort()` in cleanup, or use TanStack Query `useMutation`.
+
+**Source:** 2026-05-27 code quality sweep
+
+---
+
+## Fix: `trips/[id]/page.tsx` Booking Silently Swallows PUT Errors
+
+`handleConfirmBooking` silently swallows `put` errors. If endpoint fails, UI shows "Booked" while server still has `status: 'planning'`. Optimistic update not rolled back.
+
+**Why P1:** User sees a false confirmation.
+
+**Scope:** Add error handling to rollback optimistic state on PUT failure.
+
+**Source:** 2026-05-27 code quality sweep
+
+---
+
+## Fix: `PreferencesWizard.tsx:158` Unhandled Promise Rejection on Save
+
+`handleNext` calls `await saveCurrentStep()` with no try/catch. Network failure throws unhandled promise rejection with no error message shown.
+
+**Why P1:** Silent failure on a core user flow.
+
+**Scope:** Wrap in try/catch and show a Toast error.
+
+**Source:** 2026-05-27 code quality sweep
+
+---
+
+## Fix: `schemas.ts:82-91` Select Schemas Bypass Injection Protection
+
+`selectFlightSchema.origin/destination` use `z.string().min(1)` with no content restriction, while `searchFlightsSchema` uses `locationAllowlist` regex. Select schemas bypass injection protection applied at search time.
+
+**Why P1:** Security gap -- select tools have weaker input validation than search tools for the same fields.
+
+**Scope:** Apply the same `locationAllowlist` or content restrictions to select schemas.
+
+**Source:** 2026-05-27 code quality sweep
