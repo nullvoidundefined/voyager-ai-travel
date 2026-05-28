@@ -25,6 +25,11 @@ export const SUB_AGENT_TOOLS: Record<SubAgentType, string[]> = {
     'get_destination_info',
     'select_flight',
     'calculate_remaining_budget',
+    // SEC-01-adjacent + ORC-01: legs are flight segments, so the flight
+    // sub-agent needs to add/remove/reorder them during multi-city planning.
+    'add_leg',
+    'remove_leg',
+    'reorder_legs',
     'format_response',
   ],
   hotel: [
@@ -44,6 +49,8 @@ export const SUB_AGENT_TOOLS: Record<SubAgentType, string[]> = {
     'search_experiences',
     'select_experience',
     'calculate_remaining_budget',
+    // ORC-01: daily schedule is built from confirmed experiences.
+    'plan_daily_schedule',
     'format_response',
   ],
   conversation: [
@@ -51,6 +58,12 @@ export const SUB_AGENT_TOOLS: Record<SubAgentType, string[]> = {
     'get_destination_info',
     'calculate_remaining_budget',
     're_open_category',
+    // ORC-01: post-PLANNING edits to legs and schedule must remain
+    // reachable via chat after the booking flow ends.
+    'add_leg',
+    'remove_leg',
+    'reorder_legs',
+    'plan_daily_schedule',
     'format_response',
   ],
 };

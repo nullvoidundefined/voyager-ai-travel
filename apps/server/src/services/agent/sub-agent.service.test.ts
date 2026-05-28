@@ -391,4 +391,29 @@ describe('SUB_AGENT_TOOLS', () => {
     expect(SUB_AGENT_TOOLS.conversation).toContain('re_open_category');
     expect(SUB_AGENT_TOOLS.conversation).not.toContain('search_flights');
   });
+
+  it('ORC-01: every executor-implemented leg/schedule tool is in at least one partition', () => {
+    const allPartitionedTools = new Set(Object.values(SUB_AGENT_TOOLS).flat());
+    expect(allPartitionedTools).toContain('add_leg');
+    expect(allPartitionedTools).toContain('remove_leg');
+    expect(allPartitionedTools).toContain('reorder_legs');
+    expect(allPartitionedTools).toContain('plan_daily_schedule');
+  });
+
+  it('ORC-01: flight agent can add/remove/reorder legs for multi-city planning', () => {
+    expect(SUB_AGENT_TOOLS.flight).toContain('add_leg');
+    expect(SUB_AGENT_TOOLS.flight).toContain('remove_leg');
+    expect(SUB_AGENT_TOOLS.flight).toContain('reorder_legs');
+  });
+
+  it('ORC-01: experience agent can plan_daily_schedule from confirmed selections', () => {
+    expect(SUB_AGENT_TOOLS.experience).toContain('plan_daily_schedule');
+  });
+
+  it('ORC-01: conversation agent can edit legs and schedule post-PLANNING', () => {
+    expect(SUB_AGENT_TOOLS.conversation).toContain('add_leg');
+    expect(SUB_AGENT_TOOLS.conversation).toContain('remove_leg');
+    expect(SUB_AGENT_TOOLS.conversation).toContain('reorder_legs');
+    expect(SUB_AGENT_TOOLS.conversation).toContain('plan_daily_schedule');
+  });
 });
