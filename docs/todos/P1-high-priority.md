@@ -340,13 +340,37 @@ Commit `f36d7d6` added a live Mapbox public token (`pk.*`) to `web-client/.env.e
 
 ---
 
-## Cherry-pick Worktree P1 Fixes to Main
+## Forward-port P1-03: Budget Tool Uses DB-Truth Costs
 
-`.claude/worktrees/investigate-llm-orchestration` contains `4aa4fce fix(P1-03): budget tool uses DB-truth costs instead of Claude-supplied values` and `ebf2c6b fix(P1-05): multi-airport support for destination lookups`. Both are P1-labeled bug fixes. Neither is on `main`. Neither is in production. The worktree has survived multiple session boundaries.
+Worktree commit `4aa4fce` predates the monorepo restructure (`2672b52`). Cherry-pick fails because every file path has changed (`server/src/...` -> `apps/server/src/...`) and the surrounding code has diverged. Re-implementation under the new structure is required. The bug is unfixed in main: `apps/server/src/tools/budget.tool.ts:23` `calculateRemainingBudget` accepts costs as inputs from the agent (Claude-supplied), with no fallback to DB-truth values.
 
-**Why P1:** Two P1 fixes that already exist are not deployed. Every session that ends with them in the worktree is a session where the underlying bugs continue in production.
+**Why P1:** Budget calculations driven by Claude-supplied numbers can diverge from actual confirmed selections, producing wrong "remaining budget" totals in the demo loop.
 
-**Scope:** From `main`, `git cherry-pick 4aa4fce ebf2c6b`. Resolve conflicts if any. Push. Delete the worktree.
+**Scope:** Add `getActualCostsForTrip(tripId)` to `apps/server/src/repositories/trips/trips.ts` that pulls confirmed flight/hotel/experience costs from the DB. Update executor to call this function and pass the DB-truth values to `calculateRemainingBudget` instead of trusting the agent input. Write a failing integration test that asserts DB-truth values win over agent-supplied values when they disagree. Reference: worktree commit `4aa4fce` (+194 lines, 4 files) for the original design.
+
+**Source:** 2026-05-28 criticism audit (Opus); forward-port from `.claude/worktrees/investigate-llm-orchestration`
+
+---
+
+## Forward-port P1-05: Multi-Airport Support for Destination Lookups
+
+Worktree commit `ebf2c6b` predates the monorepo restructure. Re-implementation required. The bug is unfixed in main: cities with multiple airports (NYC = JFK/LGA/EWR; London = LHR/LGW/STN; etc.) resolve to a single primary airport, so flight searches miss alternates.
+
+**Why P1:** Major hub destinations miss valid flight options, producing visibly thin results on the most common demo cities.
+
+**Scope:** Extend `apps/server/src/data/cities.ts` schema with an `airports: { primary: string; alternates: string[] }` field. Update `apps/server/src/tools/destination.tool.ts` to return all airport codes. Update `apps/server/src/tools/definitions.ts` flight schema if needed. Write a failing test asserting NYC returns ['JFK', 'LGA', 'EWR']. Reference: worktree commit `ebf2c6b` (+38 lines, 4 files).
+
+**Source:** 2026-05-28 criticism audit (Opus); forward-port from `.claude/worktrees/investigate-llm-orchestration`
+
+---
+
+## Delete `.claude/worktrees/investigate-llm-orchestration` After Forward-Ports
+
+Once P1-03 and P1-05 are forward-ported AND the P2 forward-ports for Redis lock, experience categories, and car_rental_cost are filed/landed, delete the worktree to close the open-worktree-across-sessions discipline gap.
+
+**Why P1:** Worktree existence past forward-port complete is a hygiene failure (criticism audit finding).
+
+**Scope:** `git worktree remove .claude/worktrees/investigate-llm-orchestration` and `git branch -D worktree-investigate-llm-orchestration`. Verify worktree-lifecycle rule update (filed as P3 process item) is in place to prevent recurrence.
 
 **Source:** 2026-05-28 criticism audit (Opus)
 

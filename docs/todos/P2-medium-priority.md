@@ -489,3 +489,23 @@ US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via `confirmed
 `eval/src/scoring/judge.ts:51` hardcodes `claude-sonnet-4-20250514`. `eval/src/adversarial/judge.ts:111` uses `claude-sonnet-4-6`. Commit `87576dc` reverted judge and orchestrator from `claude-sonnet-4-6` to `claude-sonnet-4-20250514` "to restore eval score to 0.79." The eval is measuring the grader's self-consistency on one model, not the product's robustness. When Anthropic deprecates the alias, the score will change for grader reasons, not product reasons.
 
 **Scope:** Re-run the adversarial eval with at least two additional judge models (e.g., `claude-haiku-4-5-20251001`, `claude-opus-4-7`). If pass-rate varies by more than +/-0.05 across models, the 0.79 number is grader-specific and must be reported as a range. If it is stable, the lock-in concern is retracted.
+
+---
+
+## Worktree Forward-Ports (2026-05-28)
+
+### Forward-port P2-01: Redis-Backed Conversation Lock
+
+Worktree commit `8da22be` adds Redis-backed `SET NX EX` lock to `chat.ts` `activeConversations` Set, preventing concurrent agent loops across replicas. Falls back to in-memory only when Redis is unavailable. Lock auto-expires after 180s. Current main has only the in-memory Set (`apps/server/src/handlers/chat/chat.ts:54`). Multi-replica deploys can run duplicate agent loops for the same conversation.
+
+**Why P2:** Multi-replica production safety. Voyager currently runs single-replica on Railway, so practical impact is low, but the gap will reappear on any horizontal scale.
+
+**Scope:** Re-implement Redis lock pattern under new structure. Reference: worktree commit `8da22be` (+56 lines, 2 files). Write a failing test asserting two concurrent calls with the same conversation ID return one accept + one 409.
+
+---
+
+### Forward-port P2-04: `car_rental_cost` Required in Budget Tool
+
+Worktree commit `4945b06` makes `car_rental_cost` required in the budget tool schema so car rentals are never invisible in budget calculations. Current `apps/server/src/tools/schemas.ts` and `apps/server/src/tools/definitions.ts` have no `car_rental_cost` requirement.
+
+**Scope:** Add `car_rental_cost: z.number().nonnegative()` to budget tool schema. Update `calculateRemainingBudget` to include car rental in `totalSpent`. Write a failing test asserting a budget call with no `car_rental_cost` is rejected. Reference: worktree commit `4945b06`.

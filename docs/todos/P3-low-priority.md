@@ -379,3 +379,21 @@ R-212 says squash-merge feature branches. Voyager uses trunk-based development. 
 `apps/server/src/services/agent/AgentOrchestrator.ts:13` sets `DEFAULT_MODEL = 'claude-sonnet-4-20250514'`. Commit `87576dc` reverted from `claude-sonnet-4-6` because the multi-turn pattern broke. The reverted model is on Anthropic's deprecation track. Once the alias is fully retired, production behavior will change without a corresponding code change.
 
 **Scope:** Plan and test a migration to `claude-sonnet-4-6` or `claude-haiku-4-5` with the multi-turn pattern fixed. Track Anthropic's deprecation schedule.
+
+---
+
+## Worktree Forward-Ports (2026-05-28)
+
+### Forward-port P3-08: Standardize Experience Categories
+
+Worktree commit `4945b06` maps Google Places types (`tourist_attraction`, `museum`, `restaurant`, etc.) to user-friendly categories (sightseeing, cultural, dining, etc.). Current `apps/server/src/tools/experiences.tool.ts` emits raw Places API labels. The user-friendly mapping was bundled in 4945b06 along with the P2-04 `car_rental_cost` fix.
+
+**Scope:** Add a `EXPERIENCE_CATEGORY_MAP` constant translating Places type strings to friendly category labels. Update the experiences tool result shape to include the mapped category. Reference: worktree commit `4945b06` (+76 lines, 6 files).
+
+---
+
+### Forward-port docs comments (`667a88f`) -- Low Value, Likely Skip
+
+Worktree commit `667a88f` is docs-only: adds inline comments to complex orchestration code (agent.service.ts, node-builder.ts, hotels.tool.ts, CircuitBreaker.ts; +41 lines across 8 files). With the orchestrator architecture having changed materially since this commit (T5-T14 sub-agent rollout), the original comments may no longer match the current code. Likely skip; re-document in place if/when those files are touched again.
+
+**Scope:** Review whether any of the 8 files' current code is similar enough to the commit's old code that the comments would still be accurate. If yes, hand-apply selected comments. If no, drop this forward-port.
