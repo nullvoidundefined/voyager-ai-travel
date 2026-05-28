@@ -196,6 +196,14 @@ describe('chat.helpers', () => {
       expect(fields.find((f) => f.name === 'destination')).toBeDefined();
     });
 
+    it('treats "New trip" as a placeholder and includes destination field', () => {
+      const trip = { ...baseTripDetails, destination: 'New trip' };
+      const form = buildMissingFieldsForm(trip);
+      expect(form).not.toBeNull();
+      const fields = (form as { fields: Array<{ name: string }> }).fields;
+      expect(fields.find((f) => f.name === 'destination')).toBeDefined();
+    });
+
     it('lists missing departure_date field', () => {
       const trip = { ...baseTripDetails, departure_date: null };
       const form = buildMissingFieldsForm(trip);

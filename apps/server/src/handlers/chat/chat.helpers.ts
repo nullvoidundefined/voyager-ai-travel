@@ -140,7 +140,10 @@ interface MissingField {
 
 /** Build a travel_plan_form node for missing trip fields, or null if none are missing. */
 export function buildMissingFieldsForm(trip: TripWithDetails): ChatNode | null {
-  const isPlaceholder = !trip.destination || trip.destination === 'Planning...';
+  const isPlaceholder =
+    !trip.destination ||
+    trip.destination === 'Planning...' ||
+    trip.destination === 'New trip';
   const missingFields: MissingField[] = [];
 
   if (isPlaceholder) {
