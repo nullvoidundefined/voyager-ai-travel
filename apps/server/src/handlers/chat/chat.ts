@@ -7,6 +7,7 @@ import {
   normalizeCompletionTracker,
   updateCompletionTracker,
 } from 'app/prompts/booking-steps.js';
+import { buildPlanAgentPrompt } from 'app/prompts/sub-agents/plan.prompt.js';
 import {
   getMessagesByConversation,
   getOrCreateConversation,
@@ -15,6 +16,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
+import { buildDefaultPlanCard } from 'app/services/TripOrchestrator.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
 import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import posthog from 'app/services/posthog.js';
@@ -157,8 +159,16 @@ export async function chat(req: Request, res: Response) {
     conversation.booking_state ?? DEFAULT_COMPLETION_TRACKER,
   );
 
-  const flowPosition = computeFlowPosition(trip);
+  const flowPosition = computeFlowPosition(trip, tracker);
   const nudge = computeNudge(tracker);
+
+  const systemPromptOverride =
+    flowPosition.phase === 'PLAN_TRIP'
+      ? buildPlanAgentPrompt(
+          buildDefaultPlanCard(toFlowInput(trip)),
+          tripContext,
+        )
+      : undefined;
 
   try {
     const result = await runAgentLoop(
@@ -171,6 +181,7 @@ export async function chat(req: Request, res: Response) {
       flowPosition,
       { hasCriticalAdvisory, nudge },
       tracker,
+      systemPromptOverride,
     );
 
     // FIN-01 / FIN-05: increment the per-user daily token counter with

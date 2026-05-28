@@ -140,6 +140,7 @@ export const formatResponseSchema = z.object({
   skip_category: z
     .enum(['flights', 'hotels', 'car_rental', 'experiences'])
     .optional(),
+  plan_card: z.unknown().optional(),
 });
 
 export const toolSchemas: Record<string, z.ZodSchema> = {

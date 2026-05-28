@@ -31,6 +31,7 @@ export interface FormatResponseData {
     body: string;
   };
   skip_category?: boolean;
+  plan_card?: unknown;
 }
 
 export interface OrchestratorResult {

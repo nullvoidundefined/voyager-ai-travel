@@ -1,5 +1,9 @@
 import type { ChatNode, SSEEvent } from '@voyager/shared-types';
-import { type TripState, getFlowPosition } from 'app/prompts/booking-steps.js';
+import {
+  type CompletionTracker,
+  type TripState,
+  getFlowPosition,
+} from 'app/prompts/booking-steps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import type { TripWithDetails } from 'app/schemas/trips.js';
 import type { UserPreferences } from 'app/schemas/userPreferences.js';
@@ -23,9 +27,12 @@ export function toFlowInput(trip: TripWithDetails): TripState {
   };
 }
 
-/** Compute flow position from a trip. */
-export function computeFlowPosition(trip: TripWithDetails) {
-  return getFlowPosition(toFlowInput(trip));
+/** Compute flow position from a trip, gating PLAN_TRIP on tracker.plan_confirmed. */
+export function computeFlowPosition(
+  trip: TripWithDetails,
+  tracker?: CompletionTracker,
+) {
+  return getFlowPosition(toFlowInput(trip), tracker);
 }
 
 /** Flush SSE data through any proxy buffering. */

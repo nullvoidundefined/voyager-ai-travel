@@ -1,5 +1,10 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { ChatNode, Citation, SSEEvent } from '@voyager/shared-types';
+import type {
+  ChatNode,
+  Citation,
+  SSEEvent,
+  TripPlanCard,
+} from '@voyager/shared-types';
 import {
   type CompletionTracker,
   type FlowPosition,
@@ -37,6 +42,7 @@ export async function runAgentLoop(
   flowPosition?: FlowPosition,
   promptOptions?: { hasCriticalAdvisory?: boolean; nudge?: string | null },
   tracker?: CompletionTracker,
+  systemPromptOverride?: string,
 ): Promise<AgentResult> {
   // Emit enrichment nodes first so the frontend can render them immediately
   if (enrichmentNodes) {
@@ -56,6 +62,7 @@ export async function runAgentLoop(
     ...(mockClient ? { client: mockClient } : {}),
     tools: TOOL_DEFINITIONS as Anthropic.Tool[],
     systemPromptBuilder: (ctx: unknown, pos: unknown) =>
+      systemPromptOverride ??
       buildSystemPrompt(
         ctx as TripContext | undefined,
         pos as FlowPosition | undefined,
@@ -121,7 +128,15 @@ export async function runAgentLoop(
   const toolNodes = result.nodes.filter((n) => n.type !== 'budget_bar');
   finalNodes.push(...toolNodes);
 
-  // 3. Text node from format_response or fallback to raw response
+  // 3. Plan card node (PLAN_TRIP phase only, emitted before text)
+  if (result.formatResponse?.plan_card) {
+    finalNodes.push({
+      type: 'plan_card',
+      plan_card: result.formatResponse.plan_card as TripPlanCard,
+    });
+  }
+
+  // 4. Text node from format_response or fallback to raw response
   if (result.formatResponse) {
     finalNodes.push({
       type: 'text',
@@ -135,11 +150,11 @@ export async function runAgentLoop(
     finalNodes.push({ type: 'text', content: result.response });
   }
 
-  // 4. Budget bar (moved to after text)
+  // 5. Budget bar (moved to after text)
   const budgetNode = result.nodes.find((n) => n.type === 'budget_bar');
   if (budgetNode) finalNodes.push(budgetNode);
 
-  // 5. Advisory from format_response
+  // 6. Advisory from format_response
   if (result.formatResponse?.advisory) {
     finalNodes.push({
       type: 'advisory',
@@ -147,7 +162,7 @@ export async function runAgentLoop(
     });
   }
 
-  // 6. Quick replies
+  // 7. Quick replies
   if (result.formatResponse?.quick_replies?.length) {
     finalNodes.push({
       type: 'quick_replies',

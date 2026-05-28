@@ -100,6 +100,43 @@ export interface WeatherDay {
   precipitation_chance: number;
 }
 
+// --- TripPlanCard ---
+
+export type TripPlanCategoryId =
+  | 'flights'
+  | 'hotels'
+  | 'car_rental'
+  | 'experiences';
+
+export interface TripPlanCard {
+  categories: TripPlanCategory[];
+}
+
+export interface TripPlanCategory {
+  id: TripPlanCategoryId;
+  label: string;
+  enabled: boolean;
+  not_applicable: boolean;
+  not_applicable_reason?: string;
+  sub_options?: TripPlanSubOption[];
+}
+
+export type TripPlanSubOption =
+  | {
+      type: 'radio';
+      id: string;
+      label: string;
+      options: Array<{ id: string; label: string }>;
+      value: string;
+    }
+  | {
+      type: 'multi';
+      id: string;
+      label: string;
+      options: Array<{ id: string; label: string }>;
+      values: string[];
+    };
+
 // --- ChatNode discriminated union ---
 
 export type ChatNode =
@@ -134,6 +171,11 @@ export type ChatNode =
       type: 'booking_prompt';
       experiences_empty: boolean;
       car_rentals_empty: boolean;
+    }
+  | {
+      type: 'plan_card';
+      plan_card: TripPlanCard;
+      confirmed?: boolean;
     };
 
 // --- Helper type to extract a specific node ---

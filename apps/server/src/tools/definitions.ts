@@ -475,6 +475,11 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
           description:
             'Set to the category name when the user declines it (e.g., "car_rental" when the user says "No, I don\'t need a car"). The system will mark this category as skipped.',
         },
+        plan_card: {
+          type: 'object',
+          description:
+            'Trip plan card to present to the user. Emit ONLY during the PLAN_TRIP phase. Contains category toggles and sub-options the user can adjust before confirming.',
+        },
       },
       required: ['text'],
     },
