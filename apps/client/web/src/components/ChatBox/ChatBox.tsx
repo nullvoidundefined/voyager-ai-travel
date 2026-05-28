@@ -9,6 +9,7 @@ import {
   useState,
 } from 'react';
 
+import { AIDisclosure } from '@/components/AIDisclosure/AIDisclosure';
 import { CostCounter } from '@/components/CostCounter/CostCounter';
 import { Toast } from '@/components/Toast/Toast';
 import { ToolTimeline } from '@/components/ToolTimeline/ToolTimeline';
@@ -292,6 +293,7 @@ export function ChatBox({
   return (
     <div className={styles.chatBox} data-testid='chat-box'>
       {sseError && <Toast message={sseError} onClose={clearSseError} />}
+      <AIDisclosure />
       {costsData && (
         <div className={styles.chatHeader}>
           <CostCounter
