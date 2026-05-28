@@ -157,7 +157,12 @@ describe('chat handlers', () => {
                 result: [],
               },
             ],
-            total_tokens: { input: 100, output: 50 },
+            total_tokens: {
+              input: 100,
+              output: 50,
+              cache_creation: 0,
+              cache_read: 0,
+            },
             nodes: [{ type: 'text', content: 'Here is your plan.' }],
           };
         },
@@ -219,7 +224,12 @@ describe('chat handlers', () => {
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
         response: 'Hi!',
         tool_calls: [],
-        total_tokens: { input: 50, output: 20 },
+        total_tokens: {
+          input: 50,
+          output: 20,
+          cache_creation: 0,
+          cache_read: 0,
+        },
         nodes: [{ type: 'text', content: 'Hi!' }],
       });
 
@@ -305,7 +315,12 @@ describe('chat handlers', () => {
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
         response: 'Tokyo sounds great!',
         tool_calls: [],
-        total_tokens: { input: 50, output: 20 },
+        total_tokens: {
+          input: 50,
+          output: 20,
+          cache_creation: 0,
+          cache_read: 0,
+        },
         nodes: [{ type: 'text' as const, content: 'Tokyo sounds great!' }],
       });
 
@@ -409,7 +424,12 @@ describe('chat handlers', () => {
       vi.mocked(agentService.runAgentLoop).mockResolvedValueOnce({
         response: 'Got it!',
         tool_calls: [],
-        total_tokens: { input: 50, output: 20 },
+        total_tokens: {
+          input: 50,
+          output: 20,
+          cache_creation: 0,
+          cache_read: 0,
+        },
         nodes: [{ type: 'text' as const, content: 'Got it!' }],
       });
 
@@ -503,7 +523,12 @@ describe('chat handlers', () => {
             result: [],
           },
         ],
-        total_tokens: { input: 100, output: 50 },
+        total_tokens: {
+          input: 100,
+          output: 50,
+          cache_creation: 0,
+          cache_read: 0,
+        },
         nodes: [{ type: 'text', content: 'Here are some flights.' }],
       });
 

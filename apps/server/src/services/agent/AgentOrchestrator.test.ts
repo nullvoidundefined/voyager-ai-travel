@@ -155,7 +155,12 @@ describe('AgentOrchestrator', () => {
     expect(result.response).toBe('Hello traveler!');
     expect(result.toolCallsUsed).toHaveLength(0);
     expect(result.iterations).toBe(1);
-    expect(result.tokensUsed).toEqual({ input: 10, output: 20 });
+    expect(result.tokensUsed).toEqual({
+      input: 10,
+      output: 20,
+      cache_creation: 0,
+      cache_read: 0,
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -400,7 +405,12 @@ describe('AgentOrchestrator', () => {
       [],
     );
 
-    expect(result.tokensUsed).toEqual({ input: 300, output: 130 });
+    expect(result.tokensUsed).toEqual({
+      input: 300,
+      output: 130,
+      cache_creation: 0,
+      cache_read: 0,
+    });
   });
 
   // -----------------------------------------------------------------------
@@ -470,7 +480,13 @@ describe('AgentOrchestrator', () => {
     );
 
     expect(builder).toHaveBeenCalledWith({ destination: 'Paris' }, 'extra');
-    expect(mockStream.mock.calls[0]![0].system).toBe('Built prompt');
+    expect(mockStream.mock.calls[0]![0].system).toEqual([
+      {
+        type: 'text',
+        text: 'Built prompt',
+        cache_control: { type: 'ephemeral' },
+      },
+    ]);
   });
 
   // -----------------------------------------------------------------------

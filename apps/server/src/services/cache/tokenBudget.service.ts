@@ -64,3 +64,15 @@ export async function isOverDailyBudget(
   const usage = await getDailyTokenUsage(userId);
   return usage >= budget;
 }
+
+export async function resetTokenBudget(userId: string): Promise<void> {
+  const client = getRedis();
+  if (!client) {
+    return;
+  }
+  try {
+    await client.del(keyFor(userId));
+  } catch (err) {
+    logger.error({ err, userId }, 'Failed to reset token budget counter');
+  }
+}

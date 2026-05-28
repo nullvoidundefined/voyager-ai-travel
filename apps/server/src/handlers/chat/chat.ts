@@ -258,20 +258,23 @@ export async function chat(req: Request, res: Response) {
     // Post-loop: check for missing fields and update completion tracker
     const updatedTrip = await getTripWithDetails(tripId, userId);
     if (updatedTrip) {
-      const updatedPosition = computeFlowPosition(updatedTrip);
-      if (updatedPosition.phase === 'COLLECT_DETAILS') {
-        const formNode = buildMissingFieldsForm(updatedTrip);
-        if (formNode) result.nodes.push(formNode);
-      }
-
       const newTracker = updateCompletionTracker(
         tracker,
         result,
         toFlowInput(updatedTrip),
       );
 
-      // Empty itinerary guard
-      if (!hasAnySelection(newTracker)) {
+      const updatedPosition = computeFlowPosition(updatedTrip, newTracker);
+      if (updatedPosition.phase === 'COLLECT_DETAILS') {
+        const formNode = buildMissingFieldsForm(updatedTrip);
+        if (formNode) result.nodes.push(formNode);
+      }
+
+      // Empty itinerary guard -- only relevant once the user is actively booking
+      if (
+        updatedPosition.phase === 'PLANNING' &&
+        !hasAnySelection(newTracker)
+      ) {
         const allSkippedOrPending = (
           ['flights', 'hotels', 'car_rental', 'experiences'] as const
         ).every((cat) => {

@@ -118,6 +118,8 @@ export async function runAgentLoop(
       conversation_id: conversationId,
       input_tokens: result.tokensUsed.input,
       output_tokens: result.tokensUsed.output,
+      cache_creation_tokens: result.tokensUsed.cache_creation,
+      cache_read_tokens: result.tokensUsed.cache_read,
       iterations: result.iterations ?? 0,
       tool_call_count: result.toolCallsUsed?.length ?? 0,
     }).catch((err) => {

@@ -402,7 +402,12 @@ describe('agent.service', () => {
         () => {},
       );
 
-      expect(result.total_tokens).toEqual({ input: 150, output: 25 });
+      expect(result.total_tokens).toEqual({
+        input: 150,
+        output: 25,
+        cache_creation: 0,
+        cache_read: 0,
+      });
     });
 
     it('appends advisory node when format_response includes advisory', async () => {

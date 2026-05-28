@@ -10,8 +10,8 @@ import { buildNodeFromToolResult } from './node-builder.js';
 // it still covers the typical 3 to 6 real agent turns while bounding
 // worst-case burn per user message.
 const DEFAULT_MAX_ITERATIONS = 8;
-const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
-const DEFAULT_MAX_TOKENS = 4096;
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
+const DEFAULT_MAX_TOKENS = 2048;
 const DEFAULT_MAX_DURATION_MS = 120_000;
 
 export interface ToolCallRecord {
@@ -37,7 +37,12 @@ export interface FormatResponseData {
 export interface OrchestratorResult {
   response: string;
   toolCallsUsed: ToolCallRecord[];
-  tokensUsed: { input: number; output: number };
+  tokensUsed: {
+    input: number;
+    output: number;
+    cache_creation: number;
+    cache_read: number;
+  };
   iterations: number;
   nodes: ChatNode[];
   formatResponse: FormatResponseData | null;
@@ -105,8 +110,21 @@ export class AgentOrchestrator {
   ): Promise<OrchestratorResult> {
     const systemPrompt = this.systemPromptBuilder(...systemPromptArgs);
     const toolCalls: ToolCallRecord[] = [];
-    const tokensUsed = { input: 0, output: 0 };
+    const tokensUsed = {
+      input: 0,
+      output: 0,
+      cache_creation: 0,
+      cache_read: 0,
+    };
     let iterations = 0;
+
+    // Mark the last tool with a cache breakpoint so the system prompt +
+    // tools block is cached across all iterations of this agent loop turn.
+    const toolsWithCache: Anthropic.Tool[] = this.tools.map((t, i) =>
+      i === this.tools.length - 1
+        ? { ...t, cache_control: { type: 'ephemeral' } as const }
+        : t,
+    );
     const collectedNodes: ChatNode[] = [];
     let formatResponseData: FormatResponseData | null = null;
 
@@ -137,8 +155,14 @@ export class AgentOrchestrator {
       const stream = this.client.messages.stream({
         model: this.model,
         max_tokens: this.maxTokens,
-        system: systemPrompt,
-        tools: this.tools,
+        system: [
+          {
+            type: 'text',
+            text: systemPrompt,
+            cache_control: { type: 'ephemeral' },
+          },
+        ],
+        tools: toolsWithCache,
         messages: conversationMessages,
       });
 
@@ -154,6 +178,9 @@ export class AgentOrchestrator {
 
       tokensUsed.input += response.usage.input_tokens;
       tokensUsed.output += response.usage.output_tokens;
+      tokensUsed.cache_creation +=
+        response.usage.cache_creation_input_tokens ?? 0;
+      tokensUsed.cache_read += response.usage.cache_read_input_tokens ?? 0;
 
       if (response.stop_reason === 'end_turn') {
         const textBlock = response.content.find(
