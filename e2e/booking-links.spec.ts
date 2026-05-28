@@ -20,7 +20,7 @@ test('booking links section is visible on a trip with booking URLs', async ({
 
   // Intercept the trip fetch and inject a flight with a booking_url
   // so the BookingLinks section renders without requiring actual selections.
-  await page.route(`**/api/trips/${tripId}`, async (route) => {
+  await page.route(`http://localhost:3001/trips/${tripId}`, async (route) => {
     if (route.request().method() !== 'GET') {
       await route.fallback();
       return;

@@ -35,7 +35,7 @@ test.describe('Trip detail page spacing (B5)', () => {
     }
     const tripId = match[1];
 
-    await page.route(`**/api/trips/${tripId}`, async (route) => {
+    await page.route(`http://localhost:3001/trips/${tripId}`, async (route) => {
       if (route.request().method() !== 'GET') {
         await route.fallback();
         return;

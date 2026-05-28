@@ -15,17 +15,18 @@ test.describe('Navigation', () => {
 
   test('login page has link to register', async ({ page }) => {
     await page.goto('/login');
-    // The login page renders TWO links to /register: a "Sign up"
-    // link in the form and a "Get Started" CTA in the header or
-    // footer. Use .first() so strict mode does not reject the
-    // multi-match.
-    const registerLink = page.locator('a[href*="register"]').first();
+    // On auth pages the global Header is hidden via CSS, so any
+    // Header register link in the DOM is not visible. Filter to
+    // visible elements only and take the first match within the
+    // form area.
+    const registerLink = page.locator('a[href*="register"]:visible').first();
     await expect(registerLink).toBeVisible();
   });
 
   test('register page has link to login', async ({ page }) => {
     await page.goto('/register');
-    const loginLink = page.locator('a[href*="login"]').first();
+    // Same CSS-hiding gotcha as above: filter to visible elements.
+    const loginLink = page.locator('a[href*="login"]:visible').first();
     await expect(loginLink).toBeVisible();
   });
 });

@@ -97,14 +97,14 @@ export async function assertLoggedIn(page: Page): Promise<void> {
 }
 
 export async function assertLoggedOut(page: Page): Promise<void> {
-  // The site renders "Sign In" in BOTH the banner header and the
-  // contentinfo footer. Plain `locator('a:has-text("Sign In"))`
-  // matches twice and Playwright strict mode rejects it. Scope
-  // to the header.
-  await expect(
-    page
-      .locator('header')
-      .locator('a:has-text("Sign In"), a:has-text("Log In")')
-      .first(),
-  ).toBeVisible({ timeout: 5_000 });
+  // After logout the AuthGuard redirects to /login. The global
+  // Header is hidden via CSS on auth pages (the (auth) layout
+  // wraps its content in [data-auth-layout] and the root layout
+  // applies `:has([data-auth-layout]) > header { display: none }`).
+  // So we cannot assert the Sign In link in the header here.
+  // Instead, assert the login form is visible, which is a
+  // stronger signal that the user is logged out.
+  await expect(page.locator('input[type="email"]')).toBeVisible({
+    timeout: 5_000,
+  });
 }

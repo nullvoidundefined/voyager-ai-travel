@@ -21,31 +21,34 @@ test('trip detail page shows daily schedule when days exist', async ({
   // Intercept the schedule fetch and inject a synthetic day so
   // the DailySchedule section renders without requiring the agent
   // to run plan_daily_schedule.
-  await page.route(`**/api/trips/${tripId}/schedule`, async (route) => {
-    if (route.request().method() !== 'GET') {
-      await route.fallback();
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        days: [
-          {
-            day_number: 1,
-            day_date: '2026-06-01',
-            items: [
-              {
-                time_of_day: '09:00',
-                title: 'City tour',
-                category: 'experience',
-              },
-            ],
-          },
-        ],
-      }),
-    });
-  });
+  await page.route(
+    `http://localhost:3001/trips/${tripId}/schedule`,
+    async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          days: [
+            {
+              day_number: 1,
+              day_date: '2026-06-01',
+              items: [
+                {
+                  time_of_day: '09:00',
+                  title: 'City tour',
+                  category: 'experience',
+                },
+              ],
+            },
+          ],
+        }),
+      });
+    },
+  );
 
   await page.reload();
   await expect(page.locator('[data-testid="daily-schedule"]')).toBeVisible({

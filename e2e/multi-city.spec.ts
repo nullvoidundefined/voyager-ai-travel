@@ -18,7 +18,7 @@ test('multi-city trip shows LegList in itinerary pane', async ({ page }) => {
 
   // Intercept the trip fetch to set trip_structure = 'multi_city'
   // so the LegList section renders.
-  await page.route(`**/api/trips/${tripId}`, async (route) => {
+  await page.route(`http://localhost:3001/trips/${tripId}`, async (route) => {
     if (route.request().method() !== 'GET') {
       await route.fallback();
       return;
@@ -32,34 +32,37 @@ test('multi-city trip shows LegList in itinerary pane', async ({ page }) => {
   });
 
   // Intercept the legs fetch and inject two synthetic legs.
-  await page.route(`**/api/trips/${tripId}/legs`, async (route) => {
-    if (route.request().method() !== 'GET') {
-      await route.fallback();
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        legs: [
-          {
-            id: 'leg-1',
-            origin: 'DEN',
-            destination: 'LAX',
-            depart_date: '2026-06-01',
-            leg_order: 1,
-          },
-          {
-            id: 'leg-2',
-            origin: 'LAX',
-            destination: 'SFO',
-            depart_date: '2026-06-03',
-            leg_order: 2,
-          },
-        ],
-      }),
-    });
-  });
+  await page.route(
+    `http://localhost:3001/trips/${tripId}/legs`,
+    async (route) => {
+      if (route.request().method() !== 'GET') {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          legs: [
+            {
+              id: 'leg-1',
+              origin: 'DEN',
+              destination: 'LAX',
+              depart_date: '2026-06-01',
+              leg_order: 1,
+            },
+            {
+              id: 'leg-2',
+              origin: 'LAX',
+              destination: 'SFO',
+              depart_date: '2026-06-03',
+              leg_order: 2,
+            },
+          ],
+        }),
+      });
+    },
+  );
 
   await page.reload();
   await expect(page.locator('[data-testid="leg-list"]')).toBeVisible({
