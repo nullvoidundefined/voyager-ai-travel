@@ -48,7 +48,7 @@ Constraints: ${persona.constraints}`;
     .join('\n\n');
 
   const response = await getClient().messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 1000,
     system: JUDGE_PROMPT,
     messages: [

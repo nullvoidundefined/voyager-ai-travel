@@ -10,7 +10,7 @@ import { buildNodeFromToolResult } from './node-builder.js';
 // it still covers the typical 3 to 6 real agent turns while bounding
 // worst-case burn per user message.
 const DEFAULT_MAX_ITERATIONS = 8;
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
+const DEFAULT_MODEL = 'claude-sonnet-4-20250514';
 const DEFAULT_MAX_TOKENS = 2048;
 const DEFAULT_MAX_DURATION_MS = 120_000;
 
