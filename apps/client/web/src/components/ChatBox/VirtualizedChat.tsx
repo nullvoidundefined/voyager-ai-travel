@@ -252,9 +252,12 @@ export function VirtualizedChat({
                               onBookNow,
                               onFormSubmit,
                               onFormValuesChange,
-                              initialValues: initialDestination
-                                ? { destination: initialDestination }
-                                : undefined,
+                              initialValues:
+                                initialDestination &&
+                                initialDestination !== 'New trip' &&
+                                initialDestination !== 'Planning...'
+                                  ? { destination: initialDestination }
+                                  : undefined,
                               onConfirmFlight: (label, data) => {
                                 onSelectItem?.('flight', data);
                                 onQuickReply(

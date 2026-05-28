@@ -15,10 +15,7 @@ import { Toast } from '@/components/Toast/Toast';
 import type { MapPin } from '@/components/TripMap/TripMap';
 import { TripMap } from '@/components/TripMap/TripMap';
 import { del, get, post, put } from '@/lib/api';
-import {
-  getDestinationImage,
-  getDestinationImageUrl,
-} from '@/lib/destinationImage';
+import { getDestinationImage } from '@/lib/destinationImage';
 import { downloadICS } from '@/lib/export-ics';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -99,6 +96,7 @@ export default function TripDetailPage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'chat' | 'itinerary'>('chat');
+  const [bannerImageLoaded, setBannerImageLoaded] = useState(false);
 
   const {
     data: trip,
@@ -189,8 +187,7 @@ export default function TripDetailPage() {
 
   const hasFlights = trip.flights.length > 0;
 
-  const { url, unsplashId } = getDestinationImage(trip.destination);
-  const hasHero = url !== null && unsplashId !== null;
+  const { url } = getDestinationImage(trip.destination);
 
   // Hotels and experiences don't carry coordinates yet; pins will be populated
   // once the data model includes lat/lng fields.
@@ -228,14 +225,19 @@ export default function TripDetailPage() {
     <div className={styles.page}>
       {/* Full-bleed destination banner */}
       <div className={styles.banner}>
-        {hasHero && unsplashId ? (
+        {url ? (
           <Image
-            src={getDestinationImageUrl(unsplashId, 1400, 200)}
+            src={url}
             alt={trip.destination}
             fill
             sizes='100vw'
-            style={{ objectFit: 'cover' }}
+            style={{
+              objectFit: 'cover',
+              opacity: bannerImageLoaded ? 1 : 0,
+              transition: 'opacity 0.6s ease',
+            }}
             priority
+            onLoad={() => setBannerImageLoaded(true)}
           />
         ) : (
           <div className={styles.bannerGradient} />
@@ -296,7 +298,7 @@ export default function TripDetailPage() {
           className={`${styles.itineraryPane} ${activeTab === 'itinerary' ? styles.paneActive : ''}`}
         >
           {/* Interactive map */}
-          <TripMap pins={pins} />
+          <TripMap pins={pins} destinationName={trip.destination} />
 
           {/* Export and share */}
           <div className={styles.exportBar}>

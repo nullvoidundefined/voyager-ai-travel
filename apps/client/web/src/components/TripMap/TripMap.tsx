@@ -18,6 +18,7 @@ interface TripMapProps {
   pins: MapPin[];
   center?: [number, number];
   zoom?: number;
+  destinationName?: string;
 }
 
 const PIN_COLORS: Record<MapPin['type'], string> = {
@@ -26,7 +27,14 @@ const PIN_COLORS: Record<MapPin['type'], string> = {
   leg: '#2a7d4f',
 };
 
-export function TripMap({ pins, center, zoom = 11 }: TripMapProps) {
+const PLACEHOLDER_DESTINATIONS = new Set(['New trip', 'Planning...']);
+
+export function TripMap({
+  pins,
+  center,
+  zoom = 11,
+  destinationName,
+}: TripMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -44,16 +52,34 @@ export function TripMap({ pins, center, zoom = 11 }: TripMapProps) {
       const { Map } = await importLibrary('maps');
       if (cancelled || !containerRef.current) return;
 
-      const defaultCenter =
-        center != null
-          ? { lat: center[1], lng: center[0] }
-          : pins.length > 0
-            ? { lat: pins[0].lat, lng: pins[0].lng }
-            : { lat: 20, lng: 0 };
+      let resolvedCenter: { lat: number; lng: number };
+
+      if (center != null) {
+        resolvedCenter = { lat: center[1], lng: center[0] };
+      } else if (pins.length > 0) {
+        resolvedCenter = { lat: pins[0].lat, lng: pins[0].lng };
+      } else if (
+        destinationName &&
+        !PLACEHOLDER_DESTINATIONS.has(destinationName)
+      ) {
+        const { Geocoder } = await importLibrary('geocoding');
+        if (cancelled) return;
+        const geocoder = new Geocoder();
+        const result = await geocoder.geocode({ address: destinationName });
+        if (cancelled) return;
+        if (result.results[0]?.geometry?.location) {
+          const loc = result.results[0].geometry.location;
+          resolvedCenter = { lat: loc.lat(), lng: loc.lng() };
+        } else {
+          resolvedCenter = { lat: 20, lng: 0 };
+        }
+      } else {
+        resolvedCenter = { lat: 20, lng: 0 };
+      }
 
       const map = new Map(containerRef.current, {
-        center: defaultCenter,
-        zoom,
+        center: resolvedCenter,
+        zoom: destinationName && pins.length === 0 ? 10 : zoom,
         mapId: 'DEMO_MAP_ID',
         disableDefaultUI: true,
         zoomControl: true,
@@ -95,7 +121,7 @@ export function TripMap({ pins, center, zoom = 11 }: TripMapProps) {
       markersRef.current = [];
       mapRef.current = null;
     };
-  }, [pins, center, zoom, apiKey]);
+  }, [pins, center, zoom, apiKey, destinationName]);
 
   if (!apiKey) {
     return (
