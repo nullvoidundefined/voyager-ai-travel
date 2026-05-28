@@ -290,20 +290,3 @@ Malformed SSE data line throws, caught by outer catch which shows misleading "Co
 
 **Source:** 2026-05-27 code quality sweep
 
----
-
-## Instrument `e2e/real/happy-path-real.spec.ts` to diagnose B35
-
-The unmocked spec discovered B35 (search_flights does not fire after a complete first message + "Find flights" chip click) on 2026-05-28 but cannot disambiguate the three candidate root causes without server-side observation.
-
-**Why P1:** B35 is itself P1, and it cannot be fixed under R-201 without a reproducing diagnostic. The fix is blocked on this instrumentation.
-
-**Scope:** In `e2e/real/happy-path-real.spec.ts`, on `test.afterEach` when the test fails:
-
-1. Query `tool_call_log WHERE conversation_id = ?` for the trip's conversation and attach the result as a Playwright attachment. Captures exactly which tools fired and in what order.
-2. Capture `page.locator('[data-testid="chat-box"]').innerText()` and attach it. Captures the second agent turn's text after the chip click.
-3. Capture the trip row (`SELECT * FROM trips WHERE id = ?`) and attach it. Confirms whether `update_trip` ran and what it persisted.
-
-After landing, re-run `pnpm test:e2e:real` once. The three attachments together should isolate B35 to one of: agent prompt policy gating search behind a follow-up turn, chip click not dispatching, or SerpApi returning empty for the test prompt.
-
-**Source:** B35 in docs/bugs.md, surfaced by the 2026-05-28 unmocked E2E run
