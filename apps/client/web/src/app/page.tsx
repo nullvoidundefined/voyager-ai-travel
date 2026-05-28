@@ -185,11 +185,14 @@ export default function Home() {
       {/* -- Final CTA -- */}
       <section className={styles.finalCta}>
         <h2>
-          <em>Ready to go?</em>
+          <em>Want to try it?</em>
         </h2>
-        <p>Create a free account and plan your first trip in under a minute.</p>
+        <p>
+          Voyager is a portfolio demonstration of an agentic AI travel planning
+          pattern. Register a free account and run the demo end to end.
+        </p>
         <Link href='/register' className={styles.primaryCta}>
-          Get Started Free
+          Try the live demo
         </Link>
       </section>
     </div>

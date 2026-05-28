@@ -100,18 +100,6 @@ No disclosure that the user is chatting with an AI agent.
 
 ---
 
-## Replace "Get Started Free" CTA Copy
-
-The final-section CTA says "Get Started Free" which signals a commercial product.
-
-**Why P1:** Creates a credibility mismatch with the "portfolio demo" eyebrow label visible earlier on the page.
-
-**Scope:** Replace with "Try the live demo" or similar portfolio-appropriate language.
-
-**Roles:** Marketing
-
----
-
 ## Fix CQS-16: Hotel Address Always Empty in Production
 
 `hotels.tool.ts` hardcodes `address: ''` in production. Every hotel card shown to any user has no address. Mock returns a real address, so tests pass while production is broken.
