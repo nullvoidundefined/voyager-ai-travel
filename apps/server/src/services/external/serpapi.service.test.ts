@@ -9,7 +9,7 @@ global.fetch = mockFetch;
 
 const mockIncrementMonthlyUsage = vi.fn();
 
-let serpApiService: typeof import('app/services/serpapi.service.js');
+let serpApiService: typeof import('app/services/external/serpapi.service.js');
 
 describe('serpapi.service', () => {
   beforeEach(async () => {
@@ -20,14 +20,14 @@ describe('serpapi.service', () => {
       logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
     }));
 
-    vi.doMock('app/services/serpApiQuota.service.js', () => ({
+    vi.doMock('app/services/cache/serpApiQuota.service.js', () => ({
       incrementMonthlyUsage: mockIncrementMonthlyUsage,
       isOverMonthlyCap: vi.fn().mockResolvedValue(false),
     }));
 
     process.env.SERPAPI_API_KEY = 'test-serpapi-key';
 
-    serpApiService = await import('app/services/serpapi.service.js');
+    serpApiService = await import('app/services/external/serpapi.service.js');
   });
 
   afterEach(() => {
@@ -90,7 +90,8 @@ describe('serpapi.service', () => {
           debug: vi.fn(),
         },
       }));
-      const freshModule = await import('app/services/serpapi.service.js');
+      const freshModule =
+        await import('app/services/external/serpapi.service.js');
 
       await expect(
         freshModule.serpApiGet('google_flights', {}),

@@ -2,7 +2,7 @@ import * as chatHandlers from 'app/handlers/chat/chat.js';
 import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
 import * as convRepo from 'app/repositories/conversations/conversations.js';
 import * as tripRepo from 'app/repositories/trips/trips.js';
-import * as agentService from 'app/services/agent.service.js';
+import * as agentService from 'app/services/agent/agent.service.js';
 import { uuid } from 'app/utils/tests/uuids.js';
 import express from 'express';
 import request from 'supertest';
@@ -11,7 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('app/repositories/conversations/conversations.js');
 vi.mock('app/repositories/trips/trips.js');
 vi.mock('app/repositories/userPreferences/userPreferences.js');
-vi.mock('app/services/agent.service.js');
+vi.mock('app/services/agent/agent.service.js');
 vi.mock('app/tools/mock/isMockMode.js', () => ({
   isMockMode: vi.fn().mockReturnValue(false),
 }));
@@ -27,7 +27,7 @@ vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
 vi.mock('app/tools/mock/experiences.mock.js', () => ({
   generateMockExperiences: vi.fn(),
 }));
-vi.mock('app/services/enrichment.js', () => ({
+vi.mock('app/services/external/enrichment.js', () => ({
   getEnrichmentNodes: vi.fn().mockResolvedValue([]),
 }));
 vi.mock('app/utils/logs/logger.js', () => ({

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { DEFAULT_COMPLETION_TRACKER } from './booking-steps.js';
 import { buildSystemPrompt } from './system-prompt.js';
+import type { TripContext } from './trip-context.js';
 
 describe('buildSystemPrompt', () => {
   it('should include core prompt in every response', () => {
@@ -13,7 +14,6 @@ describe('buildSystemPrompt', () => {
 
   it('should include COLLECT_DETAILS addendum when no flow position', () => {
     const result = buildSystemPrompt();
-    expect(result).toContain('Collecting Details');
     expect(result).toContain('Collecting Details');
   });
 
@@ -58,7 +58,7 @@ describe('buildSystemPrompt', () => {
   });
 
   it('should include checklist during PLANNING phase with tracker', () => {
-    const tripContext = {
+    const tripContext: TripContext = {
       destination: 'Paris',
       origin: 'JFK',
       departure_date: '2026-06-01',
@@ -66,7 +66,7 @@ describe('buildSystemPrompt', () => {
       budget_total: 5000,
       budget_currency: 'USD',
       travelers: 2,
-      transport_mode: 'flying' as const,
+      transport_mode: 'flying',
       preferences: {},
       selected_flights: [],
       selected_hotels: [],
@@ -95,5 +95,57 @@ describe('buildSystemPrompt', () => {
     expect(result).toContain('format_response');
     expect(result).toContain('skip_category');
     expect(result).toContain('calculate_remaining_budget');
+  });
+});
+
+const BASE_CTX: TripContext = {
+  destination: 'Tokyo',
+  origin: null,
+  departure_date: '2026-08-01',
+  return_date: '2026-08-10',
+  budget_total: 3000,
+  budget_currency: 'USD',
+  travelers: 2,
+  transport_mode: null,
+  preferences: {},
+  selected_flights: [],
+  selected_hotels: [],
+  selected_car_rentals: [],
+  selected_experiences: [],
+  total_spent: 0,
+};
+
+describe('buildSystemPrompt personality', () => {
+  it('includes a travel advisor persona framing', () => {
+    const prompt = buildSystemPrompt(
+      BASE_CTX,
+      { phase: 'COLLECT_DETAILS' },
+      {},
+      null,
+    );
+    expect(prompt.toLowerCase()).toMatch(/travel (advisor|concierge|planner)/);
+  });
+
+  it('does not use prohibited filler phrases', () => {
+    const prompt = buildSystemPrompt(
+      BASE_CTX,
+      { phase: 'COLLECT_DETAILS' },
+      {},
+      null,
+    );
+    const forbidden = [
+      'certainly!',
+      'absolutely!',
+      'great question',
+      'of course!',
+    ];
+    forbidden.forEach((phrase) => {
+      expect(prompt.toLowerCase()).not.toContain(phrase.toLowerCase());
+    });
+  });
+
+  it('includes budget awareness language', () => {
+    const prompt = buildSystemPrompt(BASE_CTX, { phase: 'PLANNING' }, {}, null);
+    expect(prompt.toLowerCase()).toContain('budget');
   });
 });

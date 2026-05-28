@@ -21,18 +21,18 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
+import { runAgentLoop } from 'app/services/agent/agent.service.js';
 import {
   SUB_AGENT_TOOLS,
   buildDefaultPlanCard,
   selectSubAgent,
-} from 'app/services/TripOrchestrator.js';
-import { runAgentLoop } from 'app/services/agent.service.js';
-import { getEnrichmentNodes } from 'app/services/enrichment.js';
-import posthog from 'app/services/posthog.js';
+} from 'app/services/agent/sub-agent.service.js';
+import posthog from 'app/services/analytics/posthog.js';
 import {
   addTokenUsage,
   isOverDailyBudget,
-} from 'app/services/tokenBudget.service.js';
+} from 'app/services/cache/tokenBudget.service.js';
+import { getEnrichmentNodes } from 'app/services/external/enrichment.js';
 import type { TripPlanCard } from 'app/types/plan-card.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';

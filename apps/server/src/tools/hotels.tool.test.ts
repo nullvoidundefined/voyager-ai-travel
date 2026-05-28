@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('app/services/serpapi.service.js', () => {
+vi.mock('app/services/external/serpapi.service.js', () => {
   class SerpApiQuotaExceededError extends Error {
     constructor() {
       super('SerpApi monthly quota cap reached.');
@@ -12,14 +12,14 @@ vi.mock('app/services/serpapi.service.js', () => {
     SerpApiQuotaExceededError,
   };
 });
-vi.mock('app/services/cache.service.js');
+vi.mock('app/services/cache/cache.service.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 let searchHotels: typeof import('app/tools/hotels.tool.js').searchHotels;
-let serpApiService: typeof import('app/services/serpapi.service.js');
-let cacheService: typeof import('app/services/cache.service.js');
+let serpApiService: typeof import('app/services/external/serpapi.service.js');
+let cacheService: typeof import('app/services/cache/cache.service.js');
 
 const mockHotelsResponse = {
   properties: [
@@ -45,7 +45,7 @@ describe('hotels.tool', () => {
     vi.clearAllMocks();
     vi.resetModules();
 
-    vi.doMock('app/services/serpapi.service.js', () => {
+    vi.doMock('app/services/external/serpapi.service.js', () => {
       class SerpApiQuotaExceededError extends Error {
         constructor() {
           super('SerpApi monthly quota cap reached.');
@@ -57,7 +57,7 @@ describe('hotels.tool', () => {
         SerpApiQuotaExceededError,
       };
     });
-    vi.doMock('app/services/cache.service.js', () => ({
+    vi.doMock('app/services/cache/cache.service.js', () => ({
       cacheGet: vi.fn(),
       cacheSet: vi.fn(),
       normalizeCacheKey: vi.fn().mockReturnValue('test-hotel-cache-key'),
@@ -74,8 +74,8 @@ describe('hotels.tool', () => {
 
     const hotelsMod = await import('app/tools/hotels.tool.js');
     searchHotels = hotelsMod.searchHotels;
-    serpApiService = await import('app/services/serpapi.service.js');
-    cacheService = await import('app/services/cache.service.js');
+    serpApiService = await import('app/services/external/serpapi.service.js');
+    cacheService = await import('app/services/cache/cache.service.js');
   });
 
   describe('searchHotels', () => {
@@ -283,11 +283,11 @@ describe('hotels.tool', () => {
   describe('mock mode', () => {
     beforeEach(async () => {
       vi.resetModules();
-      vi.doMock('app/services/serpapi.service.js', () => ({
+      vi.doMock('app/services/external/serpapi.service.js', () => ({
         serpApiGet: vi.fn(),
         SerpApiQuotaExceededError: class SerpApiQuotaExceededError extends Error {},
       }));
-      vi.doMock('app/services/cache.service.js', () => ({
+      vi.doMock('app/services/cache/cache.service.js', () => ({
         cacheGet: vi.fn(),
         cacheSet: vi.fn(),
         normalizeCacheKey: vi.fn().mockReturnValue('test-cache-key'),

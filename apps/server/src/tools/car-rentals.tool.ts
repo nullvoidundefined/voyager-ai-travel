@@ -2,8 +2,8 @@ import {
   cacheGet,
   cacheSet,
   normalizeCacheKey,
-} from 'app/services/cache.service.js';
-import { serpApiGet } from 'app/services/serpapi.service.js';
+} from 'app/services/cache/cache.service.js';
+import { serpApiGet } from 'app/services/external/serpapi.service.js';
 import { generateMockCarRentals } from 'app/tools/mock/car-rentals.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';

@@ -1,7 +1,7 @@
 import {
   incrementMonthlyUsage,
   isOverMonthlyCap,
-} from 'app/services/serpApiQuota.service.js';
+} from 'app/services/cache/serpApiQuota.service.js';
 import { CircuitBreaker } from 'app/utils/CircuitBreaker.js';
 import { logger } from 'app/utils/logs/logger.js';
 

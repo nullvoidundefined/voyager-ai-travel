@@ -13,12 +13,12 @@ import { authRouter } from 'app/routes/auth.js';
 import { placesRouter } from 'app/routes/places.js';
 import { tripRouter } from 'app/routes/trips.js';
 import { userPreferencesRouter } from 'app/routes/userPreferences.js';
+import posthog from 'app/services/analytics/posthog.js';
 import {
   type MockScenarioName,
   isAnthropicMockMode,
   setMockScenario,
-} from 'app/services/mock-anthropic-client/mock-anthropic-client.js';
-import posthog from 'app/services/posthog.js';
+} from 'app/test-fixtures/mock-anthropic-client/mock-anthropic-client.js';
 import { logger } from 'app/utils/logs/logger.js';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -102,7 +102,7 @@ app.get('/health/ready', async (_req, res) => {
   }
 
   try {
-    const { getRedis } = await import('app/services/cache.service.js');
+    const { getRedis } = await import('app/services/cache/cache.service.js');
     const redis = getRedis();
     if (redis) {
       await redis.ping();

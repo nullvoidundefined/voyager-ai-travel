@@ -1,6 +1,6 @@
 import type { ChatNode } from '@voyager/shared-types';
 
-import { lookupCity } from '../data/cities.js';
+import { lookupCity } from '../../data/cities.js';
 import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { fetchFCDOAdvisory } from './enrichment-sources/fcdo.js';
 import { fetchWeatherForecast } from './enrichment-sources/open-meteo.js';

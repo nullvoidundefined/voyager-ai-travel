@@ -3,7 +3,7 @@ import {
   findByUserId,
   upsert,
 } from 'app/repositories/userPreferences/userPreferences.js';
-import posthog from 'app/services/posthog.js';
+import posthog from 'app/services/analytics/posthog.js';
 import type { Request, Response } from 'express';
 
 export async function getPreferences(req: Request, res: Response) {

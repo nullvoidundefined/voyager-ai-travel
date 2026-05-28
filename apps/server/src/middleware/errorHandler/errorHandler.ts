@@ -1,4 +1,4 @@
-import posthog from 'app/services/posthog.js';
+import posthog from 'app/services/analytics/posthog.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { NextFunction, Request, Response } from 'express';

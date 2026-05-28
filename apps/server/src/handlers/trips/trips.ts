@@ -6,7 +6,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import * as tripRepo from 'app/repositories/trips/trips.js';
 import { createTripSchema, updateTripSchema } from 'app/schemas/trips.js';
-import posthog from 'app/services/posthog.js';
+import posthog from 'app/services/analytics/posthog.js';
 import {
   selectCarRentalSchema,
   selectExperienceSchema,

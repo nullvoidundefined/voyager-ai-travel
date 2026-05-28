@@ -1,5 +1,5 @@
 import type { ChatNode, WeatherDay } from '@voyager/shared-types';
-import { cacheGet, cacheSet } from 'app/services/cache.service.js';
+import { cacheGet, cacheSet } from 'app/services/cache/cache.service.js';
 
 const CACHE_TTL = 21600; // 6 hours
 

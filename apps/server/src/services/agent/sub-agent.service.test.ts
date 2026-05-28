@@ -9,7 +9,7 @@ import {
   SUB_AGENT_TOOLS,
   buildDefaultPlanCard,
   selectSubAgent,
-} from './TripOrchestrator.js';
+} from './sub-agent.service.js';
 
 const baseTripState: TripState = {
   destination: 'New Orleans',

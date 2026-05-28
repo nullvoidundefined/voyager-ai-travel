@@ -1,5 +1,5 @@
 import { isProduction } from 'app/config/env.js';
-import { getRedis } from 'app/services/redis.service.js';
+import { getRedis } from 'app/services/cache/redis.service.js';
 import { logger } from 'app/utils/logs/logger.js';
 import rateLimit, { type Store } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';

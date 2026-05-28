@@ -13,14 +13,15 @@ import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import { insertAgentTurnCost } from 'app/repositories/agent-turn-cost/agent-turn-cost.js';
 import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
-import {
-  AgentOrchestrator,
-  type OrchestratorResult,
-} from 'app/services/AgentOrchestrator.js';
-import { getMockAnthropicClientIfEnabled } from 'app/services/mock-anthropic-client/mock-anthropic-client.js';
+import { getMockAnthropicClientIfEnabled } from 'app/test-fixtures/mock-anthropic-client/mock-anthropic-client.js';
 import { TOOL_DEFINITIONS } from 'app/tools/definitions.js';
 import { type ToolContext, executeTool } from 'app/tools/executor.js';
 import { logger } from 'app/utils/logs/logger.js';
+
+import {
+  AgentOrchestrator,
+  type OrchestratorResult,
+} from './AgentOrchestrator.js';
 
 export interface AgentResult {
   response: string;

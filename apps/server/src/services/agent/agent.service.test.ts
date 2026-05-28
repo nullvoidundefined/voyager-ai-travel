@@ -1,8 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
-import { runAgentLoop } from 'app/services/agent.service.js';
 import { executeTool } from 'app/tools/executor.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { runAgentLoop } from './agent.service.js';
 
 vi.mock('@anthropic-ai/sdk');
 vi.mock('app/tools/executor.js');

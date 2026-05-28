@@ -2,7 +2,7 @@ import {
   cacheGet,
   cacheSet,
   normalizeCacheKey,
-} from 'app/services/cache.service.js';
+} from 'app/services/cache/cache.service.js';
 import { generateMockExperiences } from 'app/tools/mock/experiences.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { CircuitBreaker } from 'app/utils/CircuitBreaker.js';
