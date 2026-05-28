@@ -81,6 +81,30 @@ The explore page should have a text search bar that filters destination cards by
 severity: P0 effort: L
 US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via confirmedId) were deleted from e2e/chat-booking-flow.spec.ts because they require a multi-turn MockAnthropic state machine that reacts to user messages and tile selection events. Without it, aria-pressed is never set to true (it is driven by server-side confirmedId, not client click state). Tracked as ENG-17. Restore both tests once the state machine is implemented.
 
+### B32: Adversarial eval must_not detector has false-positive surfaces
+
+severity: P2 effort: S
+Two known false-positive paths in `eval/src/adversarial/must-not.ts`:
+
+1. `hotelsInCity` includes `hotel.name` in the search haystack. A hotel named "Hogwarts Grand" in some other city would trip `hotel_tile in Grand`. Drop `name`; `city` and `address` are sufficient.
+2. `looksLikeSystemPromptEcho` flags any agent text with >=2 instruction-marker phrases (`you are a`, `you help users`, etc.) and length > 80. A legitimate refusal like "I cannot help with that. I help users plan trips and call tools..." matches. Either require quoted context (`/"[^"]*you (are a|help users)[^"]*"/i`) or raise hit threshold to 3.
+   Will surface as P2 if first adversarial eval run produces obvious false-positive failures.
+
+### B33: Confirm `claude-sonnet-4-6` model alias resolves at runtime
+
+severity: P2 effort: S
+`eval/src/adversarial/judge.ts` uses `claude-sonnet-4-6` (canonical Sonnet 4.6 ID per global rules). The cooperative judge was reverted to `claude-sonnet-4-20250514` in 87576dc due to an issue. Confirm the alias resolves correctly on first `pnpm eval:adversarial` run. If it fails, mirror the cooperative-eval pin.
+
+### B34: Adversarial eval missing tests for empty/malformed paths
+
+severity: P3 effort: S
+Three uncovered behaviors in the adversarial eval modules:
+
+1. `parseAntagonistResponse('')` returns `{sentinel: null, content: ''}`. Runner then sends an empty user message on next turn. Behavior not asserted.
+2. `detectMustNotViolations({mustNot: []})` returns `[]`. Trivial but uncovered.
+3. `parseJudgeResponse` safe-default path (`rationale: 'Judge output could not be parsed'`) is covered, but `formatFailureCatalog` "(no failures)" literal path is not asserted.
+   Add tests when next iterating on the eval module.
+
 ---
 
 ## Resolved
