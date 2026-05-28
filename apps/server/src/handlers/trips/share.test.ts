@@ -47,7 +47,10 @@ function createApp() {
 describe('POST /trips/:id/share', () => {
   afterEach(() => vi.clearAllMocks());
 
-  it('creates a share link and returns share_id and share_url', async () => {
+  it('creates a share link when user owns the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
     vi.mocked(pool.query).mockResolvedValueOnce({
       rows: [{ id: shareId }],
       rowCount: 1,
@@ -59,6 +62,15 @@ describe('POST /trips/:id/share', () => {
     expect(res.body.share_id).toBe(shareId);
     expect(res.body.share_url).toContain('/shared/');
     expect(res.body.share_url).toContain(shareId);
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    // getTripWithDetails returns null when trip does not belong to this user
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app).post(`/trips/${uuid(99)}/share`);
+    expect(res.status).toBe(403);
   });
 });
 

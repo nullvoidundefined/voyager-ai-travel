@@ -1,10 +1,16 @@
 import { query } from 'app/db/pool/pool.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
+import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 
 export async function createShareHandler(req: Request, res: Response) {
   const { id: tripId } = req.params;
   const userId = req.user?.id ?? '';
+
+  const trip = await getTripWithDetails(tripId, userId);
+  if (!trip) {
+    throw ApiError.forbidden('You do not have permission to share this trip');
+  }
 
   const result = await query<{ id: string }>(
     `INSERT INTO shared_trips (trip_id, created_by) VALUES ($1, $2) RETURNING id`,
