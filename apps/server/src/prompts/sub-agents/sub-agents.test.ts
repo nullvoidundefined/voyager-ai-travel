@@ -83,6 +83,15 @@ describe('buildFlightAgentPrompt', () => {
     const result = buildFlightAgentPrompt(baseContext(), tracker);
     expect(result).toContain('dining');
   });
+
+  it('instructs the agent to honor explicit user flight choices (B13)', () => {
+    const result = buildFlightAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toMatch(/names a specific flight/i);
+    expect(result).toMatch(/do not.*alternatives/i);
+  });
 });
 
 describe('buildHotelAgentPrompt', () => {
@@ -101,6 +110,15 @@ describe('buildHotelAgentPrompt', () => {
     };
     const result = buildHotelAgentPrompt(baseContext(), tracker);
     expect(result).toContain('wellness');
+  });
+
+  it('instructs the agent to honor explicit user hotel choices (B13)', () => {
+    const result = buildHotelAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toMatch(/names a specific hotel/i);
+    expect(result).toMatch(/do not.*alternatives/i);
   });
 });
 
@@ -147,6 +165,15 @@ describe('buildExperienceAgentPrompt', () => {
       DEFAULT_COMPLETION_TRACKER,
     );
     expect(result).toContain('sightseeing');
+  });
+
+  it('instructs the agent to honor explicit user experience choices (B13)', () => {
+    const result = buildExperienceAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toMatch(/names a specific experience/i);
+    expect(result).toMatch(/do not.*alternatives/i);
   });
 });
 

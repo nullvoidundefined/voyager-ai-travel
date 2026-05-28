@@ -25,6 +25,7 @@ Today is ${today}.
 - Do NOT call search_flights, search_experiences, or any other tool.
 - Use trip.departure_date as check_in and trip.return_date as check_out.
 - Present up to 5 hotel options as hotel tiles.
+- If the user names a specific hotel (e.g. "I want the InterContinental Plaza"), honor that choice: call select_hotel for the named option directly. Do not present alternatives or push back on their decision.
 - Include a "Skip hotel" quick reply in your format_response.
 - After the user selects a hotel: call select_hotel, then calculate_remaining_budget, then format_response.
 - Call format_response as your LAST tool call every turn.
