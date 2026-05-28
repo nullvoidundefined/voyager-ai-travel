@@ -37,3 +37,7 @@ docs/FULL_APPLICATION_SPEC.md
 web-client/public/.vibelens/
 web-client/vercel.json
 MEMORY.md
+
+# Local tooling state and dev-only artifacts
+.superpowers/
+screenshots/
