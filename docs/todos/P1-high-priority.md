@@ -4,30 +4,6 @@ Fix in the first work session. These are trust-breakers, layout inversions, or m
 
 ---
 
-## Fix B18: Itinerary Items Above Chat
-
-On the trip detail page, the itinerary section renders above the chat. The chat is the product -- it should be the first thing a reviewer sees.
-
-**Why P1:** Layout inversion contradicts the app's stated UX model. First impressions of the chat-first design are broken.
-
-**Scope:** Swap the ordering in the trip detail page layout. Chat first, itinerary below.
-
-**Roles:** Engineering, Criticism, UX
-
----
-
-## Fix B20: Double Confirm Buttons on Flight Tile
-
-After selecting a flight, both a card-group "Confirm Selection" button and additional confirm buttons below appear.
-
-**Why P1:** Redundant UI on a core interaction. A reviewer who clicks a flight sees duplicated actions, which reads as "unfinished."
-
-**Scope:** Remove the duplicate confirm button. The card group's confirm should be the only one.
-
-**Roles:** Engineering, UX
-
----
-
 ## Fix B13: Agent Ignores Explicit User Selections
 
 When a user says "I want the InterContinental Plaza Hotel," Claude presents alternatives instead of confirming the selection.
@@ -37,18 +13,6 @@ When a user says "I want the InterContinental Plaza Hotel," Claude presents alte
 **Scope:** Update category prompts to instruct Claude to honor explicit selections and confirm rather than suggest alternatives.
 
 **Roles:** Criticism, UX
-
----
-
-## Add GitHub Source Link to Hero/Header
-
-The hero subtitle says "Full source and audit trail linked below" but there is no such link on the page.
-
-**Why P1:** Recruiters will not scroll to find the repo link. The whole point of a portfolio piece is letting them click straight to the code.
-
-**Scope:** Add a GitHub icon link to the header nav or a prominent CTA in the hero section.
-
-**Roles:** Marketing
 
 ---
 
@@ -97,42 +61,6 @@ No disclosure that the user is chatting with an AI agent.
 **Scope:** Replace `14px`, `13px`, `12px`, `11px` occurrences with `var(--text-sm)`, `var(--text-xs)`, etc. from the existing scale.
 
 **Roles:** Design
-
----
-
-## Fix CQS-16: Hotel Address Always Empty in Production
-
-`hotels.tool.ts` hardcodes `address: ''` in production. Every hotel card shown to any user has no address. Mock returns a real address, so tests pass while production is broken.
-
-**Why P1:** Most visible data quality failure in the core product loop. Escalated from P2 by 2026-05-28 criticism audit.
-
-**Scope:** Parse the address from SerpApi hotel response and populate the field. Update mock to match.
-
-**Source:** 2026-05-28 criticism audit, 2026-05-27 code quality sweep (CQS-16)
-
----
-
-## Fix CQS-11: Enrichment Sources Silently Swallow Errors
-
-`fetchStateDeptAdvisory`, `fetchFCDOAdvisory`, `fetchWeatherForecast` have 0% function coverage. `enrichment.ts` drops rejected `Promise.allSettled` results with no `logger.warn`. A production advisory API outage is invisible.
-
-**Why P1:** Escalated from P2 by 2026-05-28 engineering audit. Silent failure in a user-facing enrichment panel.
-
-**Scope:** Add `logger.warn` to the `allSettled` rejection path. Add fetch-mocked unit tests for all three async sources.
-
-**Source:** 2026-05-28 engineering audit
-
----
-
-## Fix: `trips/[id]/page.tsx` Booking Silently Swallows PUT Errors
-
-`handleConfirmBooking` silently swallows `put` errors. If endpoint fails, UI shows "Booked" while server still has `status: 'planning'`. Optimistic update not rolled back.
-
-**Why P1:** User sees a false confirmation.
-
-**Scope:** Add error handling to rollback optimistic state on PUT failure.
-
-**Source:** 2026-05-27 code quality sweep
 
 ---
 
@@ -193,4 +121,3 @@ Once P1-03 and P1-05 are forward-ported AND the P2 forward-ports for Redis lock,
 **Scope:** `git worktree remove .claude/worktrees/investigate-llm-orchestration` and `git branch -D worktree-investigate-llm-orchestration`. Verify worktree-lifecycle rule update (filed as P3 process item) is in place to prevent recurrence.
 
 **Source:** 2026-05-28 criticism audit (Opus)
-
