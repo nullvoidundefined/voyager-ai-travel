@@ -7,6 +7,7 @@ export interface DestinationInput {
 export interface DestinationResult {
   city_name: string;
   iata_code: string | null;
+  alternate_iata_codes: string[];
   country: string | null;
   timezone: string | null;
   currency: string | null;
@@ -22,6 +23,7 @@ export function getDestinationInfo(input: DestinationInput): DestinationResult {
     return {
       city_name: input.city_name.trim(),
       iata_code: null,
+      alternate_iata_codes: [],
       country: null,
       timezone: null,
       currency: null,
@@ -33,6 +35,7 @@ export function getDestinationInfo(input: DestinationInput): DestinationResult {
   return {
     city_name: input.city_name.trim(),
     iata_code: city.iata_code || null,
+    alternate_iata_codes: city.alternate_iata_codes ?? [],
     country: city.country_name || null,
     timezone: city.timezone || null,
     currency: city.currency || null,

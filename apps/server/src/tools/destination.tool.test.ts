@@ -55,6 +55,30 @@ describe('destination.tool', () => {
       expect(typeof result.best_time_to_visit).toBe('string');
     });
 
+    it('returns alternate IATA codes for multi-airport cities', () => {
+      const nyc = getDestinationInfo({ city_name: 'New York' });
+      expect(nyc.iata_code).toBe('JFK');
+      expect(nyc.alternate_iata_codes).toEqual(['EWR', 'LGA']);
+
+      const london = getDestinationInfo({ city_name: 'London' });
+      expect(london.iata_code).toBe('LHR');
+      expect(london.alternate_iata_codes).toEqual(['LGW', 'STN', 'LTN']);
+
+      const tokyo = getDestinationInfo({ city_name: 'Tokyo' });
+      expect(tokyo.iata_code).toBe('NRT');
+      expect(tokyo.alternate_iata_codes).toEqual(['HND']);
+    });
+
+    it('returns empty alternate codes for single-airport cities', () => {
+      const result = getDestinationInfo({ city_name: 'Barcelona' });
+      expect(result.alternate_iata_codes).toEqual([]);
+    });
+
+    it('returns empty alternate codes for unknown cities', () => {
+      const result = getDestinationInfo({ city_name: 'Xanadu' });
+      expect(result.alternate_iata_codes).toEqual([]);
+    });
+
     it('covers major travel hubs', () => {
       const cities = [
         'New York',

@@ -4,6 +4,7 @@ export interface CityData {
   country_code: string; // ISO 3166-1 alpha-2
   country_name: string;
   iata_code: string;
+  alternate_iata_codes?: string[];
   timezone: string;
   currency: string;
   best_time_to_visit?: string;
@@ -18,6 +19,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'JFK',
+    alternate_iata_codes: ['EWR', 'LGA'],
     timezone: 'America/New_York',
     currency: 'USD',
     best_time_to_visit: 'April to June, September to November',
@@ -29,6 +31,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'LAX',
+    alternate_iata_codes: ['BUR', 'SNA', 'ONT'],
     timezone: 'America/Los_Angeles',
     currency: 'USD',
     best_time_to_visit: 'March to May, September to November',
@@ -39,6 +42,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'ORD',
+    alternate_iata_codes: ['MDW'],
     timezone: 'America/Chicago',
     currency: 'USD',
     best_time_to_visit: 'April to June, September to October',
@@ -49,6 +53,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'MIA',
+    alternate_iata_codes: ['FLL'],
     timezone: 'America/New_York',
     currency: 'USD',
     best_time_to_visit: 'December to May',
@@ -68,6 +73,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'SFO',
+    alternate_iata_codes: ['OAK', 'SJC'],
     timezone: 'America/Los_Angeles',
     currency: 'USD',
     best_time_to_visit: 'September to November',
@@ -96,6 +102,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'US',
     country_name: 'United States',
     iata_code: 'IAD',
+    alternate_iata_codes: ['DCA', 'BWI'],
     timezone: 'America/New_York',
     currency: 'USD',
   },
@@ -396,6 +403,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'GB',
     country_name: 'United Kingdom',
     iata_code: 'LHR',
+    alternate_iata_codes: ['LGW', 'STN', 'LTN'],
     timezone: 'Europe/London',
     currency: 'GBP',
     best_time_to_visit: 'June to August',
@@ -1120,6 +1128,7 @@ export const CITY_DATABASE: Record<string, CityData> = {
     country_code: 'JP',
     country_name: 'Japan',
     iata_code: 'NRT',
+    alternate_iata_codes: ['HND'],
     timezone: 'Asia/Tokyo',
     currency: 'JPY',
     best_time_to_visit: 'March to May, September to November',

@@ -200,7 +200,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     name: 'get_destination_info',
     description:
-      'Look up IATA airport code, country, timezone, currency, and best time to visit for a city. Use this to resolve city names to IATA codes before calling search_flights or search_hotels.',
+      'Look up IATA airport code, country, timezone, currency, and best time to visit for a city. Use this to resolve city names to IATA codes before calling search_flights or search_hotels. Returns alternate_iata_codes for multi-airport cities (e.g., NYC has JFK plus EWR and LGA); mention alternates to the user when they may yield different prices or routes.',
     input_schema: {
       type: 'object',
       properties: {
