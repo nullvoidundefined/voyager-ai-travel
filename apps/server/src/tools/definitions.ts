@@ -157,7 +157,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     name: 'update_trip',
     description:
-      "Update the current trip's destination, dates, and/or budget. Call this as soon as the user's destination, travel dates, or budget are determined from the conversation. This persists the information so the trip card shows real details instead of placeholders.",
+      "Update the current trip's destination, dates, traveler count, and/or budget. Call this as soon as the user's destination, travel dates, traveler count, or budget are determined from the conversation. This persists the information so the trip card shows real details instead of placeholders.",
     input_schema: {
       type: 'object',
       properties: {
@@ -180,6 +180,12 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
         budget_total: {
           type: 'number',
           description: 'Total trip budget in USD (optional)',
+        },
+        travelers: {
+          type: 'integer',
+          minimum: 1,
+          description:
+            'Number of travelers. Set as soon as the user mentions a party size ("for two people", "solo trip", "family of four").',
         },
         transport_mode: {
           type: 'string',

@@ -69,6 +69,7 @@ export const updateTripSchema = z.object({
   departure_date: dateString.optional(),
   return_date: dateString.optional(),
   budget_total: z.number().positive().optional(),
+  travelers: z.number().int().positive().optional(),
   transport_mode: z.enum(['flying', 'driving']).optional(),
 });
 

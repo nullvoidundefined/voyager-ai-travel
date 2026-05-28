@@ -18,6 +18,7 @@
     "test:integration": "pnpm --filter voyager-server run test:integration",
     "test:e2e": "pnpm --dir apps/client/web exec playwright test --config=../../../playwright.config.ts",
     "test:e2e:fast": "pnpm --dir apps/client/web exec playwright test --config=../../../playwright.config.ts --grep @fast --project=chromium",
+    "test:e2e:real": "pnpm --dir apps/client/web exec playwright test --config=../../../playwright.real.config.ts",
     "seed:test": "npx tsx scripts/seed-test-db.ts",
     "test:smoke": "bash scripts/smoke-test.sh",
     "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true",

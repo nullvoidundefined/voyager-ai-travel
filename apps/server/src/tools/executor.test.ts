@@ -101,6 +101,22 @@ describe('executeTool', () => {
       expect(result).not.toHaveProperty('error');
     });
 
+    it('accepts update_trip with travelers and persists the value', async () => {
+      const { updateTrip } = await import('app/repositories/trips/trips.js');
+      const result = await executeTool('update_trip', { travelers: 2 }, ctx);
+      expect(result).not.toHaveProperty('error');
+      expect(updateTrip).toHaveBeenCalledWith(
+        'trip-1',
+        'user-1',
+        expect.objectContaining({ travelers: 2 }),
+      );
+    });
+
+    it('rejects update_trip with non-positive travelers', async () => {
+      const result = await executeTool('update_trip', { travelers: 0 }, ctx);
+      expect(result).toHaveProperty('error');
+    });
+
     it('rejects select_flight with missing required fields', async () => {
       const result = await executeTool(
         'select_flight',

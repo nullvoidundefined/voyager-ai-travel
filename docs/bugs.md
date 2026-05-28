@@ -105,6 +105,30 @@ Three uncovered behaviors in the adversarial eval modules:
 3. `parseJudgeResponse` safe-default path (`rationale: 'Judge output could not be parsed'`) is covered, but `formatFailureCatalog` "(no failures)" literal path is not asserted.
    Add tests when next iterating on the eval module.
 
+### B35: search_flights does not fire after first message with complete details
+
+severity: P1 effort: M
+
+Discovered by e2e/real/happy-path-real.spec.ts on 2026-05-28.
+
+Symptom: with a first message containing destination, exact departure/return dates (June 12 to June 15, 2026), traveler count, budget, and JFK origin, the agent acknowledges all parameters in text ("Perfect! I've set up your 3-day Lisbon trip for 2 people from JFK..."), saves the dates via update_trip, and then renders quick-reply chips (Find flights, Tell me about Lisbon, What's the weather like in June?) instead of calling search_flights. After the spec clicks the Find flights chip, no search_flights tool call fires in the four-minute wait window either.
+
+The system prompt in apps/server/src/prompts/system-prompt.ts says "When the user provides multiple details at once, save them all with update_trip and move to searching immediately" and "Flights first: Search and present flight options" -- so the observed behavior contradicts the prompt's intent.
+
+Possible root causes (need a run with server logs to disambiguate):
+
+1. The agent treats the first turn as "save details only" and defers search to a follow-up turn, ignoring the "move to searching immediately" instruction. Prompt may need stronger wording.
+2. The "Find flights" quick-reply chip click does send a real /chat POST (verified in apps/client/web/src/components/ChatBox/ChatBox.tsx:303 via onQuickReply -> handleSend -> sendMessage), but the second turn's response was not captured before the 4-minute timeout fired. SerpApi cold-call latency on a real first request is unknown.
+3. SerpApi returned empty for JFK to LIS on those dates and the agent returned a text apology instead of tiles. Spec did not screenshot the post-chip turn so this is unverified.
+
+Diagnostic plan for the next run:
+
+1. Query `tool_call_log WHERE conversation_id = ?` after the spec fails to see exactly which tools fired and in what order.
+2. Extend the spec to dump page.locator('[data-testid="chat-box"]').innerText() to disk on failure so the second agent turn's text is captured.
+3. If search_flights did fire but returned empty, that is a SerpApi-coverage issue, not an agent-policy bug. Split into a new ticket.
+
+Why the existing mocked suite cannot see this: the mocked Anthropic stub always returns tool-use turns, so the "agent acknowledges but does not search" branch has no E2E coverage.
+
 ---
 
 ## Resolved
