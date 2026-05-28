@@ -374,7 +374,7 @@ JSDoc above `deleteExpiredSessions` is copy-pasted from `createUserAndSession`. 
 
 ---
 
-## Existing BUGS.md Items at P2
+## Bug Log Items at P2
 
 ### B21: Hotel Tiles Missing Prices
 
@@ -384,10 +384,14 @@ Many hotel tiles don't display prices. All should show `price_per_night` and `to
 
 ### B22: Over-Budget Value Shows NaN
 
-When `total_spent` exceeds `budget_total`, remaining budget displays NaN instead of a negative number.
+When `total_spent` exceeds `budget_total`, remaining budget displays NaN instead of a negative number. Partial fix landed in `d20af7f` (trip-form-polish "P1 budget fix"); verify production no longer shows NaN in over-budget scenarios.
 
 ---
 
-### B12: Budget Tile Shows $0 Allocated (marked fixed but verify)
+### B24: E2E US-19 and US-23 Deleted Pending MockAnthropic State Machine
 
-Root cause was string coercion. Verify the `toNum` helper fix in commit `02bcf5c` is working in production.
+US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via `confirmedId`) were deleted from `e2e/chat-booking-flow.spec.ts` because they require a multi-turn MockAnthropic state machine that reacts to user messages and tile selection events. Without it, `aria-pressed` is never set to true (it is driven by server-side `confirmedId`, not by the client click).
+
+**Why P2:** Test coverage gap, not user-visible. Blocks restoring two user-story E2E specs.
+
+**Scope:** Build the MockAnthropic state machine (tracked as ENG-17). Once it lands, restore US-19 and US-23 specs and remove the `void tripUrl` guard in `e2e/real/happy-path-real.spec.ts`.

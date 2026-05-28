@@ -194,7 +194,7 @@ No visual differentiation between the two states.
 
 ---
 
-## BUGS.md Items at P3
+## Bug Log Items at P3
 
 ### B2: Claude Still Produces Walls of Text
 
@@ -241,3 +241,34 @@ Loading/tool progress indicators have no spacing.
 ### B23: Explore Page Needs Search Bar
 
 Should have a text search bar that filters destination cards by name.
+
+---
+
+### B32: Adversarial Eval must_not Detector Has False-Positive Surfaces
+
+Two known false-positive paths in `eval/src/adversarial/must-not.ts`:
+
+1. `hotelsInCity` includes `hotel.name` in the search haystack. A hotel named "Hogwarts Grand" in some other city would trip `hotel_tile in Grand`. Drop `name`; `city` and `address` are sufficient.
+2. `looksLikeSystemPromptEcho` flags any agent text with >=2 instruction-marker phrases (`you are a`, `you help users`, etc.) and length > 80. A legitimate refusal like "I cannot help with that. I help users plan trips and call tools..." matches. Either require quoted context or raise hit threshold to 3.
+
+**Scope:** Will surface as P2 if first adversarial eval run produces obvious false-positive failures.
+
+---
+
+### B33: Confirm `claude-sonnet-4-6` Model Alias Resolves at Runtime
+
+`eval/src/adversarial/judge.ts` uses `claude-sonnet-4-6`. The cooperative judge was reverted to `claude-sonnet-4-20250514` in `87576dc`.
+
+**Scope:** Confirm the alias resolves correctly on first `pnpm eval:adversarial` run. If it fails, mirror the cooperative-eval pin.
+
+---
+
+### B34: Adversarial Eval Missing Tests for Empty/Malformed Paths
+
+Three uncovered behaviors in the adversarial eval modules:
+
+1. `parseAntagonistResponse('')` returns `{sentinel: null, content: ''}`. Runner then sends an empty user message on next turn. Behavior not asserted.
+2. `detectMustNotViolations({mustNot: []})` returns `[]`. Trivial but uncovered.
+3. `parseJudgeResponse` safe-default path is covered, but `formatFailureCatalog` "(no failures)" literal path is not asserted.
+
+**Scope:** Add tests when next iterating on the eval module.
