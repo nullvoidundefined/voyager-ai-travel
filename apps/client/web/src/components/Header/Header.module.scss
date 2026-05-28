@@ -92,6 +92,25 @@
   }
 }
 
+.github {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  margin-right: 4px;
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
+
+  &:hover {
+    color: var(--ink);
+    background: var(--ocean-light);
+  }
+}
+
 @media (max-width: 600px) {
   .inner {
     padding: 0 16px;
