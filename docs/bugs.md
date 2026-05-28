@@ -76,6 +76,11 @@ When total_spent exceeds budget_total, the remaining budget displays NaN instead
 severity: P3 effort: M
 The explore page should have a text search bar that filters destination cards by name, in addition to the category filters.
 
+### B24: E2E US-19 and US-23 deleted pending MockAnthropic state machine
+
+severity: P0 effort: L
+US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via confirmedId) were deleted from e2e/chat-booking-flow.spec.ts because they require a multi-turn MockAnthropic state machine that reacts to user messages and tile selection events. Without it, aria-pressed is never set to true (it is driven by server-side confirmedId, not client click state). Tracked as ENG-17. Restore both tests once the state machine is implemented.
+
 ---
 
 ## Resolved
