@@ -5,6 +5,7 @@ import {
   listLegs as listLegsRepo,
   reorderLegs as reorderLegsRepo,
 } from 'app/repositories/trips/trip-legs.repository.js';
+import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 import { z } from 'zod';
@@ -20,14 +21,26 @@ const reorderLegsSchema = z.object({
   ordered_leg_ids: z.array(z.string().uuid()).min(1),
 });
 
+async function assertTripOwnership(
+  tripId: string,
+  userId: string,
+): Promise<void> {
+  const trip = await getTripWithDetails(tripId, userId);
+  if (!trip) {
+    throw ApiError.forbidden('You do not have permission to modify this trip');
+  }
+}
+
 export async function listLegs(req: Request, res: Response): Promise<void> {
-  getAuthUser(req);
+  const { id: userId } = getAuthUser(req);
+  await assertTripOwnership(req.params.id, userId);
   const legs = await listLegsRepo(req.params.id);
   res.json({ legs });
 }
 
 export async function addLeg(req: Request, res: Response): Promise<void> {
-  getAuthUser(req);
+  const { id: userId } = getAuthUser(req);
+  await assertTripOwnership(req.params.id, userId);
   const parsed = addLegSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((i) => i.message).join('; ');
@@ -38,13 +51,15 @@ export async function addLeg(req: Request, res: Response): Promise<void> {
 }
 
 export async function removeLeg(req: Request, res: Response): Promise<void> {
-  getAuthUser(req);
+  const { id: userId } = getAuthUser(req);
+  await assertTripOwnership(req.params.id, userId);
   await deleteLeg(req.params.legId);
   res.status(204).end();
 }
 
 export async function reorderLegs(req: Request, res: Response): Promise<void> {
-  getAuthUser(req);
+  const { id: userId } = getAuthUser(req);
+  await assertTripOwnership(req.params.id, userId);
   const parsed = reorderLegsSchema.safeParse(req.body);
   if (!parsed.success) {
     const message = parsed.error.issues.map((i) => i.message).join('; ');

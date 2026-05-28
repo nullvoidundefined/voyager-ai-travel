@@ -1,15 +1,19 @@
 import * as scheduleHandlers from 'app/handlers/trips/schedule.js';
 import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
 import * as scheduleRepo from 'app/repositories/trips/schedule.repository.js';
+import * as tripsRepo from 'app/repositories/trips/trips.js';
 import { uuid } from 'app/utils/tests/uuids.js';
 import express from 'express';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('app/repositories/trips/schedule.repository.js');
+vi.mock('app/repositories/trips/trips.js');
 
 const userId = uuid(0);
 const tripId = uuid(1);
+
+const mockTrip = { id: tripId, user_id: userId };
 
 const mockDay = {
   id: uuid(2),
@@ -46,6 +50,10 @@ describe('GET /trips/:id/schedule', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('returns 200 with a days array', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app).get(`/trips/${tripId}/schedule`);
     expect(res.status).toBe(200);
@@ -54,5 +62,13 @@ describe('GET /trips/:id/schedule', () => {
     expect(vi.mocked(scheduleRepo.getScheduleForTrip)).toHaveBeenCalledWith(
       tripId,
     );
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app).get(`/trips/${uuid()}/schedule`);
+    expect(res.status).toBe(403);
   });
 });

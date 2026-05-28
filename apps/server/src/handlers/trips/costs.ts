@@ -1,8 +1,18 @@
 import { query } from 'app/db/pool/pool.js';
+import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
+import { getTripWithDetails } from 'app/repositories/trips/trips.js';
+import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 
 export async function getTripCostsHandler(req: Request, res: Response) {
   const { id: tripId } = req.params;
+  const { id: userId } = getAuthUser(req);
+
+  const trip = await getTripWithDetails(tripId, userId);
+  if (!trip) {
+    throw ApiError.forbidden('You do not have permission to view this trip');
+  }
+
   const result = await query<{ total_tokens: string; total_cost: string }>(
     `SELECT
        COALESCE(SUM(atc.input_tokens + atc.output_tokens), 0)::int AS total_tokens,

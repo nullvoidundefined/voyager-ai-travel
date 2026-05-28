@@ -1,16 +1,20 @@
 import * as legsHandlers from 'app/handlers/trips/legs.js';
 import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
 import * as legsRepo from 'app/repositories/trips/trip-legs.repository.js';
+import * as tripsRepo from 'app/repositories/trips/trips.js';
 import { uuid } from 'app/utils/tests/uuids.js';
 import express from 'express';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('app/repositories/trips/trip-legs.repository.js');
+vi.mock('app/repositories/trips/trips.js');
 
 const userId = uuid(0);
 const tripId = uuid(1);
 const legId = uuid(2);
+
+const mockTrip = { id: tripId, user_id: userId };
 
 const mockLeg = {
   id: legId,
@@ -51,12 +55,24 @@ describe('GET /trips/:id/legs', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('returns legs for a trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app).get(`/trips/${tripId}/legs`);
     expect(res.status).toBe(200);
     expect(res.body.legs).toHaveLength(1);
     expect(res.body.legs[0].id).toBe(legId);
     expect(vi.mocked(legsRepo.listLegs)).toHaveBeenCalledWith(tripId);
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app).get(`/trips/${uuid()}/legs`);
+    expect(res.status).toBe(403);
   });
 });
 
@@ -67,6 +83,10 @@ describe('POST /trips/:id/legs', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('creates a leg and returns 201', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app).post(`/trips/${tripId}/legs`).send({
       origin: 'NYC',
@@ -83,11 +103,28 @@ describe('POST /trips/:id/legs', () => {
   });
 
   it('returns 400 for missing fields', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app)
       .post(`/trips/${tripId}/legs`)
       .send({ origin: 'NYC' });
     expect(res.status).toBe(400);
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app).post(`/trips/${uuid()}/legs`).send({
+      origin: 'NYC',
+      destination: 'LAX',
+      depart_date: '2026-08-01',
+      leg_order: 1,
+    });
+    expect(res.status).toBe(403);
   });
 });
 
@@ -98,10 +135,22 @@ describe('DELETE /trips/:id/legs/:legId', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('deletes a leg and returns 204', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app).delete(`/trips/${tripId}/legs/${legId}`);
     expect(res.status).toBe(204);
     expect(vi.mocked(legsRepo.deleteLeg)).toHaveBeenCalledWith(legId);
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app).delete(`/trips/${uuid()}/legs/${legId}`);
+    expect(res.status).toBe(403);
   });
 });
 
@@ -112,6 +161,10 @@ describe('PUT /trips/:id/legs/reorder', () => {
   afterEach(() => vi.clearAllMocks());
 
   it('reorders legs and returns 200', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app)
       .put(`/trips/${tripId}/legs/reorder`)
@@ -121,10 +174,24 @@ describe('PUT /trips/:id/legs/reorder', () => {
   });
 
   it('returns 400 for missing ordered_leg_ids', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+
     const app = createApp();
     const res = await request(app)
       .put(`/trips/${tripId}/legs/reorder`)
       .send({});
     expect(res.status).toBe(400);
+  });
+
+  it('returns 403 when the user does not own the trip', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(null);
+
+    const app = createApp();
+    const res = await request(app)
+      .put(`/trips/${uuid()}/legs/reorder`)
+      .send({ ordered_leg_ids: [uuid(3), uuid(4)] });
+    expect(res.status).toBe(403);
   });
 });
