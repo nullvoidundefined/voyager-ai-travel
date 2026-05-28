@@ -186,9 +186,6 @@ export default function TripsPage() {
       {trips && trips.length === 0 && (
         <div className={styles.empty}>
           <p>No trips yet. Start planning your first adventure!</p>
-          <Link href='/trips/new' className={styles.newTrip}>
-            + New Trip
-          </Link>
         </div>
       )}
 
