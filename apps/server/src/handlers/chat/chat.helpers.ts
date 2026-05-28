@@ -7,6 +7,7 @@ import {
 import type { TripContext } from 'app/prompts/trip-context.js';
 import type { TripWithDetails } from 'app/schemas/trips.js';
 import type { UserPreferences } from 'app/schemas/userPreferences.js';
+import type { TripPlanCard } from 'app/types/plan-card.js';
 import type { Response } from 'express';
 
 /** Map a TripWithDetails to the TripState shape needed by getFlowPosition. */
@@ -33,6 +34,55 @@ export function computeFlowPosition(
   tracker?: CompletionTracker,
 ) {
   return getFlowPosition(toFlowInput(trip), tracker);
+}
+
+const VALID_CATEGORY_IDS = new Set([
+  'flights',
+  'hotels',
+  'car_rental',
+  'experiences',
+]);
+
+/**
+ * Apply a user-confirmed TripPlanCard to the tracker.
+ * Sets plan_confirmed=true, updates category statuses, and extracts
+ * experience interests. Does not overwrite already-selected categories.
+ */
+export function applyPlanConfirmation(
+  tracker: CompletionTracker,
+  card: TripPlanCard,
+): CompletionTracker {
+  const updated = { ...tracker };
+
+  for (const category of card.categories) {
+    if (!VALID_CATEGORY_IDS.has(category.id)) continue;
+    const id = category.id as keyof Pick<
+      CompletionTracker,
+      'flights' | 'hotels' | 'car_rental' | 'experiences'
+    >;
+    if (updated[id] === 'selected') continue;
+
+    if (category.not_applicable) {
+      updated[id] = 'not_applicable';
+    } else if (!category.enabled) {
+      updated[id] = 'skipped';
+    } else {
+      updated[id] = 'pending';
+    }
+  }
+
+  const expCategory = card.categories.find((c) => c.id === 'experiences');
+  const interestsOpt = expCategory?.sub_options?.find(
+    (o) => o.id === 'interests',
+  );
+  if (interestsOpt?.type === 'multi') {
+    updated.experience_interests = interestsOpt.values.filter(
+      (v): v is string => typeof v === 'string',
+    );
+  }
+
+  updated.plan_confirmed = true;
+  return updated;
 }
 
 /** Flush SSE data through any proxy buffering. */

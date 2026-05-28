@@ -1,7 +1,10 @@
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
 import type { TripWithDetails } from 'app/schemas/trips.js';
+import type { TripPlanCard } from 'app/types/plan-card.js';
 import { describe, expect, it } from 'vitest';
 
 import {
+  applyPlanConfirmation,
   buildClaudeMessages,
   buildMissingFieldsForm,
   buildTripContext,
@@ -441,6 +444,131 @@ describe('chat.helpers', () => {
       expect(ctx.selected_experiences[0]?.name).toBe('');
       expect(ctx.selected_experiences[0]?.estimated_cost).toBe(0);
       expect(ctx.selected_experiences[0]?.category).toBe('');
+    });
+  });
+
+  describe('applyPlanConfirmation', () => {
+    const baseCard: TripPlanCard = {
+      categories: [
+        {
+          id: 'flights',
+          label: 'Flight',
+          enabled: true,
+          not_applicable: false,
+        },
+        { id: 'hotels', label: 'Hotel', enabled: true, not_applicable: false },
+        {
+          id: 'car_rental',
+          label: 'Car rental',
+          enabled: false,
+          not_applicable: false,
+        },
+        {
+          id: 'experiences',
+          label: 'Experiences',
+          enabled: true,
+          not_applicable: false,
+          sub_options: [
+            {
+              type: 'multi',
+              id: 'interests',
+              label: 'Interests',
+              options: [],
+              values: ['dining', 'activities'],
+            },
+          ],
+        },
+      ],
+    };
+
+    it('marks plan_confirmed = true', () => {
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        baseCard,
+      );
+      expect(result.plan_confirmed).toBe(true);
+    });
+
+    it('sets not_applicable when card marks not_applicable', () => {
+      const card: TripPlanCard = {
+        categories: baseCard.categories.map((c) =>
+          c.id === 'flights'
+            ? { ...c, not_applicable: true, enabled: false }
+            : c,
+        ),
+      };
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        card,
+      );
+      expect(result.flights).toBe('not_applicable');
+    });
+
+    it('sets skipped when category is enabled=false and not_applicable=false', () => {
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        baseCard,
+      );
+      expect(result.car_rental).toBe('skipped');
+    });
+
+    it('keeps pending for enabled categories', () => {
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        baseCard,
+      );
+      expect(result.flights).toBe('pending');
+      expect(result.hotels).toBe('pending');
+      expect(result.experiences).toBe('pending');
+    });
+
+    it('does not overwrite already-selected status', () => {
+      const tracker = {
+        ...DEFAULT_COMPLETION_TRACKER,
+        flights: 'selected' as const,
+      };
+      const result = applyPlanConfirmation(tracker, baseCard);
+      expect(result.flights).toBe('selected');
+    });
+
+    it('extracts experience interests from multi sub-option', () => {
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        baseCard,
+      );
+      expect(result.experience_interests).toEqual(['dining', 'activities']);
+    });
+
+    it('sets empty interests when none are selected', () => {
+      const card: TripPlanCard = {
+        categories: baseCard.categories.map((c) =>
+          c.id === 'experiences'
+            ? {
+                ...c,
+                sub_options: [
+                  {
+                    type: 'multi' as const,
+                    id: 'interests',
+                    label: 'Interests',
+                    options: [],
+                    values: [],
+                  },
+                ],
+              }
+            : c,
+        ),
+      };
+      const result = applyPlanConfirmation(
+        { ...DEFAULT_COMPLETION_TRACKER },
+        card,
+      );
+      expect(result.experience_interests).toEqual([]);
+    });
+
+    it('does not mutate the input tracker', () => {
+      const tracker = { ...DEFAULT_COMPLETION_TRACKER };
+      applyPlanConfirmation(tracker, baseCard);
+      expect(tracker.plan_confirmed).toBe(false);
     });
   });
 });

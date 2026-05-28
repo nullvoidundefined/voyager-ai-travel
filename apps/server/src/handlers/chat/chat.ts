@@ -24,11 +24,13 @@ import {
   addTokenUsage,
   isOverDailyBudget,
 } from 'app/services/tokenBudget.service.js';
+import type { TripPlanCard } from 'app/types/plan-card.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';
 
 import {
+  applyPlanConfirmation,
   buildClaudeMessages,
   buildMissingFieldsForm,
   buildTripContext,
@@ -50,7 +52,10 @@ export async function chat(req: Request, res: Response) {
   const tripId = req.params.id as string;
   const userId = getAuthUser(req).id;
   const MAX_MESSAGE_LENGTH = 2000;
-  const { message } = req.body;
+  const { message, planConfirmation } = req.body as {
+    message?: unknown;
+    planConfirmation?: unknown;
+  };
 
   if (!message || typeof message !== 'string') {
     throw ApiError.badRequest('message is required');
@@ -155,9 +160,19 @@ export async function chat(req: Request, res: Response) {
 
   const onEvent = createSSEEmitter(res);
 
-  const tracker = normalizeCompletionTracker(
+  let tracker = normalizeCompletionTracker(
     conversation.booking_state ?? DEFAULT_COMPLETION_TRACKER,
   );
+
+  if (
+    planConfirmation !== null &&
+    planConfirmation !== undefined &&
+    typeof planConfirmation === 'object' &&
+    Array.isArray((planConfirmation as Record<string, unknown>).categories)
+  ) {
+    tracker = applyPlanConfirmation(tracker, planConfirmation as TripPlanCard);
+    await updateBookingState(conversation.id, tracker);
+  }
 
   const flowPosition = computeFlowPosition(trip, tracker);
   const nudge = computeNudge(tracker);
