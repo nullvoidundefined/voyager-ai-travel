@@ -42,7 +42,10 @@ const OUTPUT_DIR = path.join(__dirname, '..', 'screenshots');
 // ---------------------------------------------------------------------------
 
 async function waitForPageReady(page: import('@playwright/test').Page) {
-  await page.waitForLoadState('networkidle');
+  // domcontentloaded, not networkidle: the explore page has 88
+  // destination images and networkidle never settles within the
+  // 30s test timeout on shared CI runners.
+  await page.waitForLoadState('domcontentloaded');
   await page.waitForTimeout(500);
 }
 
