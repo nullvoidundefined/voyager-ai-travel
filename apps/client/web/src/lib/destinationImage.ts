@@ -1,72 +1,139 @@
-// Static map of city names to Unsplash photo IDs.
-// Only the ~30 curated cities are listed — others get the gradient fallback.
-const CITY_IMAGES: Record<string, string> = {
-  tokyo: '1579992420740-537be2a3de31',
-  paris: '1459455356093-6495cff2a2c4',
-  'new york': '1500289483460-00bdb46204f9',
-  london: '1448056975861-28196f26abd6',
-  barcelona: '1510781768709-d1bfe138cf3b',
-  rome: '1586421746416-1a96255a5ecb',
-  sydney: '1513343987712-5da15ea2a9bb',
-  dubai: '1518684079-3c830dcef090',
-  singapore: '1517188206596-1e1f7c954177',
-  seoul: '1570192134376-8ba4c3e8ffa1',
-  lisbon: '1484437732853-cc855bf85a49',
-  istanbul: '1594707014495-1f553e9d0a8c',
-  bangkok: '1510377971269-d723c13cc478',
-  'cape town': '1520513455472-b259f1ec720a',
-  amsterdam: '1523889310790-cb91a98b017b',
-  prague: '1568477193171-2cd07447c83b',
-  vienna: '1680454469315-5778f0c91674',
-  budapest: '1523168786345-2724a464d87e',
-  'rio de janeiro': '1483729558449-99ef09a8c325',
-  bali: '1576019206484-54273acdfa89',
-  santorini: '1504752509934-8b4044d2135f',
-  kyoto: '1569040584961-83a30d5ad8ff',
-  marrakech: '1517531991679-1e0625207aa1',
-  reykjavik: '1484619701999-76d79bbc51d1',
-  dubrovnik: '1506098992531-b41d84746bb6',
-  'mexico city': '1514060967642-aa09f273f887',
-  lima: '1491613993002-8956ec08fddc',
-  mumbai: '1531589767116-64a48779e523',
-  auckland: '1534551039924-409372dd29c3',
-  havana: '1509239767605-0703ef611f08',
-  cusco: '1544206709-5cdc63e3ed72',
-  maldives: '1637576308588-6647bf80944d',
-  naples: '1567202170721-bd01fbdea30a',
-  amman: '1547483238-2cbf881a759f',
-  beijing: '1508804185872-d7badad00f7d',
-  'buenos aires': '1589909202802-8f4aadce1849',
-  'new orleans': '1568602471122-7832951cc4c5',
+import { DESTINATIONS } from '../data/destinations';
+
+// Build the base lookup from curated destinations. Curated slugs take
+// precedence over the extended list, so renaming a slug in destinations.ts
+// automatically propagates here without a manual sync.
+const curatedSlugs: Record<string, string> = Object.fromEntries(
+  DESTINATIONS.map((d) => [d.name.toLowerCase(), d.slug]),
+);
+
+// Extended lookup for LLM-suggested cities not in the curated list.
+// Cities present in DESTINATIONS are intentionally omitted here to avoid
+// maintaining two sources of truth for the same slug.
+const EXTENDED_CITY_SLUGS: Record<string, string> = {
+  'new york': 'new-york',
+  'los angeles': 'los-angeles',
+  chicago: 'chicago',
+  houston: 'houston',
+  phoenix: 'phoenix',
+  philadelphia: 'philadelphia',
+  'san antonio': 'san-antonio',
+  'san diego': 'san-diego',
+  dallas: 'dallas',
+  'san jose': 'san-jose',
+  austin: 'austin',
+  'san francisco': 'san-francisco',
+  seattle: 'seattle',
+  denver: 'denver',
+  nashville: 'nashville',
+  'las vegas': 'las-vegas',
+  miami: 'miami',
+  atlanta: 'atlanta',
+  boston: 'boston',
+  washington: 'washington-dc',
+  'washington dc': 'washington-dc',
+  'washington, d.c.': 'washington-dc',
+  'new orleans': 'new-orleans',
+  portland: 'portland',
+  minneapolis: 'minneapolis',
+  sacramento: 'sacramento',
+  tampa: 'tampa',
+  orlando: 'orlando',
+  baltimore: 'baltimore',
+  honolulu: 'honolulu',
+  'salt lake city': 'salt-lake-city',
+  raleigh: 'raleigh',
+  memphis: 'memphis',
+  pittsburgh: 'pittsburgh',
+  'st. louis': 'st-louis',
+  cincinnati: 'cincinnati',
+  'kansas city': 'kansas-city',
+  columbus: 'columbus',
+  indianapolis: 'indianapolis',
+  charlotte: 'charlotte',
+  louisville: 'louisville',
+  milwaukee: 'milwaukee',
+  detroit: 'detroit',
+  savannah: 'savannah',
+  charleston: 'charleston',
+  asheville: 'asheville',
+  'santa fe': 'santa-fe',
+  'key west': 'key-west',
+  sedona: 'sedona',
+  napa: 'napa',
+  'jackson hole': 'jackson-hole',
+  aspen: 'aspen',
+  anchorage: 'anchorage',
+  albuquerque: 'albuquerque',
+  tucson: 'tucson',
+  'oklahoma city': 'oklahoma-city',
+  'el paso': 'el-paso',
+  jacksonville: 'jacksonville',
+  'fort worth': 'fort-worth',
+  boise: 'boise',
+  richmond: 'richmond',
+  toronto: 'toronto',
+  vancouver: 'vancouver',
+  montreal: 'montreal',
+  'quebec city': 'quebec-city',
+  calgary: 'calgary',
+  warsaw: 'warsaw',
+  stockholm: 'stockholm',
+  oslo: 'oslo',
+  copenhagen: 'copenhagen',
+  helsinki: 'helsinki',
+  reykjavik: 'reykjavik',
+  dublin: 'dublin',
+  zurich: 'zurich',
+  'tel aviv': 'tel-aviv',
+  amman: 'amman',
+  beirut: 'beirut',
+  jakarta: 'jakarta',
+  manila: 'manila',
+  dhaka: 'dhaka',
+  karachi: 'karachi',
+  islamabad: 'islamabad',
+  tehran: 'tehran',
+  ulaanbaatar: 'ulaanbaatar',
+  'phnom penh': 'phnom-penh',
+  yangon: 'yangon',
+  havana: 'havana',
+  cartagena: 'cartagena',
+  cusco: 'cusco',
+  quito: 'quito',
+  montevideo: 'montevideo',
+  'panama city': 'panama-city',
+  nairobi: 'nairobi',
+  casablanca: 'casablanca',
+  johannesburg: 'johannesburg',
+  'addis ababa': 'addis-ababa',
+  lagos: 'lagos',
+  accra: 'accra',
+  'dar es salaam': 'dar-es-salaam',
+  tunis: 'tunis',
+  brisbane: 'brisbane',
+  perth: 'perth',
+  wellington: 'wellington',
+  maldives: 'maldives',
+  'bora bora': 'bora-bora',
 };
 
-export function getDestinationImageUrl(
-  unsplashId: string,
-  width: number,
-  height: number,
-): string {
-  return `https://images.unsplash.com/photo-${unsplashId}?w=${width}&h=${height}&fit=crop&q=80`;
-}
+// Curated destinations win over the extended list.
+const CITY_SLUGS: Record<string, string> = {
+  ...EXTENDED_CITY_SLUGS,
+  ...curatedSlugs,
+};
 
-export function getDestinationImage(cityName: string): {
-  url: string | null;
-  unsplashId: string | null;
-} {
+export function getDestinationImage(cityName: string): { url: string | null } {
   const key = cityName.toLowerCase().trim();
-  const id = CITY_IMAGES[key] ?? null;
-  return {
-    url: id
-      ? `https://images.unsplash.com/photo-${id}?w=600&h=300&fit=crop&q=80`
-      : null,
-    unsplashId: id,
-  };
+  const slug = CITY_SLUGS[key] ?? null;
+  return { url: slug ? `/images/destinations/${slug}.jpg` : null };
 }
 
-// Hero carousel images — 5 curated destinations
 export const HERO_IMAGES = [
-  { city: 'Santorini', id: CITY_IMAGES['santorini']! },
-  { city: 'Tokyo', id: CITY_IMAGES['tokyo']! },
-  { city: 'Paris', id: CITY_IMAGES['paris']! },
-  { city: 'Bali', id: CITY_IMAGES['bali']! },
-  { city: 'New York', id: CITY_IMAGES['new york']! },
+  { city: 'Santorini', url: '/images/destinations/santorini.jpg' },
+  { city: 'Tokyo', url: '/images/destinations/tokyo.jpg' },
+  { city: 'Paris', url: '/images/destinations/paris.jpg' },
+  { city: 'Bali', url: '/images/destinations/bali.jpg' },
+  { city: 'New York', url: '/images/destinations/new-york.jpg' },
 ];
