@@ -82,8 +82,12 @@ export async function updateTrip(req: Request, res: Response): Promise<void> {
   const { destination, departure_date, return_date } = input;
 
   if (departure_date !== undefined) {
+    // Date strings like "2026-05-29" parse as UTC midnight. Compare to
+    // UTC midnight too so the boundary is timezone-independent; using
+    // local midnight rejects valid same-day trips on positive-offset
+    // servers in the early local-morning hours.
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     if (new Date(departure_date) < today) {
       throw ApiError.badRequest('Departure date cannot be in the past');
     }

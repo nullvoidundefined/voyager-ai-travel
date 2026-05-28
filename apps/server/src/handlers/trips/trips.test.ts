@@ -279,30 +279,40 @@ describe('trip handlers', () => {
     });
 
     it('accepts departure_date that is today (same-day trip)', async () => {
-      const todayStr = new Date().toISOString().split('T')[0] as string;
-      vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
-        ...mockTrip,
-        departure_date: todayStr,
-      });
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-09-15T23:00:00Z'));
+      try {
+        const todayStr = '2026-09-15';
+        vi.mocked(tripRepo.updateTrip).mockResolvedValueOnce({
+          ...mockTrip,
+          departure_date: todayStr,
+        });
 
-      const res = await request(app)
-        .put(`/trips/${tripId}`)
-        .send({ departure_date: todayStr });
+        const res = await request(app)
+          .put(`/trips/${tripId}`)
+          .send({ departure_date: todayStr });
 
-      expect(res.status).toBe(200);
+        expect(res.status).toBe(200);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('rejects departure_date that is yesterday', async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0] as string;
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-09-15T12:00:00Z'));
+      try {
+        const yesterdayStr = '2026-09-14';
 
-      const res = await request(app)
-        .put(`/trips/${tripId}`)
-        .send({ departure_date: yesterdayStr });
+        const res = await request(app)
+          .put(`/trips/${tripId}`)
+          .send({ departure_date: yesterdayStr });
 
-      expect(res.status).toBe(400);
-      expect(res.body.message).toContain('past');
+        expect(res.status).toBe(400);
+        expect(res.body.message).toContain('past');
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it('accepts return_date equal to departure_date (same-day return)', async () => {
