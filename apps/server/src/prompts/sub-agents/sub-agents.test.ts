@@ -1,0 +1,167 @@
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
+import type { TripContext } from 'app/prompts/trip-context.js';
+import type { TripPlanCard } from 'app/types/plan-card.js';
+import { describe, expect, it } from 'vitest';
+
+import { buildConversationAgentPrompt } from './conversation.prompt.js';
+import { buildExperienceAgentPrompt } from './experience.prompt.js';
+import { buildFlightAgentPrompt } from './flight.prompt.js';
+import { buildGroundAgentPrompt } from './ground.prompt.js';
+import { buildHotelAgentPrompt } from './hotel.prompt.js';
+import { buildPlanAgentPrompt } from './plan.prompt.js';
+
+function baseContext(overrides: Partial<TripContext> = {}): TripContext {
+  return {
+    destination: 'Tokyo',
+    origin: null,
+    departure_date: null,
+    return_date: null,
+    budget_total: 3000,
+    budget_currency: 'USD',
+    travelers: 2,
+    transport_mode: null,
+    preferences: {},
+    selected_flights: [],
+    selected_hotels: [],
+    selected_car_rentals: [],
+    selected_experiences: [],
+    total_spent: 0,
+    ...overrides,
+  };
+}
+
+const minimalCard: TripPlanCard = {
+  categories: [
+    {
+      id: 'flights',
+      label: 'Flights',
+      enabled: true,
+      not_applicable: false,
+    },
+  ],
+};
+
+describe('buildConversationAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildConversationAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(typeof result).toBe('string');
+    expect(result.length).toBeGreaterThan(0);
+    expect(result).toContain('Conversation Agent');
+  });
+
+  it('includes booking status for each category', () => {
+    const result = buildConversationAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('flights');
+    expect(result).toContain('hotels');
+    expect(result).toContain('experiences');
+  });
+});
+
+describe('buildFlightAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildFlightAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(typeof result).toBe('string');
+    expect(result).toContain('Flight Agent');
+  });
+
+  it('includes interests note when interests are set', () => {
+    const tracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      experience_interests: ['dining', 'activities'],
+    };
+    const result = buildFlightAgentPrompt(baseContext(), tracker);
+    expect(result).toContain('dining');
+  });
+});
+
+describe('buildHotelAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildHotelAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('Hotel Agent');
+  });
+
+  it('includes amenity hint when interests are set', () => {
+    const tracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      experience_interests: ['wellness'],
+    };
+    const result = buildHotelAgentPrompt(baseContext(), tracker);
+    expect(result).toContain('wellness');
+  });
+});
+
+describe('buildGroundAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildGroundAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('Ground Transportation Agent');
+  });
+
+  it('includes driving note when transport_mode is driving', () => {
+    const result = buildGroundAgentPrompt(
+      baseContext({ transport_mode: 'driving' }),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('driving');
+  });
+});
+
+describe('buildExperienceAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildExperienceAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('Experience Agent');
+  });
+
+  it('uses interest-based categories when interests are set', () => {
+    const tracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      experience_interests: ['dining', 'theater'],
+    };
+    const result = buildExperienceAgentPrompt(baseContext(), tracker);
+    expect(result).toContain('dining');
+    expect(result).toContain('restaurant');
+  });
+
+  it('uses default categories when no interests are set', () => {
+    const result = buildExperienceAgentPrompt(
+      baseContext(),
+      DEFAULT_COMPLETION_TRACKER,
+    );
+    expect(result).toContain('sightseeing');
+  });
+});
+
+describe('buildPlanAgentPrompt', () => {
+  it('returns a non-empty string containing the agent role', () => {
+    const result = buildPlanAgentPrompt(minimalCard);
+    expect(result).toContain('PLAN_TRIP');
+  });
+
+  it('includes trip context when provided', () => {
+    const result = buildPlanAgentPrompt(minimalCard, baseContext());
+    expect(result).toContain('Trip State');
+    expect(result).toContain('Tokyo');
+  });
+
+  it('omits trip context section when not provided', () => {
+    const result = buildPlanAgentPrompt(minimalCard);
+    expect(result).not.toContain('Trip State');
+  });
+});
