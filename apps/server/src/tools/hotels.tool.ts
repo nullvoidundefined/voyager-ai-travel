@@ -69,6 +69,14 @@ function parseStarRating(hotelClass: number | string | undefined): number {
   return 0;
 }
 
+// SerpApi's google_hotels properties array does not include a street
+// address. The closest signal is nearby_places[0].name (a landmark).
+// Falling back to the city keeps the field non-empty for the UI.
+function formatHotelAddress(entry: SerpApiHotel, city: string): string {
+  const landmark = entry.nearby_places?.[0]?.name;
+  return landmark ? `Near ${landmark}, ${city}` : city;
+}
+
 function normalizeHotel(
   entry: SerpApiHotel,
   index: number,
@@ -78,7 +86,7 @@ function normalizeHotel(
     hotel_id: `serpapi-hotel-${index}`,
     offer_id: `serpapi-hotel-offer-${index}`,
     name: entry.name,
-    address: '',
+    address: formatHotelAddress(entry, input.city),
     city: input.city,
     star_rating: parseStarRating(entry.hotel_class),
     total_price:

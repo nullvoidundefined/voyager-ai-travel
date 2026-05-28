@@ -204,6 +204,83 @@ describe('hotels.tool', () => {
       expect(result[0]!.name).toBe('Budget Inn Barcelona');
     });
 
+    it('populates address from nearby_places landmark when present', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
+        properties: [
+          {
+            name: 'Hotel Ramblas',
+            overall_rating: 4.2,
+            hotel_class: 4,
+            rate_per_night: { lowest: '$140', extracted_lowest: 140 },
+            total_rate: { lowest: '$700', extracted_lowest: 700 },
+            nearby_places: [
+              { name: 'Las Ramblas' },
+              { name: 'Sagrada Familia' },
+            ],
+          },
+        ],
+      });
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result[0]!.address).toBe('Near Las Ramblas, Barcelona');
+    });
+
+    it('falls back to city when nearby_places is absent', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
+        properties: [
+          {
+            name: 'Generic Hotel',
+            overall_rating: 4,
+            hotel_class: 3,
+            rate_per_night: { lowest: '$120', extracted_lowest: 120 },
+            total_rate: { lowest: '$600', extracted_lowest: 600 },
+          },
+        ],
+      });
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result[0]!.address).toBe('Barcelona');
+    });
+
+    it('falls back to city when nearby_places is an empty array', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
+        properties: [
+          {
+            name: 'Lonely Hotel',
+            overall_rating: 4,
+            hotel_class: 3,
+            rate_per_night: { lowest: '$120', extracted_lowest: 120 },
+            total_rate: { lowest: '$600', extracted_lowest: 600 },
+            nearby_places: [],
+          },
+        ],
+      });
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result[0]!.address).toBe('Barcelona');
+    });
+
     it("parses hotel_class string format (e.g. '4-star hotel')", async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
