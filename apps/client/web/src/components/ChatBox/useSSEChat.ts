@@ -12,7 +12,10 @@ interface UseSSEChatOptions {
 }
 
 interface UseSSEChatReturn {
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (
+    message: string,
+    extra?: Record<string, unknown>,
+  ) => Promise<void>;
   isSending: boolean;
   streamingNodes: ChatNode[];
   toolProgress: ChatNode[];
@@ -85,7 +88,7 @@ export function useSSEChat({
   }
 
   const sendMessage = useCallback(
-    async (message: string) => {
+    async (message: string, extra?: Record<string, unknown>) => {
       if (!message.trim() || isSending) return;
 
       setIsSending(true);
@@ -106,7 +109,7 @@ export function useSSEChat({
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
           },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ message, ...extra }),
           signal: controller.signal,
         });
 

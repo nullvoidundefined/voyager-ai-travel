@@ -16,7 +16,7 @@ import type { ToolCall } from '@/components/ToolTimeline/ToolTimeline';
 import { get, post, put } from '@/lib/api';
 import { runDemoScript } from '@/lib/demo-script';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ChatMessage } from '@voyager/shared-types';
+import type { ChatMessage, TripPlanCard } from '@voyager/shared-types';
 
 import styles from './ChatBox.module.scss';
 import { VirtualizedChat } from './VirtualizedChat';
@@ -179,7 +179,7 @@ export function ChatBox({
         sequence: (serverMessages?.length ?? 0) + 1,
         created_at: new Date().toISOString(),
       });
-      sendMessage(msg);
+      void sendMessage(msg);
     },
     [sendMessage, serverMessages?.length, onBookTrip, tripId],
   );
@@ -243,10 +243,24 @@ export function ChatBox({
     [tripId, queryClient],
   );
 
+  const handleConfirmPlan = useCallback(
+    (confirmedCard: TripPlanCard, summaryMessage: string) => {
+      setPendingUserMessage({
+        id: `pending-${Date.now()}`,
+        role: 'user',
+        nodes: [{ type: 'text', content: summaryMessage }],
+        sequence: (serverMessages?.length ?? 0) + 1,
+        created_at: new Date().toISOString(),
+      });
+      void sendMessage(summaryMessage, { planConfirmation: confirmedCard });
+    },
+    [sendMessage, serverMessages?.length],
+  );
+
   // Invalidate trips query after booking-related actions
   const handleBookTrip = useCallback(() => {
     onBookTrip?.();
-    queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
+    void queryClient.invalidateQueries({ queryKey: ['trips', tripId] });
   }, [onBookTrip, queryClient, tripId]);
 
   // B6: when booking criteria are met, append a client-only booking_prompt
@@ -290,6 +304,7 @@ export function ChatBox({
         onSelectItem={handleSelectItem}
         onFormSubmit={handleFormSubmit}
         onFormValuesChange={handleFormValuesChange}
+        onConfirmPlan={handleConfirmPlan}
         onBookNow={handleBookTrip}
         initialDestination={initialDestination}
       />

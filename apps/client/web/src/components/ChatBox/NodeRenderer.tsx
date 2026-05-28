@@ -1,6 +1,6 @@
 'use client';
 
-import type { ChatNode } from '@voyager/shared-types';
+import type { ChatNode, TripPlanCard } from '@voyager/shared-types';
 
 import { TripDetailsForm } from './TripDetailsForm';
 import { AdvisoryCard } from './nodes/AdvisoryCard';
@@ -14,12 +14,14 @@ import { MarkdownText } from './nodes/MarkdownText';
 import { WeatherForecast } from './nodes/WeatherForecast';
 import { ItineraryTimeline } from './widgets/ItineraryTimeline';
 import { QuickReplyChips } from './widgets/QuickReplyChips';
+import { TripPlanWidget } from './widgets/TripPlanWidget';
 
 export interface NodeRendererCallbacks {
   onConfirmFlight?: (label: string, data: Record<string, unknown>) => void;
   onConfirmHotel?: (label: string, data: Record<string, unknown>) => void;
   onConfirmCarRental?: (label: string, data: Record<string, unknown>) => void;
   onConfirmExperience?: (label: string, data: Record<string, unknown>) => void;
+  onConfirmPlan?: (confirmedCard: TripPlanCard, summaryMessage: string) => void;
   onQuickReply?: (text: string) => void;
   onBookNow?: () => void;
   onFormSubmit?: (
@@ -150,6 +152,16 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
           carRentalsEmpty={node.car_rentals_empty}
           onBookNow={cb.onBookNow ?? (() => {})}
           onQuickReply={cb.onQuickReply ?? (() => {})}
+        />
+      );
+
+    case 'plan_card':
+      return (
+        <TripPlanWidget
+          planCard={node.plan_card}
+          onConfirm={cb.onConfirmPlan ?? (() => {})}
+          disabled={cb.disabled}
+          confirmed={node.confirmed}
         />
       );
 

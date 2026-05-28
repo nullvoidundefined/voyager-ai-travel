@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { APP_NAME } from '@/lib/constants';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { ChatMessage, ChatNode } from '@voyager/shared-types';
+import type {
+  ChatMessage,
+  ChatNode,
+  TripPlanCard,
+} from '@voyager/shared-types';
 
 import { NodeRenderer } from './NodeRenderer';
 import styles from './VirtualizedChat.module.scss';
@@ -25,6 +29,7 @@ interface VirtualizedChatProps {
     displayMessage: string,
   ) => void;
   onFormValuesChange?: (values: Record<string, string>) => void;
+  onConfirmPlan?: (confirmedCard: TripPlanCard, summaryMessage: string) => void;
   initialDestination?: string;
 }
 
@@ -43,6 +48,7 @@ const NODE_HEIGHT_ESTIMATES: Partial<Record<ChatNode['type'], number>> = {
   quick_replies: 48,
   tool_progress: 32,
   booking_prompt: 96,
+  plan_card: 280,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -80,6 +86,7 @@ export function VirtualizedChat({
   onBookNow,
   onFormSubmit,
   onFormValuesChange,
+  onConfirmPlan,
   initialDestination,
 }: VirtualizedChatProps) {
   const parentRef = useRef<HTMLDivElement>(null);
@@ -252,6 +259,7 @@ export function VirtualizedChat({
                               onBookNow,
                               onFormSubmit,
                               onFormValuesChange,
+                              onConfirmPlan,
                               initialValues:
                                 initialDestination &&
                                 initialDestination !== 'New trip' &&

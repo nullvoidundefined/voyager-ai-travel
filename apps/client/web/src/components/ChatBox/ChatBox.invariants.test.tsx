@@ -480,6 +480,82 @@ describe('ChatBox invariants', () => {
     });
   });
 
+  describe('invariant 12: plan_card node renders TripPlanWidget', () => {
+    it('renders a Start planning button when an assistant message contains a plan_card node', () => {
+      const planCardMessage = makeAssistantMessage('msg-1', [
+        {
+          type: 'plan_card',
+          plan_card: {
+            categories: [
+              {
+                id: 'flights' as const,
+                label: 'Flights',
+                enabled: true,
+                not_applicable: false,
+              },
+              {
+                id: 'hotels' as const,
+                label: 'Hotel',
+                enabled: true,
+                not_applicable: false,
+              },
+            ],
+          },
+        },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[planCardMessage]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: /Start planning/i }),
+      ).toBeInTheDocument();
+    });
+
+    it('shows read-only confirmed view when plan_card node has confirmed=true', () => {
+      const confirmedPlanMessage = makeAssistantMessage('msg-1', [
+        {
+          type: 'plan_card',
+          confirmed: true,
+          plan_card: {
+            categories: [
+              {
+                id: 'flights' as const,
+                label: 'Flights',
+                enabled: true,
+                not_applicable: false,
+              },
+            ],
+          },
+        },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[confirmedPlanMessage]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      expect(screen.getByText(/Plan confirmed/i)).toBeInTheDocument();
+      expect(
+        screen.queryByRole('button', { name: /Start planning/i }),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe('invariant 11: ChatBox booking magic string uses named constant', () => {
     it('BOOKING_CONFIRMATION_TRIGGER constant exists and no bare string comparison remains', () => {
       const src = fs.readFileSync(
