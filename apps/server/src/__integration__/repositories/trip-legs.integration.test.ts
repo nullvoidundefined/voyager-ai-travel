@@ -61,7 +61,7 @@ describe('TripLegsRepository', () => {
   });
 
   it('deleteLeg removes the row', async () => {
-    await deleteLeg(legId);
+    await deleteLeg(legId, tripId);
     const legs = await listLegs(tripId);
     expect(legs.find((l) => l.id === legId)).toBeUndefined();
   });
@@ -79,10 +79,83 @@ describe('TripLegsRepository', () => {
       depart_date: '2026-09-02',
       leg_order: 2,
     });
-    await reorderLegs([b.id, a.id]);
+    await reorderLegs([b.id, a.id], tripId);
     const legs = await listLegs(tripId);
     const aAfter = legs.find((l) => l.id === a.id)!;
     const bAfter = legs.find((l) => l.id === b.id)!;
     expect(bAfter.leg_order).toBeLessThan(aAfter.leg_order);
+  });
+});
+
+describe('SEC-01: trip_id scoping prevents IDOR on leg delete/reorder', () => {
+  it('deleteLeg rejects when the leg belongs to a different trip', async () => {
+    const attacker = await seedUser();
+    const victim = await seedUser();
+    const attackerTrip = await seedTrip(attacker.id);
+    const victimTrip = await seedTrip(victim.id);
+    const victimLeg = await createLeg(victimTrip.id, {
+      origin: 'NYC',
+      destination: 'LAX',
+      depart_date: '2026-08-01',
+      leg_order: 1,
+    });
+
+    await expect(deleteLeg(victimLeg.id, attackerTrip.id)).rejects.toThrow(
+      /not belong/i,
+    );
+
+    const remaining = await listLegs(victimTrip.id);
+    expect(remaining.find((l) => l.id === victimLeg.id)).toBeDefined();
+  });
+
+  it('reorderLegs rejects when any leg belongs to a different trip', async () => {
+    const attacker = await seedUser();
+    const victim = await seedUser();
+    const attackerTrip = await seedTrip(attacker.id);
+    const victimTrip = await seedTrip(victim.id);
+    const victimLegA = await createLeg(victimTrip.id, {
+      origin: 'NYC',
+      destination: 'LAX',
+      depart_date: '2026-08-01',
+      leg_order: 1,
+    });
+    const victimLegB = await createLeg(victimTrip.id, {
+      origin: 'LAX',
+      destination: 'SFO',
+      depart_date: '2026-08-05',
+      leg_order: 2,
+    });
+
+    await expect(
+      reorderLegs([victimLegB.id, victimLegA.id], attackerTrip.id),
+    ).rejects.toThrow(/not belong/i);
+
+    const after = await listLegs(victimTrip.id);
+    const a = after.find((l) => l.id === victimLegA.id)!;
+    const b = after.find((l) => l.id === victimLegB.id)!;
+    expect(a.leg_order).toBeLessThan(b.leg_order);
+  });
+
+  it('reorderLegs rejects when one leg is foreign even if the others are owned', async () => {
+    const attacker = await seedUser();
+    const victim = await seedUser();
+    const attackerTrip = await seedTrip(attacker.id);
+    const victimTrip = await seedTrip(victim.id);
+    const ownLeg = await createLeg(attackerTrip.id, {
+      origin: 'BOS',
+      destination: 'NYC',
+      depart_date: '2026-09-01',
+      leg_order: 1,
+    });
+    const foreignLeg = await createLeg(victimTrip.id, {
+      origin: 'X',
+      destination: 'Y',
+      depart_date: '2026-09-05',
+      leg_order: 1,
+    });
+
+    await expect(
+      reorderLegs([foreignLeg.id, ownLeg.id], attackerTrip.id),
+    ).rejects.toThrow(/not belong/i);
   });
 });

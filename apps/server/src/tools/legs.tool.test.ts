@@ -45,18 +45,18 @@ describe('add_leg tool', () => {
 });
 
 describe('remove_leg tool', () => {
-  it('calls deleteLeg with the provided leg_id', async () => {
+  it('calls deleteLeg with leg_id AND tripId from context (SEC-01)', async () => {
     await handleRemoveLeg(
       { leg_id: 'leg-1' },
       { tripId: 'trip-1', userId: 'user-1' },
       adapters,
     );
-    expect(mockDelete).toHaveBeenCalledWith('leg-1');
+    expect(mockDelete).toHaveBeenCalledWith('leg-1', 'trip-1');
   });
 });
 
 describe('reorder_legs tool', () => {
-  it('calls reorderLegs with valid UUID ids', async () => {
+  it('calls reorderLegs with valid UUID ids and tripId from context (SEC-01)', async () => {
     const id1 = '00000000-0000-4000-8000-000000000001';
     const id2 = '00000000-0000-4000-8000-000000000002';
     await handleReorderLegs(
@@ -64,7 +64,7 @@ describe('reorder_legs tool', () => {
       { tripId: 'trip-1', userId: 'user-1' },
       adapters,
     );
-    expect(mockReorder).toHaveBeenCalledWith([id1, id2]);
+    expect(mockReorder).toHaveBeenCalledWith([id1, id2], 'trip-1');
   });
 
   it('rejects non-UUID leg ids (SQL injection guard)', async () => {

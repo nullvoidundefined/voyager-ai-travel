@@ -62,7 +62,11 @@ export async function removeLeg(
 ): Promise<void> {
   const { id: userId } = getAuthUser(req);
   await assertTripOwnership(req.params.id, userId);
-  await deleteLeg(req.params.legId);
+  try {
+    await deleteLeg(req.params.legId, req.params.id);
+  } catch {
+    throw ApiError.notFound('Leg not found');
+  }
   res.status(204).end();
 }
 
@@ -77,6 +81,10 @@ export async function reorderLegs(
     const message = parsed.error.issues.map((i) => i.message).join('; ');
     throw ApiError.badRequest(message);
   }
-  await reorderLegsRepo(parsed.data.ordered_leg_ids);
+  try {
+    await reorderLegsRepo(parsed.data.ordered_leg_ids, req.params.id);
+  } catch {
+    throw ApiError.notFound('One or more legs not found');
+  }
   res.json({ reordered: true });
 }

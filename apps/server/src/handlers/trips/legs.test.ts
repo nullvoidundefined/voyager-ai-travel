@@ -142,7 +142,20 @@ describe('DELETE /trips/:id/legs/:legId', () => {
     const app = createApp();
     const res = await request(app).delete(`/trips/${tripId}/legs/${legId}`);
     expect(res.status).toBe(204);
-    expect(vi.mocked(legsRepo.deleteLeg)).toHaveBeenCalledWith(legId);
+    expect(vi.mocked(legsRepo.deleteLeg)).toHaveBeenCalledWith(legId, tripId);
+  });
+
+  it('returns 404 when the leg does not belong to the trip (SEC-01)', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+    vi.mocked(legsRepo.deleteLeg).mockRejectedValueOnce(
+      new Error('Leg not found or does not belong to this trip'),
+    );
+
+    const app = createApp();
+    const res = await request(app).delete(`/trips/${tripId}/legs/${legId}`);
+    expect(res.status).toBe(404);
   });
 
   it('returns 403 when the user does not own the trip', async () => {
@@ -166,11 +179,28 @@ describe('PUT /trips/:id/legs/reorder', () => {
     );
 
     const app = createApp();
+    const ids = [uuid(3), uuid(4)];
+    const res = await request(app)
+      .put(`/trips/${tripId}/legs/reorder`)
+      .send({ ordered_leg_ids: ids });
+    expect(res.status).toBe(200);
+    expect(res.body.reordered).toBe(true);
+    expect(vi.mocked(legsRepo.reorderLegs)).toHaveBeenCalledWith(ids, tripId);
+  });
+
+  it('returns 404 when any leg does not belong to the trip (SEC-01)', async () => {
+    vi.mocked(tripsRepo.getTripWithDetails).mockResolvedValueOnce(
+      mockTrip as never,
+    );
+    vi.mocked(legsRepo.reorderLegs).mockRejectedValueOnce(
+      new Error('One or more leg ids do not belong to this trip'),
+    );
+
+    const app = createApp();
     const res = await request(app)
       .put(`/trips/${tripId}/legs/reorder`)
       .send({ ordered_leg_ids: [uuid(3), uuid(4)] });
-    expect(res.status).toBe(200);
-    expect(res.body.reordered).toBe(true);
+    expect(res.status).toBe(404);
   });
 
   it('returns 400 for missing ordered_leg_ids', async () => {

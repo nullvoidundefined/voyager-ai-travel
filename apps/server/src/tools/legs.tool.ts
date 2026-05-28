@@ -15,8 +15,8 @@ const reorderLegsInputSchema = z.object({
 export interface LegsAdapters {
   createLeg: (tripId: string, input: CreateLegInput) => Promise<TripLeg>;
   listLegs: (tripId: string) => Promise<TripLeg[]>;
-  deleteLeg: (legId: string) => Promise<void>;
-  reorderLegs: (orderedIds: string[]) => Promise<void>;
+  deleteLeg: (legId: string, tripId: string) => Promise<void>;
+  reorderLegs: (orderedIds: string[], tripId: string) => Promise<void>;
 }
 
 export async function handleAddLeg(
@@ -38,7 +38,7 @@ export async function handleRemoveLeg(
   ctx: ToolContext,
   adapters: LegsAdapters,
 ) {
-  await adapters.deleteLeg(input.leg_id);
+  await adapters.deleteLeg(input.leg_id, ctx.tripId);
   return { deleted: input.leg_id };
 }
 
@@ -52,6 +52,6 @@ export async function handleReorderLegs(
     const message = parsed.error.issues.map((i) => i.message).join('; ');
     throw new Error(`Invalid reorder_legs input: ${message}`);
   }
-  await adapters.reorderLegs(parsed.data.ordered_leg_ids);
+  await adapters.reorderLegs(parsed.data.ordered_leg_ids, ctx.tripId);
   return { reordered: true };
 }
