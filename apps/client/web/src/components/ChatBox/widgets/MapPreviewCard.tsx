@@ -11,7 +11,7 @@ export function MapPreviewCard({
   longitude,
   name,
 }: MapPreviewCardProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   if (!apiKey) {
     return (
