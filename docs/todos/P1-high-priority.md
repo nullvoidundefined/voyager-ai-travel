@@ -88,18 +88,6 @@ No disclosure that the user is chatting with an AI agent.
 
 ---
 
-## Add Chat Message Length Cap
-
-`chat.ts:50` validates only `typeof message === 'string'` with no length limit. A user can send a multi-megabyte string that gets stored and forwarded to Claude on every subsequent turn.
-
-**Why P1:** Token cost amplification and potential DoS vector. Single guard at the handler entry point.
-
-**Scope:** Add `message.length` guard (e.g., 4000 chars) before the `isOverDailyBudget` check.
-
-**Roles:** Security
-
----
-
 ## Verify Google Cloud Places API Billing Cap
 
 `docs/BILLING.md` shows the GCP billing cap as "Blocked" since 2026-04-07. 7+ weeks stale.
@@ -275,18 +263,6 @@ Malformed SSE data line throws, caught by outer catch which shows misleading "Co
 **Why P1:** Silent failure on a core user flow.
 
 **Scope:** Wrap in try/catch and show a Toast error.
-
-**Source:** 2026-05-27 code quality sweep
-
----
-
-## Fix: `schemas.ts:82-91` Select Schemas Bypass Injection Protection
-
-`selectFlightSchema.origin/destination` use `z.string().min(1)` with no content restriction, while `searchFlightsSchema` uses `locationAllowlist` regex. Select schemas bypass injection protection applied at search time.
-
-**Why P1:** Security gap -- select tools have weaker input validation than search tools for the same fields.
-
-**Scope:** Apply the same `locationAllowlist` or content restrictions to select schemas.
 
 **Source:** 2026-05-27 code quality sweep
 
