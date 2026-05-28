@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, type ReactNode, useState } from 'react';
 
 import styles from './SelectableCardGroup.module.scss';
 
@@ -29,10 +29,16 @@ export function SelectableCardGroup({
   const confirmedLabel = isConfirmed
     ? items.find((i) => i.id === confirmedId)?.label
     : null;
+  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const handleClick = (id: string) => {
     if (isConfirmed || disabled) return;
-    const item = items.find((i) => i.id === id);
+    setPendingId(id);
+  };
+
+  const handleConfirm = () => {
+    if (isConfirmed || disabled || !pendingId) return;
+    const item = items.find((i) => i.id === pendingId);
     if (item) {
       onConfirm(item.label, item.data ?? {});
     }
@@ -41,15 +47,30 @@ export function SelectableCardGroup({
   return (
     <div className={styles.group}>
       <div className={styles.scrollContainer}>
-        {items.map((item) => (
-          <Fragment key={item.id}>
-            {item.node(item.id === confirmedId, () => handleClick(item.id))}
-          </Fragment>
-        ))}
+        {items.map((item) => {
+          const selected = isConfirmed
+            ? item.id === confirmedId
+            : item.id === pendingId;
+          return (
+            <Fragment key={item.id}>
+              {item.node(selected, () => handleClick(item.id))}
+            </Fragment>
+          );
+        })}
       </div>
 
       {isConfirmed && confirmedLabel && (
         <span className={styles.confirmed}>&#10003; {confirmedLabel}</span>
+      )}
+
+      {!isConfirmed && pendingId && !disabled && (
+        <button
+          type='button'
+          className={styles.confirmButton}
+          onClick={handleConfirm}
+        >
+          Confirm Selection
+        </button>
       )}
     </div>
   );

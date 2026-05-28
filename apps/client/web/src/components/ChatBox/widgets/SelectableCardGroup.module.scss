@@ -31,3 +31,20 @@
   font-weight: 600;
   color: var(--success);
 }
+
+.confirmButton {
+  align-self: flex-start;
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--ocean);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--ocean-deep);
+  }
+}

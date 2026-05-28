@@ -56,27 +56,52 @@ describe('SelectableCardGroup', () => {
     expect(screen.getByTestId('card-flight-2')).toBeInTheDocument();
   });
 
-  it('does not show confirm button initially', () => {
+  it('does not show confirm button before any selection', () => {
     render(<SelectableCardGroup items={items} onConfirm={vi.fn()} />);
     expect(screen.queryByText('Confirm Selection')).not.toBeInTheDocument();
   });
 
-  it('calls onConfirm immediately when an item is clicked', async () => {
+  it('does not call onConfirm on a single tile click (US-23 AC)', async () => {
     const onConfirm = vi.fn();
     render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
     await userEvent.click(screen.getByTestId('card-flight-1'));
-    expect(onConfirm).toHaveBeenCalledWith('Delta DL100', {
-      airline: 'Delta',
-      flight_number: 'DL100',
-      price: 300,
-      currency: 'USD',
-    });
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it('calls onConfirm with the correct label and data for each item', async () => {
+  it('reveals confirm button after selecting a tile', async () => {
+    render(<SelectableCardGroup items={items} onConfirm={vi.fn()} />);
+    await userEvent.click(screen.getByTestId('card-flight-1'));
+    expect(screen.getByText('Confirm Selection')).toBeInTheDocument();
+  });
+
+  it('marks the selected tile as pressed', async () => {
+    render(<SelectableCardGroup items={items} onConfirm={vi.fn()} />);
+    const card = screen.getByTestId('card-flight-1');
+    await userEvent.click(card);
+    expect(card).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('switches selection when clicking a different tile before confirming', async () => {
+    const onConfirm = vi.fn();
+    render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByTestId('card-flight-1'));
+    await userEvent.click(screen.getByTestId('card-flight-2'));
+    expect(screen.getByTestId('card-flight-1')).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    expect(screen.getByTestId('card-flight-2')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('calls onConfirm with selected item when Confirm Selection clicked', async () => {
     const onConfirm = vi.fn();
     render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
     await userEvent.click(screen.getByTestId('card-flight-2'));
+    await userEvent.click(screen.getByText('Confirm Selection'));
     expect(onConfirm).toHaveBeenCalledWith('United UA200', {
       airline: 'United',
       flight_number: 'UA200',
@@ -85,15 +110,7 @@ describe('SelectableCardGroup', () => {
     });
   });
 
-  it('calls onConfirm on each click when not yet confirmed', async () => {
-    const onConfirm = vi.fn();
-    render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
-    await userEvent.click(screen.getByTestId('card-flight-1'));
-    await userEvent.click(screen.getByTestId('card-flight-2'));
-    expect(onConfirm).toHaveBeenCalledTimes(2);
-  });
-
-  it('shows confirmed state with checkmark when confirmedId is set', () => {
+  it('shows confirmed checkmark and hides confirm button when confirmedId is set', () => {
     render(
       <SelectableCardGroup
         items={items}
@@ -105,13 +122,14 @@ describe('SelectableCardGroup', () => {
     expect(screen.queryByText('Confirm Selection')).not.toBeInTheDocument();
   });
 
-  it('ignores clicks when disabled', async () => {
+  it('ignores clicks and does not show confirm button when disabled', async () => {
     const onConfirm = vi.fn();
     render(
       <SelectableCardGroup items={items} onConfirm={onConfirm} disabled />,
     );
     await userEvent.click(screen.getByTestId('card-flight-1'));
     expect(screen.queryByText('Confirm Selection')).not.toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('ignores clicks when already confirmed', async () => {
@@ -124,7 +142,7 @@ describe('SelectableCardGroup', () => {
       />,
     );
     await userEvent.click(screen.getByTestId('card-flight-2'));
-    // Should still show confirmed state for flight-1, not switch
     expect(screen.getByText(/Delta DL100/)).toBeInTheDocument();
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 });
