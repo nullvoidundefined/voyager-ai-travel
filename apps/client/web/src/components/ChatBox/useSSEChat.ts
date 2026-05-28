@@ -35,6 +35,7 @@ export function useSSEChat({
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const abortControllerRef = useRef<AbortController | null>(null);
+  const isSendingRef = useRef(false);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -89,8 +90,9 @@ export function useSSEChat({
 
   const sendMessage = useCallback(
     async (message: string, extra?: Record<string, unknown>) => {
-      if (!message.trim() || isSending) return;
+      if (!message.trim() || isSendingRef.current) return;
 
+      isSendingRef.current = true;
       setIsSending(true);
       setStreamingNodes([]);
       setToolProgress([]);
@@ -174,6 +176,7 @@ export function useSSEChat({
           queryKey: ['trips'],
           exact: true,
         });
+        isSendingRef.current = false;
         setIsSending(false);
         setToolProgress([]);
         setStreamingNodes([]);
@@ -181,7 +184,7 @@ export function useSSEChat({
         onComplete?.();
       }
     },
-    [tripId, queryClient, isSending, onComplete],
+    [tripId, queryClient, onComplete],
   );
 
   return {
