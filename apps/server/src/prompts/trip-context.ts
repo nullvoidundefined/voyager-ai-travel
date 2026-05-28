@@ -9,6 +9,8 @@ export interface TripContext {
   budget_currency: string;
   travelers: number;
   transport_mode: 'flying' | 'driving' | null;
+  trip_type: 'round_trip' | 'one_way' | null;
+  flexible_dates: boolean;
   preferences: {
     style?: string;
     pace?: string;
@@ -66,6 +68,12 @@ export function formatTripContext(ctx: TripContext): string {
   }
   lines.push(`- **Travelers:** ${ctx.travelers}`);
   if (ctx.transport_mode) lines.push(`- **Transport:** ${ctx.transport_mode}`);
+  if (ctx.trip_type)
+    lines.push(
+      `- **Trip type:** ${ctx.trip_type === 'one_way' ? 'One way' : 'Round trip'}`,
+    );
+  if (ctx.flexible_dates)
+    lines.push(`- **Dates:** Flexible (+-3 days around stated dates)`);
 
   if (
     ctx.preferences.style ||

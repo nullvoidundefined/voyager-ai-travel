@@ -12,7 +12,8 @@ export interface TripField {
     | 'return_date'
     | 'budget'
     | 'travelers'
-    | 'trip_type';
+    | 'trip_type'
+    | 'flexible_dates';
   label: string;
   required?: boolean;
 }
@@ -52,7 +53,10 @@ export function TripDetailsForm({
 
   const allFilled = fields.every(
     (f) =>
-      f.type === 'trip_type' || f.required === false || values[f.type]?.trim(),
+      f.type === 'trip_type' ||
+      f.type === 'flexible_dates' ||
+      f.required === false ||
+      values[f.type]?.trim(),
   );
 
   function handleSubmit(e: FormEvent) {
@@ -171,6 +175,28 @@ export function TripDetailsForm({
                 disabled={disabled || isLocked}
               >
                 One Way
+              </button>
+            </div>
+          )}
+          {field.type === 'flexible_dates' && (
+            <div className={styles.flexibleDatesToggle}>
+              <button
+                type='button'
+                aria-pressed={values.flexible_dates !== 'true'}
+                className={`${styles.tripTypeBtn} ${values.flexible_dates !== 'true' ? styles.tripTypeBtnActive : ''}`}
+                onClick={() => set('flexible_dates', 'false')}
+                disabled={disabled || isLocked}
+              >
+                Fixed
+              </button>
+              <button
+                type='button'
+                aria-pressed={values.flexible_dates === 'true'}
+                className={`${styles.tripTypeBtn} ${values.flexible_dates === 'true' ? styles.tripTypeBtnActive : ''}`}
+                onClick={() => set('flexible_dates', 'true')}
+                disabled={disabled || isLocked}
+              >
+                Flexible
               </button>
             </div>
           )}

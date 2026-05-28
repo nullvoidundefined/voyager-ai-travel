@@ -147,6 +147,8 @@
   padding: 18px 24px;
   border-top: 1px solid var(--border);
   background: var(--surface);
+  border-bottom-left-radius: calc(var(--radius-xl) - 1px);
+  border-bottom-right-radius: calc(var(--radius-xl) - 1px);
 }
 
 .input {
@@ -183,6 +185,7 @@
   padding: 12px 24px;
   border: none;
   border-radius: var(--radius-sm);
+  border-bottom-right-radius: calc(var(--radius-xl) - 7px);
   background: var(--ocean);
   color: #fff;
   font-size: 14px;

@@ -159,4 +159,17 @@ describe('updateTripSchema', () => {
       expect('malicious_field' in result.data).toBe(false);
     }
   });
+
+  it('accepts flexible_dates boolean', () => {
+    expect(() =>
+      updateTripSchema.parse({ flexible_dates: true }),
+    ).not.toThrow();
+    expect(() =>
+      updateTripSchema.parse({ flexible_dates: false }),
+    ).not.toThrow();
+  });
+
+  it('rejects non-boolean flexible_dates', () => {
+    expect(() => updateTripSchema.parse({ flexible_dates: 'yes' })).toThrow();
+  });
 });

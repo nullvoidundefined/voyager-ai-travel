@@ -262,6 +262,96 @@ describe('flights.tool', () => {
     });
   });
 
+  describe('flexible date fan-out', () => {
+    it('calls serpApiGet 7 times when flexible_dates is true', async () => {
+      const MOCK_FLIGHT = {
+        flights: [
+          {
+            departure_airport: { id: 'JFK', time: '2026-07-04 10:00' },
+            arrival_airport: { id: 'CDG', time: '2026-07-04 22:00' },
+            airline: 'Air France',
+            airline_logo: null,
+            flight_number: 'AF1',
+          },
+        ],
+        total_duration: 480,
+        price: 500,
+        type: 'round trip',
+      };
+
+      vi.mocked(cacheService.cacheGet).mockResolvedValue(null);
+      vi.mocked(serpApiService.serpApiGet).mockResolvedValue({
+        best_flights: [MOCK_FLIGHT],
+      });
+
+      await searchFlights({
+        origin: 'JFK',
+        destination: 'CDG',
+        departure_date: '2026-07-04',
+        return_date: '2026-07-11',
+        passengers: 1,
+        flexible_dates: true,
+      });
+
+      expect(serpApiService.serpApiGet).toHaveBeenCalledTimes(7);
+    });
+
+    it('calls serpApiGet 1 time when flexible_dates is false', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValue(null);
+      vi.mocked(serpApiService.serpApiGet).mockResolvedValue({
+        best_flights: [],
+      });
+
+      await searchFlights({
+        origin: 'JFK',
+        destination: 'CDG',
+        departure_date: '2026-07-04',
+        passengers: 1,
+        flexible_dates: false,
+      });
+
+      expect(serpApiService.serpApiGet).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns results sorted by price when flexible', async () => {
+      const BASE_FLIGHT = {
+        flights: [
+          {
+            departure_airport: { id: 'JFK', time: '2026-07-04 10:00' },
+            arrival_airport: { id: 'CDG', time: '2026-07-04 22:00' },
+            airline: 'Air France',
+            airline_logo: null,
+            flight_number: 'AF1',
+          },
+        ],
+        total_duration: 480,
+        type: 'round trip',
+      };
+
+      vi.mocked(cacheService.cacheGet).mockResolvedValue(null);
+      for (let i = 0; i < 7; i++) {
+        const price = 500 - i * 20; // 500, 480, 460, ... cheaper each day
+        vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
+          best_flights: [{ ...BASE_FLIGHT, price }],
+        });
+      }
+
+      const results = await searchFlights({
+        origin: 'JFK',
+        destination: 'CDG',
+        departure_date: '2026-07-04',
+        passengers: 1,
+        flexible_dates: true,
+      });
+
+      expect(results.length).toBeGreaterThan(0);
+      expect(results.length).toBeLessThanOrEqual(7);
+      for (let i = 0; i < results.length - 1; i++) {
+        expect(results[i]!.price).toBeLessThanOrEqual(results[i + 1]!.price);
+      }
+    });
+  });
+
   describe('mock mode', () => {
     beforeEach(async () => {
       vi.resetModules();

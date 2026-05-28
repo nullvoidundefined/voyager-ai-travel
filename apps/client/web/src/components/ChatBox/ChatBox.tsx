@@ -162,6 +162,9 @@ export function ChatBox({
         if (vals.return_date?.trim()) formData.return_date = vals.return_date;
         if (vals.budget?.trim()) formData.budget_total = Number(vals.budget);
         if (vals.travelers?.trim()) formData.travelers = Number(vals.travelers);
+        if (vals.trip_type?.trim()) formData.trip_type = vals.trip_type;
+        if (vals.flexible_dates !== undefined)
+          formData.flexible_dates = vals.flexible_dates === 'true';
 
         if (Object.keys(formData).length > 0) {
           put(`/trips/${tripId}`, formData).catch((err) =>
@@ -217,6 +220,10 @@ export function ChatBox({
         tripUpdate.budget_total = Number(structuredData.budget);
       if (structuredData.travelers)
         tripUpdate.travelers = Number(structuredData.travelers);
+      if (structuredData.trip_type)
+        tripUpdate.trip_type = structuredData.trip_type;
+      if (structuredData.flexible_dates !== undefined)
+        tripUpdate.flexible_dates = structuredData.flexible_dates === 'true';
 
       try {
         await put(`/trips/${tripId}`, tripUpdate);

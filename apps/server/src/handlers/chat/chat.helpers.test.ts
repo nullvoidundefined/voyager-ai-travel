@@ -26,6 +26,7 @@ const baseTripDetails: TripWithDetails = {
   status: 'planning',
   transport_mode: 'flying',
   trip_type: 'round_trip',
+  flexible_dates: false,
   created_at: new Date(),
   updated_at: new Date(),
   flights: [],
@@ -569,6 +570,26 @@ describe('chat.helpers', () => {
       const tracker = { ...DEFAULT_COMPLETION_TRACKER };
       applyPlanConfirmation(tracker, baseCard);
       expect(tracker.plan_confirmed).toBe(false);
+    });
+  });
+
+  describe('buildTripContext maps trip_type and flexible_dates', () => {
+    it('maps trip_type and flexible_dates from TripWithDetails', () => {
+      const ctx = buildTripContext(
+        { ...baseTripDetails, trip_type: 'round_trip', flexible_dates: false },
+        null,
+      );
+      expect(ctx.trip_type).toBe('round_trip');
+      expect(ctx.flexible_dates).toBe(false);
+    });
+
+    it('maps one_way trip_type', () => {
+      const ctx = buildTripContext(
+        { ...baseTripDetails, trip_type: 'one_way', flexible_dates: true },
+        null,
+      );
+      expect(ctx.trip_type).toBe('one_way');
+      expect(ctx.flexible_dates).toBe(true);
     });
   });
 });

@@ -58,6 +58,7 @@ const mockTrip = {
   status: 'planning' as const,
   transport_mode: null,
   trip_type: null,
+  flexible_dates: false,
   created_at: new Date('2025-01-01'),
   updated_at: new Date('2025-01-01'),
 };

@@ -29,6 +29,7 @@ export const updateTripSchema = z
     travelers: z.number().int().positive().optional(),
     transport_mode: z.enum(['flying', 'driving']).optional(),
     trip_type: z.enum(['round_trip', 'one_way']).optional(),
+    flexible_dates: z.boolean().optional(),
     status: z.enum(['planning', 'saved', 'archived']).optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
@@ -51,6 +52,7 @@ export interface Trip {
   status: 'planning' | 'saved' | 'archived';
   transport_mode: 'flying' | 'driving' | null;
   trip_type: 'round_trip' | 'one_way' | null;
+  flexible_dates: boolean;
   created_at: Date;
   updated_at: Date;
 }

@@ -20,6 +20,8 @@ function baseContext(overrides: Partial<TripContext> = {}): TripContext {
     budget_currency: 'USD',
     travelers: 2,
     transport_mode: null,
+    trip_type: null,
+    flexible_dates: false,
     preferences: {},
     selected_flights: [],
     selected_hotels: [],

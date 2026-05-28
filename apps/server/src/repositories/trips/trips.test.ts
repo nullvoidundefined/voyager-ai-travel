@@ -100,6 +100,25 @@ describe('insertTripSelection functions', () => {
     expect(values).toContain('Delta');
   });
 
+  it('insertTripFlight coerces string price to number before storage', async () => {
+    // Claude tool-use responses can return numeric fields as strings.
+    // z.number() rejects strings, causing the selection to fail silently
+    // and the budget sidebar to show no change. The repository must coerce
+    // price to a JS number so the INSERT always uses a numeric value.
+    await insertTripFlight(tripId, {
+      airline: 'Iberia',
+      flight_number: 'IB3156',
+      origin: 'JFK',
+      destination: 'MAD',
+      price: '293' as unknown as number,
+      currency: 'USD',
+    });
+    const values = mockQuery.mock.calls[0]![1] as unknown[];
+    const priceIndex = values.indexOf(293);
+    expect(priceIndex).toBeGreaterThan(-1);
+    expect(typeof values[priceIndex]).toBe('number');
+  });
+
   it('insertTripHotel inserts with correct columns', async () => {
     await insertTripHotel(tripId, {
       name: 'Hotel Barcelona',

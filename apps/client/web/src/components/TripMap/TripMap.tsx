@@ -27,17 +27,27 @@ const PIN_COLORS: Record<MapPin['type'], string> = {
 
 const PLACEHOLDER_DESTINATIONS = new Set(['New trip', 'Planning...']);
 
+interface GeocodeResult {
+  center: [number, number];
+  bbox?: [number, number, number, number];
+}
+
 async function geocodeDestination(
   name: string,
   token: string,
-): Promise<[number, number] | null> {
+): Promise<GeocodeResult | null> {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?access_token=${token}&limit=1&types=place,locality,region,country`;
   const res = await fetch(url);
   if (!res.ok) return null;
   const data = (await res.json()) as {
-    features: { center: [number, number] }[];
+    features: {
+      center: [number, number];
+      bbox?: [number, number, number, number];
+    }[];
   };
-  return data.features[0]?.center ?? null;
+  const feature = data.features[0];
+  if (!feature) return null;
+  return { center: feature.center, bbox: feature.bbox };
 }
 
 export function TripMap({
@@ -59,6 +69,7 @@ export function TripMap({
 
     async function initMap() {
       let resolvedCenter: [number, number];
+      let resolvedBbox: [number, number, number, number] | undefined;
 
       if (center != null) {
         resolvedCenter = center;
@@ -70,7 +81,8 @@ export function TripMap({
       ) {
         const geocoded = await geocodeDestination(destinationName, token!);
         if (cancelled) return;
-        resolvedCenter = geocoded ?? [0, 20];
+        resolvedCenter = geocoded?.center ?? [0, 20];
+        resolvedBbox = geocoded?.bbox;
       } else {
         resolvedCenter = [0, 20];
       }
@@ -94,6 +106,12 @@ export function TripMap({
       (map as { on: (event: string, cb: () => void) => void }).on(
         'load',
         () => {
+          if (resolvedBbox && pins.length === 0) {
+            (map as { fitBounds: (b: unknown, o: unknown) => void }).fitBounds(
+              resolvedBbox,
+              { padding: 40 },
+            );
+          }
           pins.forEach((pin) => {
             const el = document.createElement('div');
             el.style.backgroundColor = PIN_COLORS[pin.type];

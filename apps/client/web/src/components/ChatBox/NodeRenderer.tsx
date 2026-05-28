@@ -131,7 +131,8 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
           | 'departure_date'
           | 'return_date'
           | 'budget'
-          | 'travelers',
+          | 'travelers'
+          | 'trip_type',
         label: f.label,
       }));
       return (

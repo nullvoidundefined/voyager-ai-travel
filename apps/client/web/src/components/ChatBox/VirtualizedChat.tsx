@@ -255,6 +255,9 @@ export function VirtualizedChat({
                             key={`${message.id}-${nodeIdx}`}
                             node={node}
                             callbacks={{
+                              disabled:
+                                isSending ||
+                                virtualItem.index !== allMessages.length - 1,
                               onQuickReply,
                               onBookNow,
                               onFormSubmit,

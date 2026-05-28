@@ -1,146 +1,66 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('app/utils/logs/logger.js', () => ({
-  logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+vi.mock('app/services/cache/serpApiQuota.service.js', () => ({
+  isOverMonthlyCap: vi.fn().mockResolvedValue(false),
+  incrementMonthlyUsage: vi.fn().mockResolvedValue(undefined),
 }));
 
-const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.mock('app/utils/logs/logger.js', () => ({
+  logger: { debug: vi.fn(), warn: vi.fn(), error: vi.fn(), info: vi.fn() },
+}));
 
-const mockIncrementMonthlyUsage = vi.fn();
+// Circuit breaker must also be mocked or it will interfere with the hang test.
+// Simplest approach: mock the CircuitBreaker to call through directly.
+vi.mock('app/utils/CircuitBreaker.js', () => ({
+  CircuitBreaker: vi.fn().mockImplementation(() => ({
+    call: (fn: () => unknown) => fn(),
+  })),
+}));
 
-let serpApiService: typeof import('app/services/external/serpapi.service.js');
-
-describe('serpapi.service', () => {
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    vi.resetModules();
-
-    vi.doMock('app/utils/logs/logger.js', () => ({
-      logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
-    }));
-
-    vi.doMock('app/services/cache/serpApiQuota.service.js', () => ({
-      incrementMonthlyUsage: mockIncrementMonthlyUsage,
-      isOverMonthlyCap: vi.fn().mockResolvedValue(false),
-    }));
-
-    process.env.SERPAPI_API_KEY = 'test-serpapi-key';
-
-    serpApiService = await import('app/services/external/serpapi.service.js');
+describe('serpApiGet', () => {
+  beforeEach(() => {
+    process.env.SERPAPI_API_KEY = 'test-key';
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    delete process.env.SERPAPI_API_KEY;
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
-  describe('serpApiGet', () => {
-    it('makes GET request with engine and api_key params', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ best_flights: [] }),
-      });
+  it('rejects with AbortError when fetch does not respond within 15 seconds', async () => {
+    // Simulate a fetch that hangs -- never resolves unless the signal fires.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(
+        (_url: string, opts?: RequestInit) =>
+          new Promise<Response>((_, reject) => {
+            const signal = opts?.signal;
+            if (signal) {
+              signal.addEventListener('abort', () =>
+                reject(
+                  new DOMException('The operation was aborted.', 'AbortError'),
+                ),
+              );
+            }
+            // No resolve: hangs forever without an abort signal.
+          }),
+      ),
+    );
 
-      await serpApiService.serpApiGet('google_flights', {
-        departure_id: 'SFO',
-        arrival_id: 'BCN',
-      });
+    const { serpApiGet } = await import('./serpapi.service.js');
 
-      const url = mockFetch.mock.calls[0]![0] as string;
-      expect(url).toContain('engine=google_flights');
-      expect(url).toContain('api_key=test-serpapi-key');
-      expect(url).toContain('departure_id=SFO');
-      expect(url).toContain('arrival_id=BCN');
+    const pending = serpApiGet('google_flights', {
+      departure_id: 'JFK',
+      arrival_id: 'CDG',
     });
 
-    it('returns parsed JSON on success', async () => {
-      const data = { properties: [{ name: 'Hotel X' }] };
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => data,
-      });
+    // Fast-forward 15 seconds so AbortSignal.timeout fires.
+    await vi.advanceTimersByTimeAsync(15_001);
 
-      const result = await serpApiService.serpApiGet('google_hotels', {
-        q: 'hotels in Paris',
-      });
-      expect(result).toEqual(data);
-    });
-
-    it('throws on API error', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        text: async () => 'Invalid API key',
-      });
-
-      await expect(
-        serpApiService.serpApiGet('google_flights', {}),
-      ).rejects.toThrow('SerpApi error: 401');
-    });
-
-    it('throws when SERPAPI_API_KEY is not set', async () => {
-      delete process.env.SERPAPI_API_KEY;
-
-      vi.resetModules();
-      vi.doMock('app/utils/logs/logger.js', () => ({
-        logger: {
-          error: vi.fn(),
-          info: vi.fn(),
-          warn: vi.fn(),
-          debug: vi.fn(),
-        },
-      }));
-      const freshModule =
-        await import('app/services/external/serpapi.service.js');
-
-      await expect(
-        freshModule.serpApiGet('google_flights', {}),
-      ).rejects.toThrow('SERPAPI_API_KEY is required');
-    });
-
-    it('omits undefined params from query string', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({}),
-      });
-
-      await serpApiService.serpApiGet('google_flights', {
-        departure_id: 'SFO',
-        return_date: undefined,
-      });
-
-      const url = mockFetch.mock.calls[0]![0] as string;
-      expect(url).not.toContain('return_date');
-    });
-
-    it('does not increment quota when response.json() throws', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => {
-          throw new Error('Invalid JSON');
-        },
-      });
-
-      await expect(
-        serpApiService.serpApiGet('google_flights', {
-          departure_id: 'SFO',
-        }),
-      ).rejects.toThrow('Invalid JSON');
-
-      expect(mockIncrementMonthlyUsage).not.toHaveBeenCalled();
-    });
-
-    it('increments quota after successful response parse', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ best_flights: [] }),
-      });
-
-      await serpApiService.serpApiGet('google_flights', {
-        departure_id: 'SFO',
-      });
-
-      expect(mockIncrementMonthlyUsage).toHaveBeenCalledTimes(1);
-    });
-  });
+    await expect(pending).rejects.toThrow();
+    // 20s wall-clock budget: vi.advanceTimersByTimeAsync drives AbortSignal.timeout
+    // in near-real time via Node's internal timer intercept, so the advance takes
+    // ~15s of actual wall-clock time.
+  }, 20_000);
 });

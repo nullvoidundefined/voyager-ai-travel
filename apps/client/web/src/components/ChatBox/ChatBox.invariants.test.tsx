@@ -304,6 +304,85 @@ describe('ChatBox invariants', () => {
         screen.queryByRole('group', { name: 'Quick replies' }),
       ).not.toBeInTheDocument();
     });
+
+    it('quick reply chips in a non-last message are disabled', async () => {
+      const msgWithChips = makeAssistantMessage(
+        'msg-1',
+        [{ type: 'quick_replies', options: ['Option A', 'Option B'] }],
+        1,
+      );
+      const msgLater = makeAssistantMessage(
+        'msg-2',
+        [{ type: 'text', content: 'Here is the next response.' }],
+        2,
+      );
+
+      render(
+        <VirtualizedChat
+          messages={[msgWithChips, msgLater]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      const buttons = await screen.findAllByRole('button', {
+        name: /Option A|Option B/i,
+      });
+      expect(buttons.every((b) => (b as HTMLButtonElement).disabled)).toBe(
+        true,
+      );
+    });
+
+    it('quick reply chips in the last message are enabled when not sending', async () => {
+      const msgWithChips = makeAssistantMessage('msg-1', [
+        { type: 'quick_replies', options: ['Option A', 'Option B'] },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[msgWithChips]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={false}
+          onQuickReply={noop}
+        />,
+      );
+
+      const buttons = await screen.findAllByRole('button', {
+        name: /Option A|Option B/i,
+      });
+      expect(buttons.some((b) => !(b as HTMLButtonElement).disabled)).toBe(
+        true,
+      );
+    });
+
+    it('quick reply chips in the last message are disabled while sending', async () => {
+      const msgWithChips = makeAssistantMessage('msg-1', [
+        { type: 'quick_replies', options: ['Option A', 'Option B'] },
+      ]);
+
+      render(
+        <VirtualizedChat
+          messages={[msgWithChips]}
+          streamingNodes={[]}
+          toolProgress={[]}
+          streamingText=''
+          isSending={true}
+          onQuickReply={noop}
+        />,
+      );
+
+      const buttons = await screen.findAllByRole('button', {
+        name: /Option A|Option B/i,
+      });
+      expect(buttons.every((b) => (b as HTMLButtonElement).disabled)).toBe(
+        true,
+      );
+    });
   });
 
   describe('invariant 6: tool_progress nodes collapse into one progress bar', () => {

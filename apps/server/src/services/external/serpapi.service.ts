@@ -66,7 +66,7 @@ export async function serpApiGet(
   logger.debug({ engine, params, requestId }, 'SerpApi request');
 
   return serpApiBreaker.call(async () => {
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(15_000) });
 
     if (!response.ok) {
       const text = await response.text();

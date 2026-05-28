@@ -135,6 +135,8 @@ export function buildTripContext(
     budget_currency: trip.budget_currency ?? 'USD',
     travelers: trip.travelers ?? 1,
     transport_mode: trip.transport_mode ?? null,
+    trip_type: trip.trip_type ?? null,
+    flexible_dates: trip.flexible_dates ?? false,
     preferences: {},
     user_preferences: userPrefs
       ? {

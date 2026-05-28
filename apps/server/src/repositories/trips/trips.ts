@@ -92,6 +92,7 @@ export interface UpdateTripInput {
   travelers?: number;
   transport_mode?: 'flying' | 'driving';
   trip_type?: 'round_trip' | 'one_way';
+  flexible_dates?: boolean;
   status?: 'planning' | 'saved' | 'archived';
 }
 
@@ -104,6 +105,7 @@ const UPDATE_TRIP_ALLOWED_COLUMNS: ReadonlySet<string> = new Set([
   'travelers',
   'transport_mode',
   'trip_type',
+  'flexible_dates',
   'status',
 ]);
 
@@ -140,9 +142,21 @@ async function insertTripSelection(
   tripId: string,
   columns: string[],
   input: Record<string, unknown>,
+  numericColumns: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   const allCols = ['trip_id', ...columns, 'selected'];
-  const values = [tripId, ...columns.map((c) => input[c] ?? null), true];
+  const values = [
+    tripId,
+    ...columns.map((c) => {
+      const v = input[c] ?? null;
+      if (v !== null && numericColumns.has(c)) {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      }
+      return v;
+    }),
+    true,
+  ];
   const placeholders = allCols.map((_, i) => `$${i + 1}`).join(', ');
   await query(
     `INSERT INTO ${table} (${allCols.join(', ')}) VALUES (${placeholders})`,
@@ -169,6 +183,7 @@ export async function insertTripFlight(
       'booking_url',
     ],
     input,
+    new Set(['price']),
   );
 }
 
@@ -191,6 +206,7 @@ export async function insertTripHotel(
       'booking_url',
     ],
     input,
+    new Set(['star_rating', 'price_per_night', 'total_price']),
   );
 }
 
@@ -211,6 +227,7 @@ export async function insertTripCarRental(
       'booking_url',
     ],
     input,
+    new Set(['price_per_day', 'total_price']),
   );
 }
 
@@ -223,6 +240,7 @@ export async function insertTripExperience(
     tripId,
     ['name', 'category', 'estimated_cost', 'rating', 'booking_url'],
     input,
+    new Set(['estimated_cost', 'rating']),
   );
 }
 

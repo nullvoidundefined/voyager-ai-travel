@@ -3,9 +3,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TripMap } from './TripMap';
 
-const { mockMapboxgl } = vi.hoisted(() => {
+const mockFetchWithBbox = vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => ({
+    features: [
+      {
+        center: [-8.22, 39.39],
+        bbox: [-9.5, 36.8, -6.2, 42.2],
+      },
+    ],
+  }),
+});
+
+const { mockMapboxgl, mockMapInstance } = vi.hoisted(() => {
   const mapInstance = {
-    on: vi.fn(),
+    on: vi.fn().mockImplementation((event: string, cb: () => void) => {
+      if (event === 'load') cb();
+    }),
+    fitBounds: vi.fn(),
     remove: vi.fn(),
   };
   const mapboxgl = {
@@ -81,5 +96,51 @@ describe('TripMap', () => {
         style: 'mapbox://styles/mapbox/streets-v12',
       }),
     );
+  });
+});
+
+describe('TripMap fitBounds', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockMapboxgl.accessToken = '';
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapbox-token';
+    vi.stubGlobal('fetch', mockFetchWithBbox);
+    // Re-apply the load event firing after clearAllMocks
+    mockMapInstance.on.mockImplementation((event: string, cb: () => void) => {
+      if (event === 'load') cb();
+    });
+  });
+
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    vi.unstubAllGlobals();
+  });
+
+  it('calls fitBounds with bbox when geocode returns bbox and no pins present', async () => {
+    render(<TripMap pins={[]} destinationName='Portugal' />);
+
+    await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(mockMapInstance.fitBounds).toHaveBeenCalledWith(
+      [-9.5, 36.8, -6.2, 42.2],
+      expect.objectContaining({ padding: 40 }),
+    );
+  });
+
+  it('does not call fitBounds when pins are present', async () => {
+    render(
+      <TripMap
+        pins={[
+          { id: '1', lat: 38.7, lng: -9.1, label: 'Lisbon', type: 'hotel' },
+        ]}
+        destinationName='Portugal'
+      />,
+    );
+
+    await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(mockMapInstance.fitBounds).not.toHaveBeenCalled();
   });
 });

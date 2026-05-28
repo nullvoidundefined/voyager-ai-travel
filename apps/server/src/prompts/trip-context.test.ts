@@ -31,6 +31,8 @@ function baseContext(overrides: Partial<TripContext> = {}): TripContext {
     budget_currency: 'USD',
     travelers: 1,
     transport_mode: null,
+    trip_type: null,
+    flexible_dates: false,
     preferences: {},
     selected_flights: [],
     selected_hotels: [],
@@ -490,5 +492,42 @@ describe('formatChecklist', () => {
       const out = formatChecklist(baseTracker(), ctx);
       expect(out).toContain('Budget: $2100 remaining of $2500');
     });
+  });
+});
+
+describe('formatTripContext trip_type and flexible_dates', () => {
+  it('formatTripContext includes trip_type label for one_way', () => {
+    const out = formatTripContext(
+      baseContext({ trip_type: 'one_way', flexible_dates: false }),
+    );
+    expect(out).toContain('One way');
+  });
+
+  it('formatTripContext includes trip_type label for round_trip', () => {
+    const out = formatTripContext(
+      baseContext({ trip_type: 'round_trip', flexible_dates: false }),
+    );
+    expect(out).toContain('Round trip');
+  });
+
+  it('formatTripContext includes flexible dates note when true', () => {
+    const out = formatTripContext(
+      baseContext({ trip_type: 'one_way', flexible_dates: true }),
+    );
+    expect(out.toLowerCase()).toContain('flexible');
+  });
+
+  it('formatTripContext omits flexible note when flexible_dates is false', () => {
+    const out = formatTripContext(
+      baseContext({ trip_type: 'one_way', flexible_dates: false }),
+    );
+    expect(out).not.toContain('Flexible');
+  });
+
+  it('formatTripContext omits trip_type line when null', () => {
+    const out = formatTripContext(
+      baseContext({ trip_type: null, flexible_dates: false }),
+    );
+    expect(out).not.toContain('**Trip type:**');
   });
 });

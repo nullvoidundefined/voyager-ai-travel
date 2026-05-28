@@ -11,6 +11,12 @@ import { generateMockFlights } from 'app/tools/mock/flights.mock.js';
 import { isMockMode } from 'app/tools/mock/isMockMode.js';
 import { logger } from 'app/utils/logs/logger.js';
 
+function addDays(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
 // FIN-07: extended from 1h to 6h on 2026-04-06. The SerpApi free
 // tier (250 searches/month) demands more aggressive caching. Flight
 // prices are not so volatile that a 6-hour staleness window harms
@@ -27,6 +33,7 @@ export interface FlightSearchInput {
   max_price?: number;
   cabin_class?: string;
   one_way?: boolean;
+  flexible_dates?: boolean;
 }
 
 export interface FlightResult {
@@ -121,12 +128,70 @@ export async function searchFlights(
     maxPrice: input.max_price,
     cabinClass: input.cabin_class,
     oneWay: input.one_way,
+    flexibleDates: input.flexible_dates,
   });
 
   const cached = await cacheGet<FlightResult[]>(cacheKey);
   if (cached) {
     logger.debug({ cacheKey }, 'Flight search cache hit');
     return cached;
+  }
+
+  if (input.flexible_dates && input.departure_date) {
+    const offsets = [-3, -2, -1, 0, 1, 2, 3];
+    const dayResults = await Promise.allSettled(
+      offsets.map(async (offset) => {
+        const depDate = addDays(input.departure_date, offset);
+        const retDate = input.return_date
+          ? addDays(input.return_date, offset)
+          : undefined;
+        const flexParams: Record<string, string | number | undefined> = {
+          departure_id: input.origin,
+          arrival_id: input.destination,
+          outbound_date: depDate,
+          return_date: input.one_way ? undefined : retDate,
+          adults: input.passengers,
+          travel_class: input.cabin_class
+            ? CABIN_MAP[input.cabin_class]
+            : undefined,
+          currency: 'USD',
+          hl: 'en',
+          type: input.one_way ? '2' : undefined,
+        };
+        const resp = (await serpApiGet(
+          'google_flights',
+          flexParams,
+        )) as SerpApiFlightsResponse;
+        const all = [
+          ...(resp.best_flights ?? []),
+          ...(resp.other_flights ?? []),
+        ];
+        const cheapest = all.sort((a, b) => a.price - b.price)[0];
+        return cheapest ?? null;
+      }),
+    );
+
+    const perDay: FlightResult[] = [];
+    dayResults.forEach((r, i) => {
+      if (r.status === 'fulfilled' && r.value) {
+        perDay.push(normalizeOffer(r.value, i));
+      }
+    });
+
+    const filtered = input.max_price
+      ? perDay.filter((r) => r.price <= input.max_price!)
+      : perDay;
+    const sorted = filtered.sort((a, b) => a.price - b.price);
+    await cacheSet(cacheKey, sorted, CACHE_TTL);
+    logger.info(
+      {
+        count: sorted.length,
+        origin: input.origin,
+        destination: input.destination,
+      },
+      'Flexible flight search complete',
+    );
+    return sorted;
   }
 
   const params: Record<string, string | number | undefined> = {

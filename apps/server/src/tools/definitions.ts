@@ -468,7 +468,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
         quick_replies: {
           type: 'array',
           description:
-            'Suggested next actions for the user (2-4 short options). Only include when there are clear next steps.',
+            'Suggested next actions for the user (2-4 short options). Only include when there are clear next steps. Do NOT suggest specific origin cities (e.g. "From New York", "From Los Angeles"); the user enters their own origin. Do NOT suggest flexible date options; the TripDetailsForm has a dedicated flexible dates toggle.',
           items: { type: 'string' },
         },
         advisory: {
