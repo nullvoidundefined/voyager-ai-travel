@@ -12,7 +12,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY ?? '';
 // Google Places URLs, which would otherwise let an attacker drain
 // the paid GOOGLE_PLACES_API_KEY quota via our unauthenticated
 // endpoint (before requireAuth was added at the route level).
-const PHOTO_REF_PATTERN = /^places\/[\w-]{1,128}\/photos\/[\w-]{1,128}$/;
+const PHOTO_REF_PATTERN = /^places\/[\w-]{1,512}\/photos\/[\w-]{1,512}$/;
 
 // SEC-01: clamp maxwidth to a reasonable range. Google Places Photo
 // API accepts values up to 4800, but anything above 1600 is wasted
