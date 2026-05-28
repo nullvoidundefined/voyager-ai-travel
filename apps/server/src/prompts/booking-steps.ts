@@ -2,7 +2,12 @@
 
 export type CategoryName = 'flights' | 'hotels' | 'car_rental' | 'experiences';
 
-export type TrackerStatus = 'pending' | 'searching' | 'selected' | 'skipped';
+export type TrackerStatus =
+  | 'pending'
+  | 'searching'
+  | 'selected'
+  | 'skipped'
+  | 'not_applicable';
 
 export interface CompletionTracker {
   version: number;
@@ -11,10 +16,12 @@ export interface CompletionTracker {
   hotels: TrackerStatus;
   car_rental: TrackerStatus;
   experiences: TrackerStatus;
+  plan_confirmed: boolean;
+  experience_interests: string[];
   turns_since_last_progress: number;
 }
 
-export const CURRENT_TRACKER_VERSION = 2;
+export const CURRENT_TRACKER_VERSION = 3;
 
 export const DEFAULT_COMPLETION_TRACKER: CompletionTracker = {
   version: CURRENT_TRACKER_VERSION,
@@ -23,6 +30,8 @@ export const DEFAULT_COMPLETION_TRACKER: CompletionTracker = {
   hotels: 'pending',
   car_rental: 'pending',
   experiences: 'pending',
+  plan_confirmed: false,
+  experience_interests: [],
   turns_since_last_progress: 0,
 };
 
@@ -50,7 +59,7 @@ const SELECT_TOOLS: Record<string, CategoryName> = {
   select_experience: 'experiences',
 };
 
-// --- v1 → v2 migration helpers ---
+// --- v1 → v3 migration helpers ---
 
 const V1_STATUS_MAP: Record<string, TrackerStatus> = {
   idle: 'pending',
@@ -79,9 +88,17 @@ const VALID_TRACKER_STATUSES: TrackerStatus[] = [
   'searching',
   'selected',
   'skipped',
+  'not_applicable',
 ];
 
 const VALID_TRANSPORT = ['pending', 'flying', 'driving'];
+
+function validStatus(val: unknown): TrackerStatus {
+  return typeof val === 'string' &&
+    VALID_TRACKER_STATUSES.includes(val as TrackerStatus)
+    ? (val as TrackerStatus)
+    : 'pending';
+}
 
 export function normalizeCompletionTracker(raw: unknown): CompletionTracker {
   if (raw === null || raw === undefined) {
@@ -99,17 +116,34 @@ export function normalizeCompletionTracker(raw: unknown): CompletionTracker {
       hotels: migrateV1Status(obj.hotels),
       car_rental: migrateV1Status(obj.car_rental),
       experiences: migrateV1Status(obj.experiences),
+      plan_confirmed: false,
+      experience_interests: [],
       turns_since_last_progress: 0,
     };
   }
 
-  // v2: current format — fill missing fields
-  const validStatus = (val: unknown): TrackerStatus =>
-    typeof val === 'string' &&
-    VALID_TRACKER_STATUSES.includes(val as TrackerStatus)
-      ? (val as TrackerStatus)
-      : 'pending';
+  // v2 → v3: add plan_confirmed and experience_interests
+  // All existing trips re-enter the plan phase on next message.
+  if ((obj.version as number) < 3) {
+    return {
+      version: CURRENT_TRACKER_VERSION,
+      transport: VALID_TRANSPORT.includes(obj.transport as string)
+        ? (obj.transport as CompletionTracker['transport'])
+        : 'pending',
+      flights: validStatus(obj.flights),
+      hotels: validStatus(obj.hotels),
+      car_rental: validStatus(obj.car_rental),
+      experiences: validStatus(obj.experiences),
+      plan_confirmed: false,
+      experience_interests: [],
+      turns_since_last_progress:
+        typeof obj.turns_since_last_progress === 'number'
+          ? obj.turns_since_last_progress
+          : 0,
+    };
+  }
 
+  // v3: current format
   return {
     version: CURRENT_TRACKER_VERSION,
     transport: VALID_TRANSPORT.includes(obj.transport as string)
@@ -119,6 +153,13 @@ export function normalizeCompletionTracker(raw: unknown): CompletionTracker {
     hotels: validStatus(obj.hotels),
     car_rental: validStatus(obj.car_rental),
     experiences: validStatus(obj.experiences),
+    plan_confirmed:
+      typeof obj.plan_confirmed === 'boolean' ? obj.plan_confirmed : false,
+    experience_interests: Array.isArray(obj.experience_interests)
+      ? obj.experience_interests.filter(
+          (i): i is string => typeof i === 'string',
+        )
+      : [],
     turns_since_last_progress:
       typeof obj.turns_since_last_progress === 'number'
         ? obj.turns_since_last_progress
@@ -130,6 +171,7 @@ export function normalizeCompletionTracker(raw: unknown): CompletionTracker {
 
 export type FlowPosition =
   | { phase: 'COLLECT_DETAILS' }
+  | { phase: 'PLAN_TRIP' }
   | { phase: 'PLANNING' }
   | { phase: 'COMPLETE' };
 
@@ -150,7 +192,7 @@ export interface TripState {
 
 export function getFlowPosition(
   trip: TripState,
-  _legacyBookingState?: unknown,
+  tracker?: CompletionTracker | unknown,
 ): FlowPosition {
   if (trip.status !== 'planning') {
     return { phase: 'COMPLETE' };
@@ -163,6 +205,18 @@ export function getFlowPosition(
     trip.origin === null
   ) {
     return { phase: 'COLLECT_DETAILS' };
+  }
+
+  // When a v3 tracker is provided, gate on plan_confirmed
+  if (
+    tracker !== null &&
+    tracker !== undefined &&
+    typeof tracker === 'object' &&
+    'plan_confirmed' in (tracker as object)
+  ) {
+    if (!(tracker as CompletionTracker).plan_confirmed) {
+      return { phase: 'PLAN_TRIP' };
+    }
   }
 
   return { phase: 'PLANNING' };
@@ -206,7 +260,10 @@ export function updateCompletionTracker(
   for (const cat of CATEGORIES) {
     const searchTool = SEARCH_TOOLS[cat];
     if (agentResult.tool_calls.some((tc) => tc.tool_name === searchTool)) {
-      if (newTracker[cat] !== 'selected') {
+      if (
+        newTracker[cat] !== 'selected' &&
+        newTracker[cat] !== 'not_applicable'
+      ) {
         newTracker[cat] = 'searching';
         changed = true;
       }
@@ -287,6 +344,9 @@ export function hasAnySelection(tracker: CompletionTracker): boolean {
 
 export function allCategoriesResolved(tracker: CompletionTracker): boolean {
   return CATEGORIES.every(
-    (cat) => tracker[cat] === 'selected' || tracker[cat] === 'skipped',
+    (cat) =>
+      tracker[cat] === 'selected' ||
+      tracker[cat] === 'skipped' ||
+      tracker[cat] === 'not_applicable',
   );
 }

@@ -4,6 +4,7 @@ import {
   type CompletionTracker,
   DEFAULT_COMPLETION_TRACKER,
   type TripState,
+  allCategoriesResolved,
   getFlowPosition,
   normalizeCompletionTracker,
   updateCompletionTracker,
@@ -22,18 +23,23 @@ const baseTripState: TripState = {
   status: 'planning',
 };
 
+const confirmedTracker: CompletionTracker = {
+  ...DEFAULT_COMPLETION_TRACKER,
+  plan_confirmed: true,
+};
+
 describe('normalizeCompletionTracker', () => {
-  it('should return defaults for null input', () => {
+  it('returns defaults for null input', () => {
     const result = normalizeCompletionTracker(null);
     expect(result).toEqual(DEFAULT_COMPLETION_TRACKER);
   });
 
-  it('should return defaults for undefined input', () => {
+  it('returns defaults for undefined input', () => {
     const result = normalizeCompletionTracker(undefined);
     expect(result).toEqual(DEFAULT_COMPLETION_TRACKER);
   });
 
-  it('should migrate v1 BookingState to v2 CompletionTracker', () => {
+  it('migrates v1 BookingState to v3 CompletionTracker', () => {
     const v1 = {
       version: 1,
       flights: { status: 'idle' },
@@ -42,15 +48,17 @@ describe('normalizeCompletionTracker', () => {
       experiences: { status: 'done' },
     };
     const result = normalizeCompletionTracker(v1);
-    expect(result.version).toBe(2);
+    expect(result.version).toBe(3);
     expect(result.flights).toBe('pending');
     expect(result.hotels).toBe('pending');
     expect(result.car_rental).toBe('searching');
     expect(result.experiences).toBe('selected');
+    expect(result.plan_confirmed).toBe(false);
+    expect(result.experience_interests).toEqual([]);
     expect(result.turns_since_last_progress).toBe(0);
   });
 
-  it('should migrate v1 skipped status', () => {
+  it('migrates v1 skipped status', () => {
     const v1 = {
       version: 1,
       flights: { status: 'skipped' },
@@ -62,8 +70,8 @@ describe('normalizeCompletionTracker', () => {
     expect(result.flights).toBe('skipped');
   });
 
-  it('should pass through valid v2 data', () => {
-    const v2: CompletionTracker = {
+  it('migrates v2 to v3 with plan_confirmed: false and empty experience_interests', () => {
+    const v2 = {
       version: 2,
       transport: 'flying',
       flights: 'selected',
@@ -73,82 +81,187 @@ describe('normalizeCompletionTracker', () => {
       turns_since_last_progress: 2,
     };
     const result = normalizeCompletionTracker(v2);
-    expect(result).toEqual(v2);
+    expect(result.version).toBe(3);
+    expect(result.flights).toBe('selected');
+    expect(result.hotels).toBe('searching');
+    expect(result.plan_confirmed).toBe(false);
+    expect(result.experience_interests).toEqual([]);
+    expect(result.turns_since_last_progress).toBe(2);
   });
 
-  it('should fill missing fields in v2 data', () => {
-    const partial = { version: 2, flights: 'selected' };
+  it('passes through valid v3 data', () => {
+    const v3: CompletionTracker = {
+      version: 3,
+      transport: 'flying',
+      flights: 'selected',
+      hotels: 'searching',
+      car_rental: 'not_applicable',
+      experiences: 'pending',
+      plan_confirmed: true,
+      experience_interests: ['dining', 'nightlife'],
+      turns_since_last_progress: 2,
+    };
+    const result = normalizeCompletionTracker(v3);
+    expect(result).toEqual(v3);
+  });
+
+  it('fills missing fields in v3 data', () => {
+    const partial = { version: 3, flights: 'selected' };
     const result = normalizeCompletionTracker(partial);
     expect(result.flights).toBe('selected');
     expect(result.hotels).toBe('pending');
     expect(result.transport).toBe('pending');
+    expect(result.plan_confirmed).toBe(false);
+    expect(result.experience_interests).toEqual([]);
     expect(result.turns_since_last_progress).toBe(0);
+  });
+
+  it('filters non-string values out of experience_interests', () => {
+    const raw = {
+      version: 3,
+      plan_confirmed: true,
+      experience_interests: ['dining', 42, null, 'wellness'],
+    };
+    const result = normalizeCompletionTracker(raw);
+    expect(result.experience_interests).toEqual(['dining', 'wellness']);
+  });
+
+  it('preserves not_applicable status in v3 data', () => {
+    const raw = { version: 3, flights: 'not_applicable', plan_confirmed: true };
+    const result = normalizeCompletionTracker(raw);
+    expect(result.flights).toBe('not_applicable');
   });
 });
 
 describe('getFlowPosition', () => {
-  it('should return COMPLETE when trip status is not planning', () => {
+  it('returns COMPLETE when trip status is not planning', () => {
     const trip = { ...baseTripState, status: 'saved' };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('COMPLETE');
+    expect(getFlowPosition(trip).phase).toBe('COMPLETE');
   });
 
-  it('should return COLLECT_DETAILS when origin is missing', () => {
+  it('returns COLLECT_DETAILS when origin is missing', () => {
     const trip = { ...baseTripState, origin: null };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('COLLECT_DETAILS');
+    expect(getFlowPosition(trip).phase).toBe('COLLECT_DETAILS');
   });
 
-  it('should return COLLECT_DETAILS when departure_date is missing', () => {
+  it('returns COLLECT_DETAILS when departure_date is missing', () => {
     const trip = { ...baseTripState, departure_date: null };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('COLLECT_DETAILS');
+    expect(getFlowPosition(trip).phase).toBe('COLLECT_DETAILS');
   });
 
-  it('should return PLANNING when all required fields are present', () => {
-    const result = getFlowPosition(baseTripState);
-    expect(result.phase).toBe('PLANNING');
+  it('returns PLANNING when all required fields are present and no tracker', () => {
+    expect(getFlowPosition(baseTripState).phase).toBe('PLANNING');
   });
 
-  it('should allow null return_date for one_way trips', () => {
+  it('returns PLAN_TRIP when details complete but plan not confirmed', () => {
+    expect(
+      getFlowPosition(baseTripState, DEFAULT_COMPLETION_TRACKER).phase,
+    ).toBe('PLAN_TRIP');
+  });
+
+  it('returns PLANNING when plan_confirmed is true', () => {
+    expect(getFlowPosition(baseTripState, confirmedTracker).phase).toBe(
+      'PLANNING',
+    );
+  });
+
+  it('returns PLANNING when no tracker provided (backward compat)', () => {
+    expect(getFlowPosition(baseTripState).phase).toBe('PLANNING');
+  });
+
+  it('returns PLANNING when legacy unknown tracker is passed (backward compat)', () => {
+    expect(getFlowPosition(baseTripState, { some: 'old_shape' }).phase).toBe(
+      'PLANNING',
+    );
+  });
+
+  it('allows null return_date for one_way trips', () => {
     const trip = {
       ...baseTripState,
       return_date: null,
       trip_type: 'one_way' as const,
     };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('PLANNING');
+    expect(getFlowPosition(trip, confirmedTracker).phase).toBe('PLANNING');
   });
 
-  it('should require return_date for round trips', () => {
+  it('requires return_date for round trips', () => {
     const trip = { ...baseTripState, return_date: null };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('COLLECT_DETAILS');
+    expect(getFlowPosition(trip, confirmedTracker).phase).toBe(
+      'COLLECT_DETAILS',
+    );
   });
 
-  it('should not require budget for PLANNING', () => {
+  it('does not require budget for PLANNING', () => {
     const trip = { ...baseTripState, budget_total: null };
-    const result = getFlowPosition(trip);
-    expect(result.phase).toBe('PLANNING');
+    expect(getFlowPosition(trip, confirmedTracker).phase).toBe('PLANNING');
+  });
+});
+
+describe('allCategoriesResolved', () => {
+  it('returns false when any category is pending', () => {
+    expect(allCategoriesResolved(DEFAULT_COMPLETION_TRACKER)).toBe(false);
+  });
+
+  it('returns true when all categories are selected or skipped', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+      hotels: 'selected',
+      car_rental: 'skipped',
+      experiences: 'selected',
+    };
+    expect(allCategoriesResolved(tracker)).toBe(true);
+  });
+
+  it('returns true when a category is not_applicable', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'not_applicable',
+      hotels: 'selected',
+      car_rental: 'skipped',
+      experiences: 'selected',
+    };
+    expect(allCategoriesResolved(tracker)).toBe(true);
+  });
+
+  it('returns false when a category is searching', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'selected',
+      hotels: 'searching',
+      car_rental: 'skipped',
+      experiences: 'selected',
+    };
+    expect(allCategoriesResolved(tracker)).toBe(false);
   });
 });
 
 describe('updateCompletionTracker', () => {
-  it('should mark category as searching when search tool is called', () => {
+  it('marks category as searching when search tool is called', () => {
     const tracker = { ...DEFAULT_COMPLETION_TRACKER };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [{ tool_name: 'search_flights' }],
-        formatResponse: null,
-      },
+      { tool_calls: [{ tool_name: 'search_flights' }], formatResponse: null },
       baseTripState,
     );
     expect(result.flights).toBe('searching');
     expect(result.turns_since_last_progress).toBe(0);
   });
 
-  it('should mark category as selected when trip has selections', () => {
+  it('does not overwrite not_applicable with searching', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      flights: 'not_applicable',
+    };
+    const result = updateCompletionTracker(
+      tracker,
+      { tool_calls: [{ tool_name: 'search_flights' }], formatResponse: null },
+      baseTripState,
+    );
+    expect(result.flights).toBe('not_applicable');
+  });
+
+  it('marks category as selected when trip has selections', () => {
     const tracker = {
       ...DEFAULT_COMPLETION_TRACKER,
       flights: 'searching' as const,
@@ -156,29 +269,23 @@ describe('updateCompletionTracker', () => {
     const tripWithFlight = { ...baseTripState, flights: [{ id: '1' }] };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [{ tool_name: 'select_flight' }],
-        formatResponse: null,
-      },
+      { tool_calls: [{ tool_name: 'select_flight' }], formatResponse: null },
       tripWithFlight,
     );
     expect(result.flights).toBe('selected');
   });
 
-  it('should mark category as skipped when skip_category names it', () => {
+  it('marks category as skipped when skip_category names it', () => {
     const tracker = { ...DEFAULT_COMPLETION_TRACKER };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [],
-        formatResponse: { skip_category: 'hotels' },
-      },
+      { tool_calls: [], formatResponse: { skip_category: 'hotels' } },
       baseTripState,
     );
     expect(result.hotels).toBe('skipped');
   });
 
-  it('should update transport when update_trip sets transport_mode', () => {
+  it('updates transport when update_trip sets transport_mode', () => {
     const tracker = { ...DEFAULT_COMPLETION_TRACKER };
     const tripDriving = {
       ...baseTripState,
@@ -186,17 +293,14 @@ describe('updateCompletionTracker', () => {
     };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [{ tool_name: 'update_trip' }],
-        formatResponse: null,
-      },
+      { tool_calls: [{ tool_name: 'update_trip' }], formatResponse: null },
       tripDriving,
     );
     expect(result.transport).toBe('driving');
     expect(result.flights).toBe('skipped');
   });
 
-  it('should increment turns_since_last_progress when no status changes', () => {
+  it('increments turns_since_last_progress when no status changes', () => {
     const tracker = {
       ...DEFAULT_COMPLETION_TRACKER,
       transport: 'flying' as const,
@@ -204,28 +308,37 @@ describe('updateCompletionTracker', () => {
     };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [],
-        formatResponse: null,
-      },
+      { tool_calls: [], formatResponse: null },
       baseTripState,
     );
     expect(result.turns_since_last_progress).toBe(2);
   });
 
-  it('should reset turns_since_last_progress when any status changes', () => {
+  it('resets turns_since_last_progress when any status changes', () => {
     const tracker = {
       ...DEFAULT_COMPLETION_TRACKER,
       turns_since_last_progress: 5,
     };
     const result = updateCompletionTracker(
       tracker,
-      {
-        tool_calls: [{ tool_name: 'search_hotels' }],
-        formatResponse: null,
-      },
+      { tool_calls: [{ tool_name: 'search_hotels' }], formatResponse: null },
       baseTripState,
     );
     expect(result.turns_since_last_progress).toBe(0);
+  });
+
+  it('preserves plan_confirmed and experience_interests through updates', () => {
+    const tracker: CompletionTracker = {
+      ...DEFAULT_COMPLETION_TRACKER,
+      plan_confirmed: true,
+      experience_interests: ['dining', 'nightlife'],
+    };
+    const result = updateCompletionTracker(
+      tracker,
+      { tool_calls: [{ tool_name: 'search_flights' }], formatResponse: null },
+      baseTripState,
+    );
+    expect(result.plan_confirmed).toBe(true);
+    expect(result.experience_interests).toEqual(['dining', 'nightlife']);
   });
 });
