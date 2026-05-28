@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "eval": "tsx src/index.ts",
+    "eval:adversarial": "tsx src/adversarial/index.ts",
     "build": "tsc --noEmit",
     "test": "vitest run"
   },

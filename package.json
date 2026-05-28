@@ -21,7 +21,8 @@
     "seed:test": "npx tsx scripts/seed-test-db.ts",
     "test:smoke": "bash scripts/smoke-test.sh",
     "prepare": "git rev-parse --git-dir > /dev/null 2>&1 && lefthook install || true",
-    "eval": "pnpm --filter voyager-eval run eval"
+    "eval": "pnpm --filter voyager-eval run eval",
+    "eval:adversarial": "pnpm --filter voyager-eval run eval:adversarial"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
