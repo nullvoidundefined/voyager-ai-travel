@@ -3,6 +3,7 @@ import {
   clearSelectionsForTrip,
   createTrip,
   deleteTrip,
+  getActualCostsForTrip,
   getTripWithDetails,
   insertTripCarRental,
   insertTripExperience,
@@ -387,6 +388,54 @@ describe('trips repository integration', () => {
 
       // Should not throw
       await expect(clearSelectionsForTrip(trip.id)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('getActualCostsForTrip', () => {
+    it('sums actually-selected prices from the DB, ignoring any agent input', async () => {
+      const user = await seedUser();
+      const trip = await seedTrip(user.id, { budget_total: 3000 });
+
+      await insertTripFlight(trip.id, {
+        origin: 'JFK',
+        destination: 'CDG',
+        price: 900,
+        currency: 'USD',
+      });
+      await insertTripHotel(trip.id, {
+        name: 'Hotel Real',
+        total_price: 1200,
+        currency: 'USD',
+      });
+      await insertTripExperience(trip.id, {
+        name: 'Louvre',
+        category: 'culture',
+        estimated_cost: 50,
+      });
+      await insertTripExperience(trip.id, {
+        name: 'Eiffel',
+        category: 'sightseeing',
+        estimated_cost: 75,
+      });
+
+      const costs = await getActualCostsForTrip(trip.id);
+
+      expect(costs.total_budget).toBe(3000);
+      expect(costs.flight_cost).toBe(900);
+      expect(costs.hotel_total_cost).toBe(1200);
+      expect(costs.experience_costs.sort()).toEqual([50, 75]);
+    });
+
+    it('returns zeros (not the trip budget) when nothing is selected', async () => {
+      const user = await seedUser();
+      const trip = await seedTrip(user.id, { budget_total: 2000 });
+
+      const costs = await getActualCostsForTrip(trip.id);
+
+      expect(costs.total_budget).toBe(2000);
+      expect(costs.flight_cost).toBe(0);
+      expect(costs.hotel_total_cost).toBe(0);
+      expect(costs.experience_costs).toEqual([]);
     });
   });
 });

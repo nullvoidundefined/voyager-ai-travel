@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   clearSelectionsForTrip,
+  getActualCostsForTrip,
   insertTripCarRental,
   insertTripExperience,
   insertTripFlight,
@@ -71,6 +72,101 @@ describe('clearSelectionsForTrip', () => {
     for (const call of mockQuery.mock.calls) {
       expect(call[1]).toEqual([tripId]);
     }
+  });
+});
+
+describe('getActualCostsForTrip', () => {
+  const tripId = 'trip-789';
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('queries the trip budget plus all 3 selection tables in one query', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          budget_total: '3000.00',
+          flight_cost: '900.00',
+          hotel_total_cost: '1200.00',
+          experience_costs: ['50.00', '75.00'],
+        },
+      ],
+      rowCount: 1,
+    } as never);
+
+    const result = await getActualCostsForTrip(tripId);
+
+    expect(mockQuery).toHaveBeenCalledOnce();
+    const sql = mockQuery.mock.calls[0]![0] as string;
+    expect(sql).toContain('trip_flights');
+    expect(sql).toContain('trip_hotels');
+    expect(sql).toContain('trip_experiences');
+    expect(sql).toContain('selected = true');
+
+    expect(result).toEqual({
+      total_budget: 3000,
+      flight_cost: 900,
+      hotel_total_cost: 1200,
+      experience_costs: [50, 75],
+    });
+  });
+
+  it('returns zeros when no selections exist', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          budget_total: '2000.00',
+          flight_cost: '0',
+          hotel_total_cost: '0',
+          experience_costs: '{}',
+        },
+      ],
+      rowCount: 1,
+    } as never);
+
+    const result = await getActualCostsForTrip(tripId);
+
+    expect(result.flight_cost).toBe(0);
+    expect(result.hotel_total_cost).toBe(0);
+    expect(result.experience_costs).toEqual([]);
+  });
+
+  it('returns zero budget when trip has no budget set', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          budget_total: null,
+          flight_cost: '500.00',
+          hotel_total_cost: '0',
+          experience_costs: '{}',
+        },
+      ],
+      rowCount: 1,
+    } as never);
+
+    const result = await getActualCostsForTrip(tripId);
+
+    expect(result.total_budget).toBe(0);
+    expect(result.flight_cost).toBe(500);
+  });
+
+  it('parses Postgres ARRAY_AGG string format for experience_costs', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [
+        {
+          budget_total: '1000.00',
+          flight_cost: '0',
+          hotel_total_cost: '0',
+          experience_costs: '{50,75,100}',
+        },
+      ],
+      rowCount: 1,
+    } as never);
+
+    const result = await getActualCostsForTrip(tripId);
+
+    expect(result.experience_costs).toEqual([50, 75, 100]);
   });
 });
 

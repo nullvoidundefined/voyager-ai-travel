@@ -10,6 +10,7 @@ import {
   reorderLegs,
 } from 'app/repositories/trips/trip-legs.repository.js';
 import {
+  getActualCostsForTrip,
   insertTripCarRental,
   insertTripExperience,
   insertTripFlight,
@@ -128,6 +129,14 @@ export async function executeTool(
     }
 
     case 'calculate_remaining_budget': {
+      // P1-03: When trip context is available, ignore the agent-supplied
+      // costs and recompute from the DB. The agent has hallucinated cheaper
+      // numbers in past sessions; the DB is the source of truth for what
+      // was actually selected.
+      if (context) {
+        const costs = await getActualCostsForTrip(context.tripId);
+        return calculateRemainingBudget(costs);
+      }
       const parsed = parseInput(toolName, calculateBudgetSchema, input);
       if ('error' in parsed) return parsed;
       return calculateRemainingBudget(parsed.data);

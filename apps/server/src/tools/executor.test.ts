@@ -7,6 +7,12 @@ vi.mock('app/repositories/trips/trips.js', () => ({
   insertTripHotel: vi.fn().mockResolvedValue(undefined),
   insertTripCarRental: vi.fn().mockResolvedValue(undefined),
   insertTripExperience: vi.fn().mockResolvedValue(undefined),
+  getActualCostsForTrip: vi.fn().mockResolvedValue({
+    total_budget: 3000,
+    flight_cost: 900,
+    hotel_total_cost: 1200,
+    experience_costs: [50, 75],
+  }),
 }));
 vi.mock('app/tools/flights.tool.js', () => ({
   searchFlights: vi.fn().mockResolvedValue([]),
@@ -264,6 +270,54 @@ describe('executeTool', () => {
       expect((result as { error: string }).error).toContain(
         'Failed to update trip',
       );
+    });
+  });
+
+  describe('calculate_remaining_budget DB-truth (P1-03)', () => {
+    it('uses DB-truth costs instead of agent-supplied values when context exists', async () => {
+      const { calculateRemainingBudget } =
+        await import('app/tools/budget.tool.js');
+      const mockCalc = vi.mocked(calculateRemainingBudget);
+      mockCalc.mockClear();
+
+      await executeTool(
+        'calculate_remaining_budget',
+        {
+          total_budget: 9999,
+          flight_cost: 0,
+          hotel_total_cost: 0,
+          experience_costs: [],
+        },
+        ctx,
+      );
+
+      expect(mockCalc).toHaveBeenCalledWith({
+        total_budget: 3000,
+        flight_cost: 900,
+        hotel_total_cost: 1200,
+        experience_costs: [50, 75],
+      });
+    });
+
+    it('falls back to agent-supplied values when no context is provided', async () => {
+      const { calculateRemainingBudget } =
+        await import('app/tools/budget.tool.js');
+      const mockCalc = vi.mocked(calculateRemainingBudget);
+      mockCalc.mockClear();
+
+      await executeTool('calculate_remaining_budget', {
+        total_budget: 1000,
+        flight_cost: 500,
+        hotel_total_cost: 300,
+        experience_costs: [100],
+      });
+
+      expect(mockCalc).toHaveBeenCalledWith({
+        total_budget: 1000,
+        flight_cost: 500,
+        hotel_total_cost: 300,
+        experience_costs: [100],
+      });
     });
   });
 

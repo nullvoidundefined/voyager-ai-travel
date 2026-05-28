@@ -244,6 +244,56 @@ export async function insertTripExperience(
   );
 }
 
+export interface ActualTripCosts {
+  total_budget: number;
+  flight_cost: number;
+  hotel_total_cost: number;
+  experience_costs: number[];
+}
+
+// P1-03: Single query that pulls the trip budget plus actually-selected
+// flight/hotel/experience prices from the DB. The agent has been observed
+// hallucinating cheaper numbers when it called calculate_remaining_budget;
+// passing this output into calculateRemainingBudget instead of the agent
+// input keeps the budget panel honest.
+export async function getActualCostsForTrip(
+  tripId: string,
+): Promise<ActualTripCosts> {
+  const result = await query<{
+    budget_total: string | null;
+    flight_cost: string | null;
+    hotel_total_cost: string | null;
+    experience_costs: string[] | string | null;
+  }>(
+    `SELECT
+       t.budget_total,
+       (SELECT COALESCE(SUM(price), 0) FROM trip_flights WHERE trip_id = $1 AND selected = true) AS flight_cost,
+       (SELECT COALESCE(SUM(total_price), 0) FROM trip_hotels WHERE trip_id = $1 AND selected = true) AS hotel_total_cost,
+       (SELECT COALESCE(ARRAY_AGG(estimated_cost), '{}') FROM trip_experiences WHERE trip_id = $1 AND selected = true) AS experience_costs
+     FROM trips t
+     WHERE t.id = $1`,
+    [tripId],
+  );
+
+  const row = result.rows[0];
+  // pg returns ARRAY_AGG as a JS array when the driver parses it, or as a
+  // Postgres literal string like '{50,75}' otherwise.
+  const rawCosts = row?.experience_costs;
+  const costsArray = Array.isArray(rawCosts)
+    ? rawCosts
+    : typeof rawCosts === 'string' && rawCosts.startsWith('{')
+      ? rawCosts.slice(1, -1).split(',').filter(Boolean)
+      : [];
+  return {
+    total_budget: Number(row?.budget_total ?? 0),
+    flight_cost: Number(row?.flight_cost ?? 0),
+    hotel_total_cost: Number(row?.hotel_total_cost ?? 0),
+    experience_costs: costsArray
+      .map((c) => Number(c))
+      .filter((n) => !Number.isNaN(n)),
+  };
+}
+
 export async function clearSelectionsForTrip(tripId: string): Promise<void> {
   await withTransaction(async (client) => {
     await query(
