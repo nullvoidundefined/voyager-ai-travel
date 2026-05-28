@@ -18,11 +18,11 @@ point, not the business case.
 These are the three files that matter if you are evaluating the
 engineering taste:
 
-1. **Agent loop:** [`server/src/services/AgentOrchestrator.ts`](../server/src/services/AgentOrchestrator.ts). Read the `run()` method. Note `DEFAULT_MAX_ITERATIONS = 8` (lowered from 15 during the audit run in `fix(FIN-06)`), the wall-clock timeout, the clean separation between the tool executor call and the Anthropic client, and the structured streaming node emission. This is the shape a well-disciplined agent loop has.
+1. **Agent loop:** [`apps/server/src/services/AgentOrchestrator.ts`](../apps/server/src/services/AgentOrchestrator.ts). Read the `run()` method. Note `DEFAULT_MAX_ITERATIONS = 8` (lowered from 15 during the audit run in `fix(FIN-06)`), the wall-clock timeout, the clean separation between the tool executor call and the Anthropic client, and the structured streaming node emission. This is the shape a well-disciplined agent loop has.
 
-2. **Tool executor adapter seam:** [`server/src/tools/executor.ts`](../server/src/tools/executor.ts). Read `ToolAdapters`, `DEFAULT_TOOL_ADAPTERS`, and the `adapters` parameter on `executeTool`. This seam exists specifically so E2E tests can swap real SerpApi / Google Places clients for fixtures at per-tool granularity. It was added during the audit run in `fix(ENG-04)` as a prerequisite for Plan B. This is the pattern every agentic AI product needs but few actually build.
+2. **Tool executor adapter seam:** [`apps/server/src/tools/executor.ts`](../apps/server/src/tools/executor.ts). Read `ToolAdapters`, `DEFAULT_TOOL_ADAPTERS`, and the `adapters` parameter on `executeTool`. This seam exists specifically so E2E tests can swap real SerpApi / Google Places clients for fixtures at per-tool granularity. It was added during the audit run in `fix(ENG-04)` as a prerequisite for the E2E suite. This is the pattern every agentic AI product needs but few actually build.
 
-3. **Audit trail:** [`docs/audits/`](./audits/). Eight role-specific audits run by autonomous Opus subagents on 2026-04-06, plus a consolidated triage file. Read `2026-04-06-criticism.md` first: it is the Devil's Advocate review of my own work and it does not hold back. Then read `2026-04-06-engineering.md` for the bug-fix discipline finding (13 of 20 `fix:` commits in the prior 30 days shipped with no test, which the audit caught and Plan C fixed).
+3. **Audit trail:** [`docs/audits/`](./audits/). Role-specific audits run by autonomous Opus subagents on 2026-04-06, plus a consolidated triage file. Read `2026-04-06-criticism.md` first: it is the Devil's Advocate review of my own work and it does not hold back. Then read `2026-04-06-engineering.md` for the bug-fix discipline finding (13 of 20 `fix:` commits in the prior 30 days shipped with no test, which the audit caught and the subsequent fix plan addressed).
 
 ## 10-minute interactive walkthrough
 
@@ -116,9 +116,9 @@ closing `MKT-02` and `CRIT-03`.
 ## What to read next if you like what you see
 
 - **Triage file:** [`docs/audits/2026-04-06-triage.md`](./audits/2026-04-06-triage.md). Every audit finding, severity-tagged, with a source pointer.
-- **ISSUES.md:** rolling log of deferred items. See what the team decided not to fix now and why.
-- **Plan C:** [`docs/superpowers/plans/2026-04-06-voyager-plan-c-p0p1-fixes.md`](./superpowers/plans/2026-04-06-voyager-plan-c-p0p1-fixes.md). The fix plan that turned the triage into commits. Every task has test-first steps. This is the plan that produced the fix branch you are probably looking at.
-- **Plan B:** [`docs/superpowers/plans/2026-04-06-voyager-plan-b-e2e-and-gates.md`](./superpowers/plans/2026-04-06-voyager-plan-b-e2e-and-gates.md). The E2E test suite build-out that happens next. Unblocked by Plan C Task 21 (`fix(ENG-04)`).
+- **Process retrospective:** [`docs/audits/2026-04-06-process-retrospective.md`](./audits/2026-04-06-process-retrospective.md). The honest review of which rules failed, why, and what was codified globally as a result.
+- **Current backlog:** [`docs/todos/P1-high-priority.md`](./todos/P1-high-priority.md). Rolling log of P1/P2/P3 items consolidated from later audits. See what the team decided to defer and why.
+- **Bug log:** [`docs/bugs.md`](./bugs.md). Severity-tagged open and resolved bugs with reproducers.
 
 ## The honest pitch
 

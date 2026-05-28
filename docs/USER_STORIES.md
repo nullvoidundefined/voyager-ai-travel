@@ -9,15 +9,15 @@ Every testable user-facing flow in the application.
 ### US-1: Home page discovery
 
 **As a** visitor
-**I want to** see the home page with hero images, feature highlights, a live demo chat, and clear CTAs
+**I want to** see the home page with a split editorial hero, feature highlights, and clear CTAs
 **So that** I understand what Voyager does and feel inspired to sign up
 
 **Acceptance criteria:**
 
-- Hero carousel rotates through 5 destination photos
+- Split editorial hero with headline, subhead naming the real stack (Claude + SerpApi + Google), and primary CTA
+- Portfolio-demo banner at the top stating this is a technical demonstration, not a commercial booking service
 - Feature cards (Real Flights, Curated Hotels, Local Experiences, Budget-Aware) are visible
-- MockChatBox demo plays through a Monterey trip conversation
-- "Get Started" and "Discover destinations" CTAs are prominent
+- "Try the live demo" and "Discover destinations" CTAs are prominent
 
 ---
 
@@ -435,7 +435,7 @@ Every testable user-facing flow in the application.
 ### US-30: Navigate through wizard steps
 
 **As a** user in the preferences wizard
-**I want to** move through all 6 steps (Accommodation, Travel Pace, Dining, Activities, Travel Party, Budget)
+**I want to** move through all 7 steps (Accommodation, Travel Pace, Dining, Activities, Travel Party, Budget, Trip Style)
 **So that** I can set all my preferences
 
 **Acceptance criteria:**
@@ -471,7 +471,7 @@ Every testable user-facing flow in the application.
 **Acceptance criteria:**
 
 - Small coral dot visible next to "Account" in the header
-- Badge disappears when all 6 steps are completed
+- Badge disappears when all 7 steps are completed
 
 ---
 
@@ -485,7 +485,7 @@ Every testable user-facing flow in the application.
 
 - All 7 preference categories displayed
 - Each shows the current value or "Not set"
-- Completion count shown (e.g., "4 of 6 categories completed")
+- Completion count shown (e.g., "4 of 7 categories completed")
 
 ---
 
@@ -512,7 +512,7 @@ Every testable user-facing flow in the application.
 
 **Acceptance criteria:**
 
-- Completion count displayed (e.g., "4 of 6 categories completed")
+- Completion count displayed (e.g., "4 of 7 categories completed")
 - Individual category values shown
 
 ---
