@@ -26,7 +26,7 @@ import type { Archetype, EvalReport, Persona, PersonaResult } from './types.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Load env vars from the server's .env (database URL, API keys)
-config({ path: join(__dirname, '..', '..', 'server', '.env') });
+config({ path: join(__dirname, '..', '..', 'apps', 'server', '.env') });
 
 // Eval-specific overrides
 process.env.NODE_ENV = 'test';
@@ -98,6 +98,7 @@ async function main() {
       dirname(fileURLToPath(import.meta.url)),
       '..',
       '..',
+      'apps',
       'server',
       'dist',
     );
@@ -124,7 +125,17 @@ async function main() {
   const EVAL_USER_ID = '00000000-0000-0000-0000-e00000000001';
   try {
     const dbModule = await import(
-      join(__dirname, '..', '..', 'server', 'dist', 'db', 'pool', 'pool.js')
+      join(
+        __dirname,
+        '..',
+        '..',
+        'apps',
+        'server',
+        'dist',
+        'db',
+        'pool',
+        'pool.js',
+      )
     );
     const query = dbModule.query as (
       text: string,

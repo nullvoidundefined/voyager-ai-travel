@@ -4,8 +4,11 @@ import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 
-export async function getTripCostsHandler(req: Request, res: Response) {
-  const { id: tripId } = req.params;
+export async function getTripCostsHandler(
+  req: Request<{ id: string }>,
+  res: Response,
+) {
+  const tripId = req.params.id;
   const { id: userId } = getAuthUser(req);
 
   const trip = await getTripWithDetails(tripId, userId);
@@ -22,7 +25,7 @@ export async function getTripCostsHandler(req: Request, res: Response) {
      WHERE c.trip_id = $1`,
     [tripId],
   );
-  const { total_tokens, total_cost } = result.rows[0];
+  const { total_tokens, total_cost } = result.rows[0]!;
   res.json({
     total_tokens: Number(total_tokens),
     total_cost_usd: Number(total_cost).toFixed(4),

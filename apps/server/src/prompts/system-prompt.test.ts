@@ -121,7 +121,7 @@ describe('buildSystemPrompt personality', () => {
       BASE_CTX,
       { phase: 'COLLECT_DETAILS' },
       {},
-      null,
+      undefined,
     );
     expect(prompt.toLowerCase()).toMatch(/travel (advisor|concierge|planner)/);
   });
@@ -131,7 +131,7 @@ describe('buildSystemPrompt personality', () => {
       BASE_CTX,
       { phase: 'COLLECT_DETAILS' },
       {},
-      null,
+      undefined,
     );
     const forbidden = [
       'certainly!',
@@ -145,7 +145,12 @@ describe('buildSystemPrompt personality', () => {
   });
 
   it('includes budget awareness language', () => {
-    const prompt = buildSystemPrompt(BASE_CTX, { phase: 'PLANNING' }, {}, null);
+    const prompt = buildSystemPrompt(
+      BASE_CTX,
+      { phase: 'PLANNING' },
+      {},
+      undefined,
+    );
     expect(prompt.toLowerCase()).toContain('budget');
   });
 });

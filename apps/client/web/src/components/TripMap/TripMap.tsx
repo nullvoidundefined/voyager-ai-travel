@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 
-import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
-
 import styles from './TripMap.module.scss';
 
 export interface MapPin {
@@ -29,12 +27,148 @@ const PIN_COLORS: Record<MapPin['type'], string> = {
 
 const PLACEHOLDER_DESTINATIONS = new Set(['New trip', 'Planning...']);
 
+async function geocodeDestination(
+  name: string,
+  token: string,
+): Promise<[number, number] | null> {
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(name)}.json?access_token=${token}&limit=1&types=place,locality,region,country`;
+  const res = await fetch(url);
+  if (!res.ok) return null;
+  const data = (await res.json()) as {
+    features: { center: [number, number] }[];
+  };
+  return data.features[0]?.center ?? null;
+}
+
 export function TripMap({
   pins,
   center,
   zoom = 11,
   destinationName,
 }: TripMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<unknown>(null);
+  const markersRef = useRef<unknown[]>([]);
+
+  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+  useEffect(() => {
+    if (!token || !containerRef.current) return;
+
+    let cancelled = false;
+
+    async function initMap() {
+      let resolvedCenter: [number, number];
+
+      if (center != null) {
+        resolvedCenter = center;
+      } else if (pins.length > 0) {
+        resolvedCenter = [pins[0].lng, pins[0].lat];
+      } else if (
+        destinationName &&
+        !PLACEHOLDER_DESTINATIONS.has(destinationName)
+      ) {
+        const geocoded = await geocodeDestination(destinationName, token!);
+        if (cancelled) return;
+        resolvedCenter = geocoded ?? [0, 20];
+      } else {
+        resolvedCenter = [0, 20];
+      }
+
+      const { default: mapboxgl } = await import('mapbox-gl');
+      if (cancelled || !containerRef.current) return;
+
+      (mapboxgl as unknown as { accessToken: string }).accessToken = token!;
+
+      const map = new (
+        mapboxgl as unknown as { Map: new (opts: unknown) => unknown }
+      ).Map({
+        container: containerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: resolvedCenter,
+        zoom,
+      });
+
+      mapRef.current = map;
+
+      (map as { on: (event: string, cb: () => void) => void }).on(
+        'load',
+        () => {
+          pins.forEach((pin) => {
+            const el = document.createElement('div');
+            el.style.backgroundColor = PIN_COLORS[pin.type];
+            el.style.width = '14px';
+            el.style.height = '14px';
+            el.style.borderRadius = '50%';
+            el.style.border = '2px solid #fff';
+
+            const Popup = (
+              mapboxgl as unknown as {
+                Popup: new (opts: unknown) => {
+                  setHTML: (h: string) => unknown;
+                };
+              }
+            ).Popup;
+            const popup = new Popup({ offset: 10 }).setHTML(
+              `<strong>${pin.label}</strong>`,
+            );
+
+            const Marker = (
+              mapboxgl as unknown as {
+                Marker: new (opts: unknown) => {
+                  setLngLat: (pos: [number, number]) => unknown;
+                  setPopup: (p: unknown) => unknown;
+                  addTo: (m: unknown) => unknown;
+                };
+              }
+            ).Marker;
+            const marker = new Marker({ element: el });
+            (
+              marker.setLngLat([pin.lng, pin.lat]) as {
+                setPopup: (p: unknown) => unknown;
+              }
+            ).setPopup(popup);
+            (marker as unknown as { addTo: (m: unknown) => unknown }).addTo(
+              map,
+            );
+            markersRef.current.push(marker);
+          });
+        },
+      );
+    }
+
+    void initMap();
+
+    return () => {
+      cancelled = true;
+      markersRef.current.forEach((m) => (m as { remove: () => void }).remove());
+      markersRef.current = [];
+      if (mapRef.current) (mapRef.current as { remove: () => void }).remove();
+      mapRef.current = null;
+    };
+  }, [pins, center, zoom, token, destinationName]);
+
+  if (!token) {
+    return (
+      <div data-testid='trip-map' className={styles.unavailable}>
+        <p>Map unavailable: Mapbox token not configured.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid='trip-map' ref={containerRef} className={styles.map} />
+  );
+}
+
+/*
+// ── Google Maps implementation (commented out for side-by-side comparison) ──
+
+import { importLibrary, setOptions } from '@googlemaps/js-api-loader';
+
+const PLACEHOLDER_DESTINATIONS = new Set(['New trip', 'Planning...']);
+
+export function TripMap({ pins, center, zoom = 11, destinationName }: TripMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markersRef = useRef<google.maps.marker.AdvancedMarkerElement[]>([]);
@@ -58,10 +192,7 @@ export function TripMap({
         resolvedCenter = { lat: center[1], lng: center[0] };
       } else if (pins.length > 0) {
         resolvedCenter = { lat: pins[0].lat, lng: pins[0].lng };
-      } else if (
-        destinationName &&
-        !PLACEHOLDER_DESTINATIONS.has(destinationName)
-      ) {
+      } else if (destinationName && !PLACEHOLDER_DESTINATIONS.has(destinationName)) {
         const { Geocoder } = await importLibrary('geocoding');
         if (cancelled) return;
         const geocoder = new Geocoder();
@@ -115,9 +246,7 @@ export function TripMap({
 
     return () => {
       cancelled = true;
-      markersRef.current.forEach((m) => {
-        m.map = null;
-      });
+      markersRef.current.forEach((m) => { m.map = null; });
       markersRef.current = [];
       mapRef.current = null;
     };
@@ -131,7 +260,6 @@ export function TripMap({
     );
   }
 
-  return (
-    <div data-testid='trip-map' ref={containerRef} className={styles.map} />
-  );
+  return <div data-testid='trip-map' ref={containerRef} className={styles.map} />;
 }
+*/

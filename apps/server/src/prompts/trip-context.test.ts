@@ -349,12 +349,14 @@ describe('formatChecklist', () => {
     overrides: Partial<CompletionTracker> = {},
   ): CompletionTracker {
     return {
-      version: 2,
+      version: 3,
       transport: 'pending',
       flights: 'pending',
       hotels: 'pending',
       car_rental: 'pending',
       experiences: 'pending',
+      plan_confirmed: false,
+      experience_interests: [],
       turns_since_last_progress: 0,
       ...overrides,
     };

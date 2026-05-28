@@ -33,7 +33,7 @@ export async function createLeg(
       input.leg_order,
     ],
   );
-  return result.rows[0];
+  return result.rows[0]!;
 }
 
 export async function listLegs(tripId: string): Promise<TripLeg[]> {

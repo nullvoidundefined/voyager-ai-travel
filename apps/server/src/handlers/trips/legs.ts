@@ -31,14 +31,20 @@ async function assertTripOwnership(
   }
 }
 
-export async function listLegs(req: Request, res: Response): Promise<void> {
+export async function listLegs(
+  req: Request<{ id: string }>,
+  res: Response,
+): Promise<void> {
   const { id: userId } = getAuthUser(req);
   await assertTripOwnership(req.params.id, userId);
   const legs = await listLegsRepo(req.params.id);
   res.json({ legs });
 }
 
-export async function addLeg(req: Request, res: Response): Promise<void> {
+export async function addLeg(
+  req: Request<{ id: string }>,
+  res: Response,
+): Promise<void> {
   const { id: userId } = getAuthUser(req);
   await assertTripOwnership(req.params.id, userId);
   const parsed = addLegSchema.safeParse(req.body);
@@ -50,14 +56,20 @@ export async function addLeg(req: Request, res: Response): Promise<void> {
   res.status(201).json({ leg });
 }
 
-export async function removeLeg(req: Request, res: Response): Promise<void> {
+export async function removeLeg(
+  req: Request<{ id: string; legId: string }>,
+  res: Response,
+): Promise<void> {
   const { id: userId } = getAuthUser(req);
   await assertTripOwnership(req.params.id, userId);
   await deleteLeg(req.params.legId);
   res.status(204).end();
 }
 
-export async function reorderLegs(req: Request, res: Response): Promise<void> {
+export async function reorderLegs(
+  req: Request<{ id: string }>,
+  res: Response,
+): Promise<void> {
   const { id: userId } = getAuthUser(req);
   await assertTripOwnership(req.params.id, userId);
   const parsed = reorderLegsSchema.safeParse(req.body);

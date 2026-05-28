@@ -57,7 +57,7 @@ describe('TripLegsRepository', () => {
     });
     const legs = await listLegs(tripId);
     expect(legs.length).toBeGreaterThanOrEqual(2);
-    expect(legs[0].leg_order).toBeLessThan(legs[1].leg_order);
+    expect(legs[0]!.leg_order).toBeLessThan(legs[1]!.leg_order);
   });
 
   it('deleteLeg removes the row', async () => {

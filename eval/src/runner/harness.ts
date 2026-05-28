@@ -2,6 +2,7 @@ interface MockRequest {
   params: Record<string, string>;
   body: Record<string, unknown>;
   user: { id: string };
+  socket: { setTimeout: (ms: number) => void };
   on: (event: string, handler: () => void) => void;
 }
 
@@ -30,6 +31,7 @@ export function createMockReq(
     params: { id: tripId },
     body: { message },
     user: { id: userId },
+    socket: { setTimeout: () => {} },
     on: () => {},
   };
 }

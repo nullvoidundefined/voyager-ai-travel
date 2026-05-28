@@ -93,7 +93,7 @@ describe('ScheduleRepository', () => {
   it('getScheduleForTrip returns days with items', async () => {
     const schedule = await getScheduleForTrip(tripId);
     expect(schedule.length).toBeGreaterThan(0);
-    expect(Array.isArray(schedule[0].items)).toBe(true);
+    expect(Array.isArray(schedule[0]!.items)).toBe(true);
     const itemTitles = schedule.flatMap((d) => d.items.map((i) => i.title));
     expect(itemTitles).toContain('Visit Museum');
   });

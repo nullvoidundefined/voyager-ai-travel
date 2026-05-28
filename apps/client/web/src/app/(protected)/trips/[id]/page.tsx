@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { BookingConfirmation } from '@/components/BookingConfirmation/BookingConfirmation';
 import type { BookingLink } from '@/components/BookingLinks/BookingLinks';
@@ -97,6 +97,7 @@ export default function TripDetailPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'chat' | 'itinerary'>('chat');
   const [bannerImageLoaded, setBannerImageLoaded] = useState(false);
+  const [pins, setPins] = useState<MapPin[]>([]);
 
   const {
     data: trip,
@@ -118,6 +119,94 @@ export default function TripDetailPage() {
     queryFn: () => get<{ days: ScheduleDay[] }>(`/trips/${id}/schedule`),
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (!trip) return;
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!token) return;
+
+    const geocode = async (query: string): Promise<[number, number] | null> => {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${token}&limit=1`;
+      const res = await fetch(url);
+      if (!res.ok) return null;
+      const data = (await res.json()) as {
+        features: { center: [number, number] }[];
+      };
+      return data.features[0]?.center ?? null;
+    };
+
+    let cancelled = false;
+
+    async function buildPins() {
+      const tasks: Promise<MapPin | null>[] = [];
+
+      for (const hotel of trip!.hotels) {
+        const query = [hotel.name, hotel.city].filter(Boolean).join(', ');
+        if (!query) continue;
+        tasks.push(
+          geocode(query).then((coords) =>
+            coords
+              ? {
+                  id: hotel.id,
+                  lat: coords[1],
+                  lng: coords[0],
+                  label: hotel.name ?? 'Hotel',
+                  type: 'hotel' as const,
+                }
+              : null,
+          ),
+        );
+      }
+
+      for (const exp of trip!.experiences) {
+        if (!exp.name) continue;
+        tasks.push(
+          geocode(`${exp.name}, ${trip!.destination}`).then((coords) =>
+            coords
+              ? {
+                  id: exp.id,
+                  lat: coords[1],
+                  lng: coords[0],
+                  label: exp.name!,
+                  type: 'experience' as const,
+                }
+              : null,
+          ),
+        );
+      }
+
+      const seenAirports = new Set<string>();
+      for (const flight of trip!.flights) {
+        for (const code of [flight.origin, flight.destination]) {
+          if (!code || seenAirports.has(code)) continue;
+          seenAirports.add(code);
+          tasks.push(
+            geocode(`${code} airport`).then((coords) =>
+              coords
+                ? {
+                    id: `airport-${code}`,
+                    lat: coords[1],
+                    lng: coords[0],
+                    label: `${code} Airport`,
+                    type: 'leg' as const,
+                  }
+                : null,
+            ),
+          );
+        }
+      }
+
+      const results = await Promise.all(tasks);
+      if (cancelled) return;
+      setPins(results.filter((p): p is MapPin => p !== null));
+    }
+
+    void buildPins();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [trip]);
 
   const handleConfirmBooking = useCallback(async () => {
     try {
@@ -188,10 +277,6 @@ export default function TripDetailPage() {
   const hasFlights = trip.flights.length > 0;
 
   const { url } = getDestinationImage(trip.destination);
-
-  // Hotels and experiences don't carry coordinates yet; pins will be populated
-  // once the data model includes lat/lng fields.
-  const pins: MapPin[] = [];
 
   const bookingLinks: BookingLink[] = [
     ...trip.flights

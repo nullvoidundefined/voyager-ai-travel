@@ -5,7 +5,7 @@ import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 
 export async function getScheduleHandler(
-  req: Request,
+  req: Request<{ id: string }>,
   res: Response,
 ): Promise<void> {
   const { id: userId } = getAuthUser(req);

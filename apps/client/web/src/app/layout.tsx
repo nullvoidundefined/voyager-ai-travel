@@ -1,3 +1,5 @@
+import 'mapbox-gl/dist/mapbox-gl.css';
+
 import { ErrorBoundary } from '@/components/ErrorBoundary/ErrorBoundary';
 import { Footer } from '@/components/Footer/Footer';
 import { Header } from '@/components/Header/Header';

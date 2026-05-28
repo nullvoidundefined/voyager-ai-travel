@@ -3,8 +3,11 @@ import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';
 
-export async function createShareHandler(req: Request, res: Response) {
-  const { id: tripId } = req.params;
+export async function createShareHandler(
+  req: Request<{ id: string }>,
+  res: Response,
+) {
+  const tripId = req.params.id;
   const userId = req.user?.id ?? '';
 
   const trip = await getTripWithDetails(tripId, userId);
@@ -16,7 +19,7 @@ export async function createShareHandler(req: Request, res: Response) {
     `INSERT INTO shared_trips (trip_id, created_by) VALUES ($1, $2) RETURNING id`,
     [tripId, userId],
   );
-  const shareId = result.rows[0].id;
+  const shareId = result.rows[0]!.id;
   const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/shared/${shareId}`;
   res.status(201).json({ share_id: shareId, share_url: shareUrl });
 }
@@ -34,7 +37,7 @@ export async function getSharedTripHandler(req: Request, res: Response) {
     return;
   }
 
-  const { trip_id, created_by } = result.rows[0];
+  const { trip_id, created_by } = result.rows[0]!;
   const trip = await getTripWithDetails(trip_id, created_by);
   res.json({ trip });
 }

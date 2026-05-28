@@ -1,3 +1,4 @@
+import type { AddItemInput } from 'app/repositories/trips/schedule.repository.js';
 import {
   addScheduleItem,
   upsertScheduleDay,
@@ -206,11 +207,11 @@ export async function executeTool(
       if (!context)
         throw new Error('plan_daily_schedule requires trip context');
       return handlePlanDailySchedule(
-        input as {
+        input as unknown as {
           days: Array<{
             day_number: number;
             day_date: string;
-            items: unknown[];
+            items: AddItemInput[];
           }>;
         },
         context,

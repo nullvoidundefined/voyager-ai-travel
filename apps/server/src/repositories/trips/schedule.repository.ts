@@ -50,7 +50,7 @@ export async function upsertScheduleDay(
      RETURNING *`,
     [tripId, input.day_date, input.day_number],
   );
-  return { ...result.rows[0], items: [] };
+  return { ...result.rows[0]!, items: [] };
 }
 
 export async function addScheduleItem(
@@ -74,7 +74,7 @@ export async function addScheduleItem(
       input.price_usd ?? null,
     ],
   );
-  return result.rows[0];
+  return result.rows[0]!;
 }
 
 export async function getScheduleForTrip(
