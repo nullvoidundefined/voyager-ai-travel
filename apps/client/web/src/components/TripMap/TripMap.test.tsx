@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TripMap } from './TripMap';
 
-const { mockMapInstance, mockMapboxgl } = vi.hoisted(() => {
+const { mockMapboxgl } = vi.hoisted(() => {
   const mapInstance = {
     on: vi.fn(),
     remove: vi.fn(),
