@@ -1,27 +1,28 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { TripMap } from './TripMap';
 
-vi.mock('mapbox-gl', () => ({
-  default: {
-    Map: vi.fn().mockImplementation(() => ({
-      on: vi.fn(),
-      remove: vi.fn(),
-      addSource: vi.fn(),
-      addLayer: vi.fn(),
-      getSource: vi.fn(),
-    })),
-    Marker: vi.fn().mockImplementation(() => ({
-      setLngLat: vi.fn().mockReturnThis(),
-      setPopup: vi.fn().mockReturnThis(),
-      addTo: vi.fn().mockReturnThis(),
-      remove: vi.fn(),
-    })),
-    Popup: vi.fn().mockImplementation(() => ({
-      setHTML: vi.fn().mockReturnThis(),
-    })),
-  },
+const { mockSetOptions, mockImportLibrary } = vi.hoisted(() => {
+  const MockMap = vi.fn().mockImplementation(() => ({}));
+  const MockAdvancedMarkerElement = vi
+    .fn()
+    .mockImplementation(() => ({ map: null }));
+  const setOptionsFn = vi.fn();
+  const importLibraryFn = vi.fn().mockImplementation((lib: string) => {
+    if (lib === 'maps') return Promise.resolve({ Map: MockMap });
+    if (lib === 'marker')
+      return Promise.resolve({
+        AdvancedMarkerElement: MockAdvancedMarkerElement,
+      });
+    return Promise.resolve({});
+  });
+  return { mockSetOptions: setOptionsFn, mockImportLibrary: importLibraryFn };
+});
+
+vi.mock('@googlemaps/js-api-loader', () => ({
+  setOptions: mockSetOptions,
+  importLibrary: mockImportLibrary,
 }));
 
 const PINS = [
@@ -42,17 +43,38 @@ const PINS = [
 ];
 
 describe('TripMap', () => {
-  it('renders the map container when token is set', () => {
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'pk.test_token';
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = 'test-api-key';
+  });
+
+  it('renders the map container when API key is set', () => {
     render(<TripMap pins={PINS} />);
     expect(screen.getByTestId('trip-map')).toBeInTheDocument();
   });
 
-  it('renders a fallback message when no token is present', () => {
-    const original = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    delete process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    render(<TripMap pins={PINS} />);
+  it('renders a fallback message when no API key is present', () => {
+    delete process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    render(<TripMap pins={[]} />);
     expect(screen.getByText(/map unavailable/i)).toBeInTheDocument();
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = original;
+  });
+
+  it('calls setOptions with v2 property names key and v (not apiKey/version)', async () => {
+    render(<TripMap pins={[]} />);
+    await waitFor(() => expect(mockSetOptions).toHaveBeenCalled());
+    expect(mockSetOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ key: 'test-api-key', v: 'weekly' }),
+    );
+    expect(mockSetOptions).not.toHaveBeenCalledWith(
+      expect.objectContaining({ apiKey: expect.anything() }),
+    );
+    expect(mockSetOptions).not.toHaveBeenCalledWith(
+      expect.objectContaining({ version: expect.anything() }),
+    );
+  });
+
+  it('loads the maps library after setOptions', async () => {
+    render(<TripMap pins={[]} />);
+    await waitFor(() => expect(mockImportLibrary).toHaveBeenCalledWith('maps'));
   });
 });
