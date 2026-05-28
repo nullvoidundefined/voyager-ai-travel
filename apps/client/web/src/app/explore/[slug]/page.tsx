@@ -1,8 +1,5 @@
 import { DESTINATIONS, getDestinationBySlug } from '@/data/destinations';
-import {
-  getDestinationImage,
-  getDestinationImageUrl,
-} from '@/lib/destinationImage';
+import { getDestinationImage } from '@/lib/destinationImage';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,10 +50,7 @@ export default async function DestinationDetailPage({
   const dest = getDestinationBySlug(slug);
   if (!dest) notFound();
 
-  const heroImage = getDestinationImage(dest.name);
-  const heroUrl = heroImage.unsplashId
-    ? getDestinationImageUrl(heroImage.unsplashId, 1400, 400)
-    : null;
+  const { url: heroUrl } = getDestinationImage(dest.name);
 
   const descriptionParagraphs = dest.description.split('\n\n');
 

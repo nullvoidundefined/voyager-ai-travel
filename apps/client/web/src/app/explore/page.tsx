@@ -7,11 +7,7 @@ import {
   DESTINATIONS,
   type Destination,
 } from '@/data/destinations';
-import {
-  HERO_IMAGES,
-  getDestinationImage,
-  getDestinationImageUrl,
-} from '@/lib/destinationImage';
+import { HERO_IMAGES, getDestinationImage } from '@/lib/destinationImage';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -44,7 +40,7 @@ export default function ExplorePage() {
       {/* — Hero — */}
       <section className={styles.hero} aria-label='Explore destinations hero'>
         <Image
-          src={getDestinationImageUrl(HERO_IMAGES[0].id, 1600, 800)}
+          src={HERO_IMAGES[0].url}
           alt={`${HERO_IMAGES[0].city} destination`}
           fill
           className={styles.heroImage}

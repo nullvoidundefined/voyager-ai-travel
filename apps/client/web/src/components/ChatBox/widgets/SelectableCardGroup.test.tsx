@@ -61,17 +61,10 @@ describe('SelectableCardGroup', () => {
     expect(screen.queryByText('Confirm Selection')).not.toBeInTheDocument();
   });
 
-  it('shows confirm button after selecting an item', async () => {
-    render(<SelectableCardGroup items={items} onConfirm={vi.fn()} />);
-    await userEvent.click(screen.getByTestId('card-flight-1'));
-    expect(screen.getByText('Confirm Selection')).toBeInTheDocument();
-  });
-
-  it('calls onConfirm with the selected label and data when confirmed', async () => {
+  it('calls onConfirm immediately when an item is clicked', async () => {
     const onConfirm = vi.fn();
     render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
     await userEvent.click(screen.getByTestId('card-flight-1'));
-    await userEvent.click(screen.getByText('Confirm Selection'));
     expect(onConfirm).toHaveBeenCalledWith('Delta DL100', {
       airline: 'Delta',
       flight_number: 'DL100',
@@ -80,12 +73,24 @@ describe('SelectableCardGroup', () => {
     });
   });
 
-  it('toggles selection off when clicking same item twice', async () => {
-    render(<SelectableCardGroup items={items} onConfirm={vi.fn()} />);
+  it('calls onConfirm with the correct label and data for each item', async () => {
+    const onConfirm = vi.fn();
+    render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
+    await userEvent.click(screen.getByTestId('card-flight-2'));
+    expect(onConfirm).toHaveBeenCalledWith('United UA200', {
+      airline: 'United',
+      flight_number: 'UA200',
+      price: 350,
+      currency: 'USD',
+    });
+  });
+
+  it('calls onConfirm on each click when not yet confirmed', async () => {
+    const onConfirm = vi.fn();
+    render(<SelectableCardGroup items={items} onConfirm={onConfirm} />);
     await userEvent.click(screen.getByTestId('card-flight-1'));
-    expect(screen.getByText('Confirm Selection')).toBeInTheDocument();
-    await userEvent.click(screen.getByTestId('card-flight-1'));
-    expect(screen.queryByText('Confirm Selection')).not.toBeInTheDocument();
+    await userEvent.click(screen.getByTestId('card-flight-2'));
+    expect(onConfirm).toHaveBeenCalledTimes(2);
   });
 
   it('shows confirmed state with checkmark when confirmedId is set', () => {
