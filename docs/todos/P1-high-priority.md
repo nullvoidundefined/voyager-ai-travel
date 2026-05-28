@@ -290,3 +290,63 @@ Malformed SSE data line throws, caught by outer catch which shows misleading "Co
 
 **Source:** 2026-05-27 code quality sweep
 
+---
+
+## Fix SEC-01: IDOR on Leg Delete and Reorder
+
+`apps/server/src/repositories/trips/trip-legs.repository.ts:47-48` (`deleteLeg`) and `apps/server/src/repositories/trips/trip-legs.repository.ts:51-70` (`reorderLegs`) accept a leg UUID without joining to `trip_id`. The handler-level `assertTripOwnership` verifies the trip but the repository SQL does not re-scope to the verified trip. An authenticated user who pairs their own `tripId` with a foreign `legId` (obtainable from `GET /shared/:shareId`) can delete or reorder another user's legs. CVSS 7.1 (High).
+
+**Why P1:** Exploitable IDOR that survived the 2026-05-28 ownership-check batch (`3e17fca`, `d0ff914`, `4cbce5c`). The Sonnet criticism audit accepted the handler-layer fix as comprehensive without verifying the SQL.
+
+**Scope:** Add `AND trip_id = $2` to `deleteLeg`; add a pre-flight ownership query to `reorderLegs`. Update both call sites in `legs.ts` (`removeLeg`, `reorderLegs`) to pass `req.params.id`. Write a regression test asserting user A cannot delete user B's leg.
+
+**Source:** 2026-05-28 engineering, criticism, and security audits (Opus second opinion)
+
+---
+
+## Fix SEC-02: Rotate Mapbox Public Token Committed in Git History
+
+Commit `f36d7d6` added a live Mapbox public token (`pk.*`) to `web-client/.env.example`. Cleared in `f0dee63` but still retrievable via `git show f36d7d6:web-client/.env.example`. The `secret-scan.sh` hook fired twice during the security audit on this history.
+
+**Why P1:** Token in public git history is permanently exposed. Even read-only scope allows quota exhaustion billed to the token owner. Write scopes (Tilesets, Styles, Datasets) would let an attacker modify map assets.
+
+**Scope:** Rotate token on Mapbox dashboard. Generate a new token scoped to Maps JS API read-only with HTTP origin restriction to production URL only. Update the Railway env var. The old history token becomes inert after rotation.
+
+**Source:** 2026-05-28 security audit (Opus)
+
+---
+
+## Fix ORC-01: Four Tools Dead From LLM Perspective
+
+`apps/server/src/services/agent/sub-agent.service.ts:20-55` contains seven `SUB_AGENT_TOOLS` partitions. None include `add_leg`, `remove_leg`, `reorder_legs`, or `plan_daily_schedule`. `agent.service.ts:63-66` always filters by the active partition before calling the Anthropic API, so these tools are never offered to the LLM. The multi-city legs feature and daily schedule feature are fully implemented in the executor but unreachable through agent-driven chat.
+
+**Why P1:** Features the user cannot discover are not features. A reviewer who asks the agent to add a leg gets a silent non-response.
+
+**Scope:** Add the four tools to the `conversation` partition (or a new `itinerary` sub-agent type). Add a unit test asserting `selectSubAgent` for a PLANNING-phase trip returns a partition that includes at least one leg tool.
+
+**Source:** 2026-05-28 engineering and criticism audits (Opus)
+
+---
+
+## Fix F-06: Instant Tile Selection Removes Confirm Step (US-23 AC Broken)
+
+`31324d2` removed the "Confirm Selection" button from `apps/client/web/src/components/ChatBox/widgets/SelectableCardGroup.tsx:33-38`. A single click on a flight, hotel, or experience tile now immediately persists the selection to `/trips/{id}/selections`, sends "I've selected the [X]" to the agent, and advances the booking flow. No undo path exists short of asking the agent conversationally. US-23 acceptance criteria explicitly require a "Confirm Selection" button before commit.
+
+**Why P1:** Documented user story acceptance criterion is broken on a core booking interaction. A user who misclicks is stuck.
+
+**Scope:** Either re-introduce the confirm button OR surface an "Undo selection" chip in the agent's next message with rollback wired to `/trips/{id}/selections`.
+
+**Source:** 2026-05-28 UX audit (Opus)
+
+---
+
+## Cherry-pick Worktree P1 Fixes to Main
+
+`.claude/worktrees/investigate-llm-orchestration` contains `4aa4fce fix(P1-03): budget tool uses DB-truth costs instead of Claude-supplied values` and `ebf2c6b fix(P1-05): multi-airport support for destination lookups`. Both are P1-labeled bug fixes. Neither is on `main`. Neither is in production. The worktree has survived multiple session boundaries.
+
+**Why P1:** Two P1 fixes that already exist are not deployed. Every session that ends with them in the worktree is a session where the underlying bugs continue in production.
+
+**Scope:** From `main`, `git cherry-pick 4aa4fce ebf2c6b`. Resolve conflicts if any. Push. Delete the worktree.
+
+**Source:** 2026-05-28 criticism audit (Opus)
+

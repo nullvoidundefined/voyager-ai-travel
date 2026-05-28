@@ -272,3 +272,110 @@ Three uncovered behaviors in the adversarial eval modules:
 3. `parseJudgeResponse` safe-default path is covered, but `formatFailureCatalog` "(no failures)" literal path is not asserted.
 
 **Scope:** Add tests when next iterating on the eval module.
+
+---
+
+## UX Audit (2026-05-28 Opus)
+
+### F-04: Budget Legend Dot for "Remaining" Uses `--surface` Color
+
+`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:541-548` styles the "Remaining" legend dot with `background: var(--surface)` (`#eef6fb`), nearly white on the canvas background. The dot is effectively invisible.
+
+**Scope:** Change to a visible neutral color or use a hollow/bordered dot pattern.
+
+---
+
+### F-09: Map Pin Markers Not Keyboard or Screen Reader Accessible
+
+`apps/client/web/src/components/TripMap/TripMap.tsx:117-153` creates pin markers as bare `<div>` elements with inline styles via the Mapbox Marker API. No `role`, no `aria-label`, no keyboard focus. The Mapbox popup triggers only on click, not on focus. WCAG 2.1 AA 1.1.1 and 2.1.1 violation.
+
+**Scope:** Render pins as `<button>` elements with `aria-label="Pin: {label}"`, `tabIndex=0`, and a keyboard handler opening the popup on Enter.
+
+---
+
+### F-11: Mobile Tab Bar Buttons Missing `type='button'`
+
+`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:349-360` Chat and Itinerary buttons lack `type='button'`. Outside a form here, low risk, but inconsistent with the rest of the codebase.
+
+**Scope:** Add `type='button'` for consistency.
+
+---
+
+### F-15: Stale Chips Disabled Without Tooltip
+
+`apps/client/web/src/components/ChatBox/VirtualizedChat.tsx:258-261` correctly disables quick-reply chips on non-last messages. But dimmed 50%-opacity chips look like they might be transiently unavailable. No tooltip or text communicates "these replies are from an earlier message."
+
+**Scope:** Add `title="Reply only available on the latest message"` to disabled chip buttons.
+
+---
+
+### F-16: Pending and Thinking Indicators Render Simultaneously During Startup
+
+`apps/client/web/src/components/ChatBox/VirtualizedChat.tsx:173-193` renders both `pendingIndicator` (ChatProgressBar indeterminate) and `thinkingIndicator` (three dots + "Thinking...") during the same brief startup window. Visual noise.
+
+**Scope:** Pick one indicator for the startup window. Render `thinkingIndicator` only when no other progress event has fired in the last 200ms.
+
+---
+
+### F-18: BookingConfirmation Has Duplicate `h2` Elements
+
+`apps/client/web/src/components/BookingConfirmation/BookingConfirmation.tsx:98-106` renders `<h2>Save your itinerary for</h2>` inside the image overlay AND `<h2>Save Your Itinerary for {destination}</h2>` visible below. Both are read by screen readers.
+
+**Scope:** Add `aria-hidden="true"` to the decorative image-overlay h2.
+
+---
+
+## Security Audit (2026-05-28 Opus)
+
+### DEP-01: Five HIGH-Severity Dependency CVEs (Awaiting Upstream)
+
+`pnpm audit` reports 5 HIGH severity findings, none with production exploitability:
+
+- `@anthropic-ai/sdk@0.81.0` in `eval/` -- patched in `>=0.91.1`. Local filesystem memory-tool permissions (eval-only).
+- `qs@6.15.0` via `apps/server > express@5.2.1` -- patched in `>=6.15.2`. DoS via `qs.stringify` (Express uses it for query parsing, not stringifying user arrays).
+- `vite@7.3.1` via `apps/client/web > @vitejs/plugin-react@6.0.1` -- patched in `>=7.3.2`. Two CVEs, both dev-server-only. Production Next.js does not run Vite.
+- `lodash@4.17.23` via `@trivago/prettier-plugin-sort-imports@4.3.0` -- patched in `>=4.18.0`. Dev dependency only.
+
+**Scope:** `pnpm update` for Vite, qs, and `@anthropic-ai/sdk` when upstream patches land. Track via dependabot or weekly audit.
+
+---
+
+## Criticism Audit (2026-05-28 Opus): Process / Rule Layer
+
+### `fix-commit-gate` Hook Bypassed by `feat:` Prefix
+
+The 2026-04-06 retrospective rule "one commit per triage ID, never bundle more than two IDs" is enforced by a `fix-commit-gate` hook that fires only on `fix:`-prefixed commits. `d20af7f feat(trip-form-polish): P0 timeout fix, P1 budget fix, ...` bundled six independent changes including a migration as a single `feat:` commit. The hook did not fire. Same bypass mechanism the April retrospective documented ("relabeling does not dodge the rule"), in the other direction.
+
+**Scope:** Change the hook to detect any commit touching files referenced by open P0/P1 entries, regardless of commit prefix. Or change the rule to apply to any commit with `(P0`, `(P1`, or `(B##` in subject/body.
+
+---
+
+### Worktree Lifecycle Policy Gap
+
+`.claude/worktrees/investigate-llm-orchestration` has 5 unmerged commits, including two P1 fixes. CLAUDE.md says "Push directly to main" but does not say when worktrees must be merged or deleted. The worktree has survived multiple session boundaries.
+
+**Scope:** Add a rule to project CLAUDE.md: "Worktrees must be merged to main or deleted before the session-handoff doc is written." Add the check to the `task-cleanup` skill.
+
+---
+
+### Audit-Then-Delete-Within-Session Cycle Is Uncosted
+
+Today produced 4 audit documents (`f2b27d7`, `d38ad0b`, `fee62ec`, `8096a61`) and an Opus second-opinion bundle (`c10e3df`), all consolidated into todos and deleted. The audit-to-todo pipeline is correct in shape. But multi-thousand-word audit documents may be over-format for a solo portfolio project. A leaner 500-word triage report plus structured todos may yield the same P1/P2/P3 surface at lower token cost.
+
+**Scope:** Trial an `audit-triage` skill that produces ~500-word per-role triage reports. Compare P1/P2/P3 yield to the full-audit baseline.
+
+---
+
+### Dead Rules: R-212 (Squash Merge) and R-213 (Cross-Cutting Refactor Branch)
+
+R-212 says squash-merge feature branches. Voyager uses trunk-based development. R-213 says cross-cutting refactors (5+ files, 3+ dirs) go on a dedicated branch. `3fd7d7d` (services reorganization, 5+ files, 3+ directories) landed directly on `main`. Both rules are dead in practice.
+
+**Scope:** Add explicit override to project CLAUDE.md: "R-212 and R-213 are superseded by trunk-based development per the project's stated workflow."
+
+---
+
+### Deprecated Model `claude-sonnet-4-20250514` Still in Production
+
+`apps/server/src/services/agent/AgentOrchestrator.ts:13` sets `DEFAULT_MODEL = 'claude-sonnet-4-20250514'`. Commit `87576dc` reverted from `claude-sonnet-4-6` because the multi-turn pattern broke. The reverted model is on Anthropic's deprecation track. Once the alias is fully retired, production behavior will change without a corresponding code change.
+
+**Scope:** Plan and test a migration to `claude-sonnet-4-6` or `claude-haiku-4-5` with the multi-turn pattern fixed. Track Anthropic's deprecation schedule.

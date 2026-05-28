@@ -395,3 +395,97 @@ US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via `confirmed
 **Why P2:** Test coverage gap, not user-visible. Blocks restoring two user-story E2E specs.
 
 **Scope:** Build the MockAnthropic state machine (tracked as ENG-17). Once it lands, restore US-19 and US-23 specs and remove the `void tripUrl` guard in `e2e/real/happy-path-real.spec.ts`.
+
+---
+
+## Security Audit (2026-05-28 Opus)
+
+### SEC-03: Prompt Injection via Unvalidated `experience_interests`
+
+`apps/server/src/handlers/chat/chat.helpers.ts:79-81` (`applyPlanConfirmation`) filters interest values to `typeof v === 'string'` only. The strings flow verbatim into the system prompts of three sub-agents (`flight.prompt.ts:12`, `hotel.prompt.ts:12`, `experience.prompt.ts:27-29`) on every subsequent LLM turn. Canonical valid values are defined in `EXPERIENCE_INTEREST_OPTIONS` (`apps/server/src/types/plan-card.ts:44-55`) but never used as an allowlist.
+
+**Scope:** Add `&& VALID_INTEREST_IDS.has(v as ExperienceInterest)` to the filter, sourced from `EXPERIENCE_INTEREST_OPTIONS`. Apply the same allowlist in `normalizeCompletionTracker` (chat.ts) for defense in depth.
+
+---
+
+### SEC-04: `planConfirmation` Body Lacks Zod Schema and Size Limits
+
+`apps/server/src/handlers/chat/chat.ts:177-185` accepts `planConfirmation` if `typeof === 'object'` and `categories` is an array. No Zod schema is applied. No cap on category count, sub_option count, value-array length, or per-value string length. Payload is written to the `booking_state` JSONB column.
+
+**Scope:** Add a Zod schema for `TripPlanCard`. Bounds: max 10 categories, max 3 sub_options per category, max 20 values per sub_option, max 100 chars per value string. Reject 400 on failure. This also reinforces SEC-03.
+
+---
+
+## UX Audit (2026-05-28 Opus)
+
+### F-01/F-02: Reduced-Motion Fix Defeats Global Reset
+
+`apps/client/web/src/app/(protected)/trips/new/newTrip.module.scss:50-55` adds a `@media (prefers-reduced-motion: reduce)` block that sets `animation-duration: 1.5s !important; animation-iteration-count: infinite !important`. This fights the global reset in `globals.scss` (`animation-duration: 0.01ms !important; animation-iteration-count: 1 !important`). Outcome depends on cascade order. Best case: the spinner still rotates for users with vestibular disorders.
+
+**Scope:** Delete the local `@media (prefers-reduced-motion: reduce)` block entirely. The global reset covers it.
+
+---
+
+### F-03/F-14: Budget Bar Renders Broken When Over Budget
+
+`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:469-496` computes segment widths as `(categoryTotal / budget_total) * 100` with no clamp. When segments sum past 100%, the bar overflows (clipped by `overflow: hidden`). When `remaining < 0`, the "Remaining" legend shows a negative number in `--muted` gray with no warning color or label change.
+
+**Scope:** Clamp each segment width to 100% of total. When `remaining < 0`, switch the legend label to "Over budget" with a warning color. Surface the over-budget state on the page itself, not only inside the BookingConfirmation modal.
+
+---
+
+### F-05: "Flexible Dates" Toggle Unreachable Via UI
+
+`apps/client/web/src/components/ChatBox/TripDetailsForm.tsx:181-201` renders the Fixed/Flexible toggle only when the form definition includes a `flexible_dates` field. `apps/server/src/handlers/chat/chat.helpers.ts:206-264` (`buildMissingFieldsForm`) never includes that field. The toggle exists in the DB and the system prompt but has no user-facing entry point.
+
+**Scope:** Add `flexible_dates` to the field-emission logic in `buildMissingFieldsForm`. Default the value to `'false'`.
+
+---
+
+### F-07/F-08: Toggle Group Labels Not Programmatically Associated
+
+`TripDetailsForm.tsx:157-179` (`tripTypeToggle`) and `181-201` (`flexibleDatesToggle`) render toggle buttons inside a `<div>` with no `role="group"` and no `aria-labelledby`. The sibling `<label htmlFor="trip_type">` and `<label htmlFor="flexible_dates">` point at IDs that do not exist. Screen reader users hear "Round Trip, button, pressed" with no field label.
+
+**Scope:** Wrap each toggle group in `<div role="group" aria-labelledby={labelId}>` where `labelId` matches `<label id={labelId}>`. Remove the dead `htmlFor` references.
+
+---
+
+### F-10: Budget `min={100}` Has No App-Level Error
+
+`TripDetailsForm.tsx:223` sets `min={100}` on the budget input. On submit, native browser validation blocks with a browser-default tooltip that does not match the app's design. On some mobile browsers the tooltip is not shown, silently blocking submit.
+
+**Scope:** Render an inline error message below the input when `value < 100`. Match the existing form-error pattern.
+
+---
+
+### F-12: Mobile Tab Bar Lacks ARIA Tablist Pattern
+
+`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:348-361` implements the Chat/Itinerary switcher as two plain buttons. No `role="tablist"`, no `role="tab"`, no `aria-selected`. The panes have no `role="tabpanel"` and no `aria-labelledby`. Screen reader users cannot tell which pane is active.
+
+**Scope:** Apply the standard ARIA tab pattern: `role="tablist"` on container, `role="tab"` + `aria-selected` on each button, `role="tabpanel"` + `aria-labelledby` on each pane.
+
+---
+
+### F-13: Skeleton Loading Has No `aria-busy` or `aria-live`
+
+`apps/client/web/src/components/Skeleton/Skeleton.tsx:13` correctly uses `aria-hidden="true"` on the skeleton elements. But the parent container has no `aria-busy="true"` during load, and no `aria-live` region announces when loading completes. Screen reader users hear nothing during load, then content appears.
+
+**Scope:** Add `aria-busy={isLoading}` to parent containers on the trips list and trip detail pages. Add an `aria-live="polite"` announcer for load completion.
+
+---
+
+### F-17: 15s SerpApi Timeout Indistinguishable From No-Results or Quota
+
+`apps/server/src/services/external/serpapi.service.ts:69` correctly wraps fetches in `AbortSignal.timeout(15_000)`. On timeout, `flights.tool.ts` catches and returns an empty array. The agent then narrates "no flights found." The same result occurs for genuine no-results and quota exhaustion. The three failure modes are indistinguishable to the user.
+
+**Scope:** Surface a distinct error shape from the tool layer: `{ status: 'timeout' | 'quota_exhausted' | 'no_results', message }`. Have the agent narrate the appropriate user-facing message per state.
+
+---
+
+## Criticism Audit (2026-05-28 Opus)
+
+### Eval Model Lock-In: Cross-Model Judge Validation Missing
+
+`eval/src/scoring/judge.ts:51` hardcodes `claude-sonnet-4-20250514`. `eval/src/adversarial/judge.ts:111` uses `claude-sonnet-4-6`. Commit `87576dc` reverted judge and orchestrator from `claude-sonnet-4-6` to `claude-sonnet-4-20250514` "to restore eval score to 0.79." The eval is measuring the grader's self-consistency on one model, not the product's robustness. When Anthropic deprecates the alias, the score will change for grader reasons, not product reasons.
+
+**Scope:** Re-run the adversarial eval with at least two additional judge models (e.g., `claude-haiku-4-5-20251001`, `claude-opus-4-7`). If pass-rate varies by more than +/-0.05 across models, the 0.79 number is grader-specific and must be reported as a range. If it is stable, the lock-in concern is retracted.
