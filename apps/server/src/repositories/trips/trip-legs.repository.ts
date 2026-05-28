@@ -49,11 +49,22 @@ export async function deleteLeg(legId: string): Promise<void> {
 }
 
 export async function reorderLegs(orderedIds: string[]): Promise<void> {
-  const cases = orderedIds
-    .map((id, i) => `WHEN id = '${id}' THEN ${i + 1}`)
-    .join(' ');
+  if (orderedIds.length === 0) return;
+  // Build a VALUES list of (uuid, order) pairs so every id is a query
+  // parameter. String interpolation is intentionally avoided here to prevent
+  // SQL injection via attacker-controlled leg IDs.
+  const placeholders = orderedIds.map(
+    (_, i) => `($${i * 2 + 1}::uuid, $${i * 2 + 2}::int)`,
+  );
+  const params: Array<string | number> = orderedIds.flatMap((id, i) => [
+    id,
+    i + 1,
+  ]);
   await query(
-    `UPDATE trip_legs SET leg_order = CASE ${cases} END WHERE id = ANY($1)`,
-    [orderedIds],
+    `UPDATE trip_legs
+     SET leg_order = v.new_order
+     FROM (VALUES ${placeholders.join(', ')}) AS v(leg_id, new_order)
+     WHERE trip_legs.id = v.leg_id`,
+    params,
   );
 }

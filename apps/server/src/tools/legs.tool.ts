@@ -2,8 +2,15 @@ import type {
   CreateLegInput,
   TripLeg,
 } from 'app/repositories/trips/trip-legs.repository.js';
+import { z } from 'zod';
 
 import type { ToolContext } from './executor.js';
+
+const reorderLegsInputSchema = z.object({
+  ordered_leg_ids: z
+    .array(z.string().uuid('each leg_id must be a valid UUID'))
+    .min(1, 'ordered_leg_ids must not be empty'),
+});
 
 export interface LegsAdapters {
   createLeg: (tripId: string, input: CreateLegInput) => Promise<TripLeg>;
@@ -40,6 +47,11 @@ export async function handleReorderLegs(
   ctx: ToolContext,
   adapters: LegsAdapters,
 ) {
-  await adapters.reorderLegs(input.ordered_leg_ids);
+  const parsed = reorderLegsInputSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues.map((i) => i.message).join('; ');
+    throw new Error(`Invalid reorder_legs input: ${message}`);
+  }
+  await adapters.reorderLegs(parsed.data.ordered_leg_ids);
   return { reordered: true };
 }

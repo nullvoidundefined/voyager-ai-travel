@@ -56,12 +56,34 @@ describe('remove_leg tool', () => {
 });
 
 describe('reorder_legs tool', () => {
-  it('calls reorderLegs with the ordered id array', async () => {
+  it('calls reorderLegs with valid UUID ids', async () => {
+    const id1 = '00000000-0000-4000-8000-000000000001';
+    const id2 = '00000000-0000-4000-8000-000000000002';
     await handleReorderLegs(
-      { ordered_leg_ids: ['b', 'a'] },
+      { ordered_leg_ids: [id1, id2] },
       { tripId: 'trip-1', userId: 'user-1' },
       adapters,
     );
-    expect(mockReorder).toHaveBeenCalledWith(['b', 'a']);
+    expect(mockReorder).toHaveBeenCalledWith([id1, id2]);
+  });
+
+  it('rejects non-UUID leg ids (SQL injection guard)', async () => {
+    await expect(
+      handleReorderLegs(
+        { ordered_leg_ids: ["x'); DROP TABLE trip_legs;--"] },
+        { tripId: 'trip-1', userId: 'user-1' },
+        adapters,
+      ),
+    ).rejects.toThrow(/invalid|uuid/i);
+  });
+
+  it('rejects an empty ordered_leg_ids array', async () => {
+    await expect(
+      handleReorderLegs(
+        { ordered_leg_ids: [] },
+        { tripId: 'trip-1', userId: 'user-1' },
+        adapters,
+      ),
+    ).rejects.toThrow();
   });
 });
