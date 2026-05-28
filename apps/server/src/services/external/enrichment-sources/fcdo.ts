@@ -1,5 +1,6 @@
 import type { ChatNode } from '@voyager/shared-types';
 import { cacheGet, cacheSet } from 'app/services/cache/cache.service.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 86400; // 24 hours
 
@@ -200,7 +201,13 @@ export async function fetchFCDOAdvisory(
   try {
     const url = `https://www.gov.uk/api/content/foreign-travel-advice/${slug}`;
     const response = await fetch(url);
-    if (!response.ok) return [];
+    if (!response.ok) {
+      logger.warn(
+        { source: 'fcdo', countryCode, status: response.status },
+        'FCDO advisory responded non-ok',
+      );
+      return [];
+    }
 
     const data = await response.json();
     const parts = (data.details?.parts ?? []) as Array<{
@@ -263,7 +270,11 @@ export async function fetchFCDOAdvisory(
 
     await cacheSet(cacheKey, nodes, CACHE_TTL);
     return nodes;
-  } catch {
+  } catch (err) {
+    logger.warn(
+      { source: 'fcdo', countryCode, err },
+      'FCDO advisory fetch failed',
+    );
     return [];
   }
 }

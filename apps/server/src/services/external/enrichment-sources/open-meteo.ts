@@ -1,5 +1,6 @@
 import type { ChatNode, WeatherDay } from '@voyager/shared-types';
 import { cacheGet, cacheSet } from 'app/services/cache/cache.service.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 21600; // 6 hours
 
@@ -66,7 +67,13 @@ export async function fetchWeatherForecast(
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
     );
-    if (!response.ok) return null;
+    if (!response.ok) {
+      logger.warn(
+        { source: 'open_meteo', status: response.status, lat, lon },
+        'Open-Meteo forecast responded non-ok',
+      );
+      return null;
+    }
 
     const data = await response.json();
     const daily = data.daily as {
@@ -98,7 +105,11 @@ export async function fetchWeatherForecast(
     const node: ChatNode = { type: 'weather_forecast', forecast };
     await cacheSet(cacheKey, node, CACHE_TTL);
     return node;
-  } catch {
+  } catch (err) {
+    logger.warn(
+      { source: 'open_meteo', lat, lon, err },
+      'Open-Meteo forecast fetch failed',
+    );
     return null;
   }
 }

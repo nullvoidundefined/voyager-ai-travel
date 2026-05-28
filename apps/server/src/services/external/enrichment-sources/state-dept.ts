@@ -1,5 +1,6 @@
 import type { ChatNode } from '@voyager/shared-types';
 import { cacheGet, cacheSet } from 'app/services/cache/cache.service.js';
+import { logger } from 'app/utils/logs/logger.js';
 
 const CACHE_TTL = 86400; // 24 hours
 const FEED_CACHE_KEY = 'enrichment:state_dept:feed';
@@ -12,13 +13,23 @@ async function getAdvisoryFeed(): Promise<Record<string, unknown>[] | null> {
 
   try {
     const response = await fetch(STATE_DEPT_URL);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      logger.warn(
+        { source: 'state_dept', status: response.status },
+        'State Dept advisory feed responded non-ok',
+      );
+      return null;
+    }
 
     const data = await response.json();
     const advisories = (data.advisories ?? data) as Record<string, unknown>[];
     await cacheSet(FEED_CACHE_KEY, advisories, CACHE_TTL);
     return advisories;
-  } catch {
+  } catch (err) {
+    logger.warn(
+      { source: 'state_dept', err },
+      'State Dept advisory feed fetch failed',
+    );
     return null;
   }
 }
@@ -65,7 +76,11 @@ export async function fetchStateDeptAdvisory(
 
     await cacheSet(cacheKey, node, CACHE_TTL);
     return node;
-  } catch {
+  } catch (err) {
+    logger.warn(
+      { source: 'state_dept', countryCode, err },
+      'State Dept advisory lookup failed',
+    );
     return null;
   }
 }

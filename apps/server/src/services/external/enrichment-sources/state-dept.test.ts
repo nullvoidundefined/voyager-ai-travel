@@ -1,0 +1,82 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+vi.mock('app/services/cache/cache.service.js', () => ({
+  cacheGet: vi.fn().mockResolvedValue(null),
+  cacheSet: vi.fn(),
+}));
+vi.mock('app/utils/logs/logger.js', () => ({
+  logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
+
+let fetchStateDeptAdvisory: typeof import('./state-dept.js').fetchStateDeptAdvisory;
+let logger: typeof import('app/utils/logs/logger.js').logger;
+
+beforeEach(async () => {
+  vi.clearAllMocks();
+  vi.resetModules();
+
+  vi.doMock('app/services/cache/cache.service.js', () => ({
+    cacheGet: vi.fn().mockResolvedValue(null),
+    cacheSet: vi.fn(),
+  }));
+  vi.doMock('app/utils/logs/logger.js', () => ({
+    logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+  }));
+
+  const mod = await import('./state-dept.js');
+  fetchStateDeptAdvisory = mod.fetchStateDeptAdvisory;
+  const loggerMod = await import('app/utils/logs/logger.js');
+  logger = loggerMod.logger;
+});
+
+describe('fetchStateDeptAdvisory', () => {
+  it('returns null and logs warn when fetch throws', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ECONNRESET')));
+
+    const result = await fetchStateDeptAdvisory('US');
+
+    expect(result).toBeNull();
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ source: 'state_dept' }),
+      expect.any(String),
+    );
+
+    vi.unstubAllGlobals();
+  });
+
+  it('returns null when feed responds non-ok', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 503 } as Response),
+    );
+
+    const result = await fetchStateDeptAdvisory('US');
+
+    expect(result).toBeNull();
+    vi.unstubAllGlobals();
+  });
+
+  it('returns advisory node when match found in feed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          advisories: [
+            { iso_code: 'US', advisory_level: 2, advisory_text: 'Caution' },
+          ],
+        }),
+      } as Response),
+    );
+
+    const result = await fetchStateDeptAdvisory('US');
+
+    expect(result).not.toBeNull();
+    expect(result?.type).toBe('advisory');
+    if (result?.type === 'advisory') {
+      expect(result.title).toContain('Level 2');
+      expect(result.body).toBe('Caution');
+    }
+    vi.unstubAllGlobals();
+  });
+});
