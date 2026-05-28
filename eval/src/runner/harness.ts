@@ -26,10 +26,11 @@ export function createMockReq(
   tripId: string,
   userId: string,
   message: string,
+  planConfirmation?: Record<string, unknown>,
 ): MockRequest {
   return {
     params: { id: tripId },
-    body: { message },
+    body: planConfirmation ? { message, planConfirmation } : { message },
     user: { id: userId },
     socket: { setTimeout: () => {} },
     on: () => {},

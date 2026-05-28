@@ -31,11 +31,18 @@ export async function runConversation(
   let completed = false;
 
   let customerMessage = generateFirstMessage(persona);
+  let pendingPlanConfirmation: Record<string, unknown> | undefined;
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     transcript.push({ role: 'user', content: customerMessage });
 
-    const req = createMockReq(tripId, userId, customerMessage);
+    const req = createMockReq(
+      tripId,
+      userId,
+      customerMessage,
+      pendingPlanConfirmation,
+    );
+    pendingPlanConfirmation = undefined;
     const res = createMockRes();
 
     try {
@@ -105,6 +112,11 @@ export async function runConversation(
           typeof node.tool_name === 'string'
         ) {
           turnToolCalls.push(node.tool_name);
+        }
+
+        // Auto-confirm plan_card: simulate user clicking "Start planning"
+        if (node.type === 'plan_card' && node.plan_card) {
+          pendingPlanConfirmation = node.plan_card as Record<string, unknown>;
         }
 
         // Capture structured tool results from tile nodes

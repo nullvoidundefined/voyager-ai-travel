@@ -91,6 +91,7 @@ async function main() {
     tripId: string,
     userId: string,
   ) => Promise<Record<string, unknown> | null>;
+  let resetTokenBudget: (userId: string) => Promise<void>;
 
   try {
     // Use relative path to server dist
@@ -114,6 +115,11 @@ async function main() {
     createTrip = tripModule.createTrip;
     deleteTrip = tripModule.deleteTrip;
     getTripWithDetails = tripModule.getTripWithDetails;
+
+    const budgetModule = await import(
+      join(serverDist, 'services', 'cache', 'tokenBudget.service.js')
+    );
+    resetTokenBudget = budgetModule.resetTokenBudget;
   } catch (err) {
     console.error('Failed to import server modules. Build the server first:');
     console.error('  pnpm --filter voyager-server build');
@@ -170,6 +176,9 @@ async function main() {
     let tripId: string | undefined;
 
     try {
+      // Reset per-user token budget so earlier personas don't block later ones
+      await resetTokenBudget(EVAL_USER_ID);
+
       // Create test trip
       const trip = await createTrip(EVAL_USER_ID, {
         destination: persona.destination,
