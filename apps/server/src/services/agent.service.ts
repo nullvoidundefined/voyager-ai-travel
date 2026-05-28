@@ -43,6 +43,7 @@ export async function runAgentLoop(
   promptOptions?: { hasCriticalAdvisory?: boolean; nudge?: string | null },
   tracker?: CompletionTracker,
   systemPromptOverride?: string,
+  allowedTools?: string[],
 ): Promise<AgentResult> {
   // Emit enrichment nodes first so the frontend can render them immediately
   if (enrichmentNodes) {
@@ -58,9 +59,14 @@ export async function runAgentLoop(
   // this returns undefined.
   const mockClient = getMockAnthropicClientIfEnabled();
 
+  const tools =
+    allowedTools && allowedTools.length > 0
+      ? TOOL_DEFINITIONS.filter((t) => allowedTools.includes(t.name))
+      : TOOL_DEFINITIONS;
+
   const orchestrator = new AgentOrchestrator({
     ...(mockClient ? { client: mockClient } : {}),
-    tools: TOOL_DEFINITIONS as Anthropic.Tool[],
+    tools: tools as Anthropic.Tool[],
     systemPromptBuilder: (ctx: unknown, pos: unknown) =>
       systemPromptOverride ??
       buildSystemPrompt(

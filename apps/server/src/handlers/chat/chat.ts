@@ -7,6 +7,11 @@ import {
   normalizeCompletionTracker,
   updateCompletionTracker,
 } from 'app/prompts/booking-steps.js';
+import { buildConversationAgentPrompt } from 'app/prompts/sub-agents/conversation.prompt.js';
+import { buildExperienceAgentPrompt } from 'app/prompts/sub-agents/experience.prompt.js';
+import { buildFlightAgentPrompt } from 'app/prompts/sub-agents/flight.prompt.js';
+import { buildGroundAgentPrompt } from 'app/prompts/sub-agents/ground.prompt.js';
+import { buildHotelAgentPrompt } from 'app/prompts/sub-agents/hotel.prompt.js';
 import { buildPlanAgentPrompt } from 'app/prompts/sub-agents/plan.prompt.js';
 import {
   getMessagesByConversation,
@@ -16,7 +21,11 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
-import { buildDefaultPlanCard } from 'app/services/TripOrchestrator.js';
+import {
+  SUB_AGENT_TOOLS,
+  buildDefaultPlanCard,
+  selectSubAgent,
+} from 'app/services/TripOrchestrator.js';
 import { runAgentLoop } from 'app/services/agent.service.js';
 import { getEnrichmentNodes } from 'app/services/enrichment.js';
 import posthog from 'app/services/posthog.js';
@@ -177,13 +186,35 @@ export async function chat(req: Request, res: Response) {
   const flowPosition = computeFlowPosition(trip, tracker);
   const nudge = computeNudge(tracker);
 
-  const systemPromptOverride =
-    flowPosition.phase === 'PLAN_TRIP'
-      ? buildPlanAgentPrompt(
-          buildDefaultPlanCard(toFlowInput(trip)),
-          tripContext,
-        )
-      : undefined;
+  const subAgentType = selectSubAgent(flowPosition, tracker);
+  const allowedTools = SUB_AGENT_TOOLS[subAgentType];
+
+  let systemPromptOverride: string | undefined;
+  switch (subAgentType) {
+    case 'plan':
+      systemPromptOverride = buildPlanAgentPrompt(
+        buildDefaultPlanCard(toFlowInput(trip)),
+        tripContext,
+      );
+      break;
+    case 'flight':
+      systemPromptOverride = buildFlightAgentPrompt(tripContext, tracker);
+      break;
+    case 'hotel':
+      systemPromptOverride = buildHotelAgentPrompt(tripContext, tracker);
+      break;
+    case 'ground':
+      systemPromptOverride = buildGroundAgentPrompt(tripContext, tracker);
+      break;
+    case 'experience':
+      systemPromptOverride = buildExperienceAgentPrompt(tripContext, tracker);
+      break;
+    case 'conversation':
+      systemPromptOverride = buildConversationAgentPrompt(tripContext, tracker);
+      break;
+    default:
+      systemPromptOverride = undefined;
+  }
 
   try {
     const result = await runAgentLoop(
@@ -197,6 +228,7 @@ export async function chat(req: Request, res: Response) {
       { hasCriticalAdvisory, nudge },
       tracker,
       systemPromptOverride,
+      allowedTools,
     );
 
     // FIN-01 / FIN-05: increment the per-user daily token counter with

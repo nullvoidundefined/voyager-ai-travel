@@ -2,8 +2,8 @@ import { TOOL_DEFINITIONS } from 'app/tools/definitions.js';
 import { describe, expect, it } from 'vitest';
 
 describe('tool definitions', () => {
-  it('exports exactly 16 tool definitions', () => {
-    expect(TOOL_DEFINITIONS).toHaveLength(16);
+  it('exports exactly 17 tool definitions', () => {
+    expect(TOOL_DEFINITIONS).toHaveLength(17);
   });
 
   const expectedTools = [
@@ -18,6 +18,7 @@ describe('tool definitions', () => {
     'select_hotel',
     'select_car_rental',
     'select_experience',
+    're_open_category',
     'format_response',
     'plan_daily_schedule',
     'add_leg',

@@ -415,6 +415,22 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    name: 're_open_category',
+    description:
+      "Re-open a booking category that was previously skipped or marked not_applicable. Use when the user changes their mind (e.g., 'actually I do need a hotel'). The system will re-route to the appropriate agent on the next turn.",
+    input_schema: {
+      type: 'object',
+      properties: {
+        category: {
+          type: 'string',
+          enum: ['flights', 'hotels', 'car_rental', 'experiences'],
+          description: 'The booking category to re-open',
+        },
+      },
+      required: ['category'],
+    },
+  },
+  {
     name: 'format_response',
     description:
       'REQUIRED: Call this as your LAST tool call every turn. Provides your text response, citations, suggested quick replies, and optional advisory escalation. Do NOT write text outside of this tool — all your text goes in the text field.',

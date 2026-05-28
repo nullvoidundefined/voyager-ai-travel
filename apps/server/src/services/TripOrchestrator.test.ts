@@ -1,7 +1,15 @@
-import type { TripState } from 'app/prompts/booking-steps.js';
+import {
+  type CompletionTracker,
+  DEFAULT_COMPLETION_TRACKER,
+  type TripState,
+} from 'app/prompts/booking-steps.js';
 import { describe, expect, it } from 'vitest';
 
-import { buildDefaultPlanCard } from './TripOrchestrator.js';
+import {
+  SUB_AGENT_TOOLS,
+  buildDefaultPlanCard,
+  selectSubAgent,
+} from './TripOrchestrator.js';
 
 const baseTripState: TripState = {
   destination: 'New Orleans',
@@ -172,5 +180,177 @@ describe('buildDefaultPlanCard', () => {
       expect(hotels.enabled).toBe(true);
       expect(car.enabled).toBe(false); // user must explicitly enable
     });
+  });
+});
+
+const confirmedTracker: CompletionTracker = {
+  ...DEFAULT_COMPLETION_TRACKER,
+  plan_confirmed: true,
+};
+
+describe('selectSubAgent', () => {
+  describe('COLLECT_DETAILS phase', () => {
+    it('routes to detail agent', () => {
+      expect(
+        selectSubAgent(
+          { phase: 'COLLECT_DETAILS' },
+          DEFAULT_COMPLETION_TRACKER,
+        ),
+      ).toBe('detail');
+    });
+  });
+
+  describe('PLAN_TRIP phase', () => {
+    it('routes to plan agent', () => {
+      expect(
+        selectSubAgent({ phase: 'PLAN_TRIP' }, DEFAULT_COMPLETION_TRACKER),
+      ).toBe('plan');
+    });
+  });
+
+  describe('COMPLETE phase', () => {
+    it('routes to conversation agent', () => {
+      expect(selectSubAgent({ phase: 'COMPLETE' }, confirmedTracker)).toBe(
+        'conversation',
+      );
+    });
+  });
+
+  describe('PLANNING phase', () => {
+    it('routes to flight agent when flights are pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('flight');
+    });
+
+    it('routes to hotel agent when flights are resolved and hotels are pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
+    });
+
+    it('routes to hotel agent when flights are skipped and hotels are pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'skipped',
+        hotels: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
+    });
+
+    it('routes to hotel agent when flights are not_applicable and hotels are pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'not_applicable',
+        hotels: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
+    });
+
+    it('routes to experience agent when flights+hotels resolved and experiences pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'selected',
+        experiences: 'pending',
+        car_rental: 'pending',
+      };
+      // experiences before ground per spec ordering
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('experience');
+    });
+
+    it('routes to ground agent when flights+hotels resolved, experiences resolved, car_rental pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'selected',
+        experiences: 'selected',
+        car_rental: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('ground');
+    });
+
+    it('routes to ground agent when hotels are skipped and car_rental is pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'skipped',
+        experiences: 'selected',
+        car_rental: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('ground');
+    });
+
+    it('routes to conversation agent when all categories are resolved', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'selected',
+        experiences: 'selected',
+        car_rental: 'skipped',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe(
+        'conversation',
+      );
+    });
+
+    it('does not route to hotel when flights are still pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'pending',
+        hotels: 'pending',
+      };
+      // flights pending takes priority
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('flight');
+    });
+
+    it('does not route to ground when hotels are still pending', () => {
+      const tracker: CompletionTracker = {
+        ...confirmedTracker,
+        flights: 'selected',
+        hotels: 'pending',
+        car_rental: 'pending',
+      };
+      expect(selectSubAgent({ phase: 'PLANNING' }, tracker)).toBe('hotel');
+    });
+  });
+});
+
+describe('SUB_AGENT_TOOLS', () => {
+  it('detail agent has update_trip and format_response but no search tools', () => {
+    expect(SUB_AGENT_TOOLS.detail).toContain('update_trip');
+    expect(SUB_AGENT_TOOLS.detail).toContain('format_response');
+    expect(SUB_AGENT_TOOLS.detail).not.toContain('search_flights');
+    expect(SUB_AGENT_TOOLS.detail).not.toContain('search_hotels');
+  });
+
+  it('flight agent has search_flights and select_flight but not search_hotels', () => {
+    expect(SUB_AGENT_TOOLS.flight).toContain('search_flights');
+    expect(SUB_AGENT_TOOLS.flight).toContain('select_flight');
+    expect(SUB_AGENT_TOOLS.flight).not.toContain('search_hotels');
+    expect(SUB_AGENT_TOOLS.flight).not.toContain('search_experiences');
+  });
+
+  it('hotel agent has search_hotels and select_hotel but not search_flights', () => {
+    expect(SUB_AGENT_TOOLS.hotel).toContain('search_hotels');
+    expect(SUB_AGENT_TOOLS.hotel).toContain('select_hotel');
+    expect(SUB_AGENT_TOOLS.hotel).not.toContain('search_flights');
+  });
+
+  it('experience agent has search_experiences but not search_flights', () => {
+    expect(SUB_AGENT_TOOLS.experience).toContain('search_experiences');
+    expect(SUB_AGENT_TOOLS.experience).toContain('select_experience');
+    expect(SUB_AGENT_TOOLS.experience).not.toContain('search_flights');
+    expect(SUB_AGENT_TOOLS.experience).not.toContain('search_hotels');
+  });
+
+  it('conversation agent has re_open_category', () => {
+    expect(SUB_AGENT_TOOLS.conversation).toContain('re_open_category');
+    expect(SUB_AGENT_TOOLS.conversation).not.toContain('search_flights');
   });
 });

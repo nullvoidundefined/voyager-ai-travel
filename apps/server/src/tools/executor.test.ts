@@ -269,5 +269,12 @@ describe('executeTool', () => {
       const result = await executeTool('format_response', input);
       expect(result).toEqual(input);
     });
+
+    it('re_open_category returns success', async () => {
+      const result = await executeTool('re_open_category', {
+        category: 'hotels',
+      });
+      expect(result).toEqual({ success: true });
+    });
   });
 });

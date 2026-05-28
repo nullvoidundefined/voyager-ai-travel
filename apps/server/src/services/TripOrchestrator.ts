@@ -14,15 +14,71 @@ export type SubAgentType =
   | 'hotel'
   | 'ground'
   | 'experience'
-  | 'conversation'
-  | 'fallback';
+  | 'conversation';
 
-// Stubbed until Phase 4 (T9) wires the full routing table.
+export const SUB_AGENT_TOOLS: Record<SubAgentType, string[]> = {
+  detail: ['update_trip', 'get_destination_info', 'format_response'],
+  plan: ['update_trip', 'format_response'],
+  flight: [
+    'search_flights',
+    'get_destination_info',
+    'select_flight',
+    'calculate_remaining_budget',
+    'format_response',
+  ],
+  hotel: [
+    'search_hotels',
+    'get_destination_info',
+    'select_hotel',
+    'calculate_remaining_budget',
+    'format_response',
+  ],
+  ground: [
+    'search_car_rentals',
+    'select_car_rental',
+    'calculate_remaining_budget',
+    'format_response',
+  ],
+  experience: [
+    'search_experiences',
+    'select_experience',
+    'calculate_remaining_budget',
+    'format_response',
+  ],
+  conversation: [
+    'update_trip',
+    'get_destination_info',
+    'calculate_remaining_budget',
+    're_open_category',
+    'format_response',
+  ],
+};
+
 export function selectSubAgent(
-  _flowPosition: FlowPosition,
-  _tracker: CompletionTracker,
+  flowPosition: FlowPosition,
+  tracker: CompletionTracker,
 ): SubAgentType {
-  return 'fallback';
+  if (flowPosition.phase === 'COLLECT_DETAILS') return 'detail';
+  if (flowPosition.phase === 'PLAN_TRIP') return 'plan';
+  if (flowPosition.phase === 'COMPLETE') return 'conversation';
+
+  // PLANNING phase -- route by tracker state
+  const flightReady =
+    tracker.flights === 'selected' ||
+    tracker.flights === 'skipped' ||
+    tracker.flights === 'not_applicable';
+
+  const hotelReady =
+    tracker.hotels === 'selected' ||
+    tracker.hotels === 'skipped' ||
+    tracker.hotels === 'not_applicable';
+
+  if (tracker.flights === 'pending') return 'flight';
+  if (tracker.hotels === 'pending' && flightReady) return 'hotel';
+  if (tracker.experiences === 'pending' && flightReady) return 'experience';
+  if (tracker.car_rental === 'pending' && hotelReady) return 'ground';
+
+  return 'conversation';
 }
 
 /**

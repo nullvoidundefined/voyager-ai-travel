@@ -341,4 +341,66 @@ describe('updateCompletionTracker', () => {
     expect(result.plan_confirmed).toBe(true);
     expect(result.experience_interests).toEqual(['dining', 'nightlife']);
   });
+
+  describe('re_open_category tool', () => {
+    it('sets the specified category back to pending', () => {
+      const tracker: CompletionTracker = {
+        ...DEFAULT_COMPLETION_TRACKER,
+        plan_confirmed: true,
+        hotels: 'skipped',
+      };
+      const result = updateCompletionTracker(
+        tracker,
+        {
+          tool_calls: [
+            { tool_name: 're_open_category', input: { category: 'hotels' } },
+          ],
+          formatResponse: null,
+        },
+        baseTripState,
+      );
+      expect(result.hotels).toBe('pending');
+    });
+
+    it('sets not_applicable category back to pending', () => {
+      const tracker: CompletionTracker = {
+        ...DEFAULT_COMPLETION_TRACKER,
+        plan_confirmed: true,
+        flights: 'not_applicable',
+      };
+      const result = updateCompletionTracker(
+        tracker,
+        {
+          tool_calls: [
+            { tool_name: 're_open_category', input: { category: 'flights' } },
+          ],
+          formatResponse: null,
+        },
+        baseTripState,
+      );
+      expect(result.flights).toBe('pending');
+    });
+
+    it('ignores invalid category values', () => {
+      const tracker: CompletionTracker = {
+        ...DEFAULT_COMPLETION_TRACKER,
+        plan_confirmed: true,
+        hotels: 'skipped',
+      };
+      const result = updateCompletionTracker(
+        tracker,
+        {
+          tool_calls: [
+            {
+              tool_name: 're_open_category',
+              input: { category: 'invalid_cat' },
+            },
+          ],
+          formatResponse: null,
+        },
+        baseTripState,
+      );
+      expect(result.hotels).toBe('skipped');
+    });
+  });
 });

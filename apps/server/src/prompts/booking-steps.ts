@@ -225,7 +225,7 @@ export function getFlowPosition(
 // --- Tracker update ---
 
 interface AgentResultForTracker {
-  tool_calls: Array<{ tool_name: string }>;
+  tool_calls: Array<{ tool_name: string; input?: Record<string, unknown> }>;
   formatResponse?: { skip_category?: CategoryName | boolean } | null;
 }
 
@@ -308,7 +308,18 @@ export function updateCompletionTracker(
     changed = true;
   }
 
-  // 6. Progress counter
+  // 6. re_open_category tool calls
+  for (const tc of agentResult.tool_calls) {
+    if (tc.tool_name === 're_open_category') {
+      const cat = tc.input?.category;
+      if (typeof cat === 'string' && CATEGORIES.includes(cat as CategoryName)) {
+        newTracker[cat as CategoryName] = 'pending';
+        changed = true;
+      }
+    }
+  }
+
+  // 8. Progress counter
   if (changed) {
     newTracker.turns_since_last_progress = 0;
   } else {

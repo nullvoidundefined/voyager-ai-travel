@@ -193,6 +193,9 @@ export async function executeTool(
       return { success: true, message: 'Experience selection saved' };
     }
 
+    case 're_open_category':
+      return { success: true };
+
     case 'format_response': {
       const parsed = parseInput(toolName, formatResponseSchema, input);
       if ('error' in parsed) return parsed;
