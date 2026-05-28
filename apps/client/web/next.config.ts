@@ -3,7 +3,16 @@ import path from 'node:path';
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(__dirname, '../../../'),
+  transpilePackages: ['@voyager/shared-types'],
   images: {},
+  webpack(config: Parameters<NonNullable<NextConfig['webpack']>>[0]) {
+    config.resolve.extensionAlias = {
+      ...config.resolve.extensionAlias,
+      '.js': ['.ts', '.tsx', '.js'],
+      '.mjs': ['.mts', '.mjs'],
+    };
+    return config;
+  },
   async rewrites() {
     const apiUrl =
       process.env.API_URL ??
