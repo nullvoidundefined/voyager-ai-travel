@@ -6,6 +6,7 @@
 
 .scrollContainer {
   display: flex;
+  min-width: 0;
   gap: 10px;
   overflow-x: auto;
   padding-bottom: 4px;
@@ -22,32 +23,6 @@
   &::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 2px;
-  }
-}
-
-.confirmButton {
-  align-self: flex-start;
-  padding: 10px 22px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--ocean);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: var(--font-body);
-  cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    box-shadow var(--transition-fast);
-
-  &:hover:not(:disabled) {
-    background: var(--ocean-deep);
-    box-shadow: var(--shadow-sm);
-  }
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
   }
 }
 

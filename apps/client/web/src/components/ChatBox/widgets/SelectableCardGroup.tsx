@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { Fragment, type ReactNode } from 'react';
 
 import styles from './SelectableCardGroup.module.scss';
 
@@ -25,51 +25,31 @@ export function SelectableCardGroup({
   disabled = false,
   confirmedId,
 }: SelectableCardGroupProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-
   const isConfirmed = confirmedId != null;
-  const activeId = isConfirmed ? confirmedId : selectedId;
+  const confirmedLabel = isConfirmed
+    ? items.find((i) => i.id === confirmedId)?.label
+    : null;
 
-  const handleSelect = (id: string) => {
+  const handleClick = (id: string) => {
     if (isConfirmed || disabled) return;
-    setSelectedId((prev) => (prev === id ? null : id));
-  };
-
-  const handleConfirm = () => {
-    if (!selectedId || isConfirmed || disabled) return;
-    const item = items.find((i) => i.id === selectedId);
+    const item = items.find((i) => i.id === id);
     if (item) {
       onConfirm(item.label, item.data ?? {});
     }
   };
 
-  const confirmedLabel = isConfirmed
-    ? items.find((i) => i.id === confirmedId)?.label
-    : null;
-
   return (
     <div className={styles.group}>
       <div className={styles.scrollContainer}>
-        {items.map((item) =>
-          item.node(item.id === activeId, () => handleSelect(item.id)),
-        )}
+        {items.map((item) => (
+          <Fragment key={item.id}>
+            {item.node(item.id === confirmedId, () => handleClick(item.id))}
+          </Fragment>
+        ))}
       </div>
 
-      {isConfirmed && confirmedLabel ? (
-        <span className={styles.confirmed}>
-          {'\u2713'} {confirmedLabel}
-        </span>
-      ) : (
-        selectedId && (
-          <button
-            type='button'
-            className={styles.confirmButton}
-            onClick={handleConfirm}
-            disabled={disabled}
-          >
-            Confirm Selection
-          </button>
-        )
+      {isConfirmed && confirmedLabel && (
+        <span className={styles.confirmed}>&#10003; {confirmedLabel}</span>
       )}
     </div>
   );
