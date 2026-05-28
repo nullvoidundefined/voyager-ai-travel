@@ -293,7 +293,9 @@ export async function getMessages(req: Request, res: Response) {
 
   if (messages.length === 0) {
     const isPlaceholder =
-      !trip.destination || trip.destination === 'Planning...';
+      !trip.destination ||
+      trip.destination === 'Planning...' ||
+      trip.destination === 'New trip';
 
     const welcomeText = isPlaceholder
       ? "Hi! I'd love to help plan your trip. Where would you like to go, when are you traveling, and what's your budget?"

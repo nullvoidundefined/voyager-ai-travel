@@ -616,6 +616,39 @@ describe('chat handlers', () => {
       expect(textNode.content).toMatch(/where|destination|trip/i);
     });
 
+    it('treats "New trip" destination as placeholder (does not echo it in welcome)', async () => {
+      const app = createApp();
+
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
+        id: tripId,
+        user_id: userId,
+        destination: 'New trip',
+        origin: null,
+        departure_date: null,
+        return_date: null,
+        budget_total: null,
+        budget_currency: 'USD',
+        travelers: 1,
+        flights: [],
+        hotels: [],
+        experiences: [],
+      } as never);
+
+      vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
+        id: convId,
+        trip_id: tripId,
+      } as never);
+
+      vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce([]);
+
+      const res = await request(app).get(`/trips/${tripId}/messages`);
+
+      expect(res.status).toBe(200);
+      const textNode = res.body.messages[0].nodes[0];
+      expect(textNode.content).not.toContain('New trip');
+      expect(textNode.content).toMatch(/where|destination|trip/i);
+    });
+
     it('returns welcome text for trip with destination set', async () => {
       const app = createApp();
 
