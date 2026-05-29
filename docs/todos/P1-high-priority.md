@@ -50,14 +50,3 @@ Commit `f36d7d6` added a live Mapbox public token (`pk.*`) to `web-client/.env.e
 
 **Source:** 2026-05-28 security audit (Opus)
 
----
-
-## Delete `.claude/worktrees/investigate-llm-orchestration` After P2 Forward-Ports
-
-P1-03 and P1-05 are forward-ported. Once the P2 forward-ports for Redis lock, experience categories, and car_rental_cost are filed/landed, delete the worktree to close the open-worktree-across-sessions discipline gap.
-
-**Why P1:** Worktree existence past forward-port complete is a hygiene failure (criticism audit finding).
-
-**Scope:** `git worktree remove .claude/worktrees/investigate-llm-orchestration` and `git branch -D worktree-investigate-llm-orchestration`. Verify worktree-lifecycle rule update (filed as P3 process item) is in place to prevent recurrence.
-
-**Source:** 2026-05-28 criticism audit (Opus)

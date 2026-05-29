@@ -126,6 +126,34 @@ describe('experiences.tool', () => {
       );
       expect(result[0]).toHaveProperty('latitude', 41.4145);
       expect(result[0]).toHaveProperty('longitude', 2.1527);
+      // P3-08: 'Park' maps to 'outdoor' via the user-friendly bucket.
+      expect(result[0]).toHaveProperty('category', 'outdoor');
+    });
+
+    it('passes unknown primaryTypeDisplayName values through unchanged (P3-08)', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          places: [
+            {
+              id: 'place_x',
+              displayName: { text: 'La Cocina Cooking Class' },
+              formattedAddress: 'Calle Real, Barcelona',
+              rating: 4.9,
+              priceLevel: 'PRICE_LEVEL_MODERATE',
+              primaryTypeDisplayName: { text: 'Cooking Class' },
+            },
+          ],
+        }),
+      });
+
+      const result = await searchExperiences({
+        location: 'Barcelona',
+        categories: ['food'],
+      });
+
+      expect(result[0]).toHaveProperty('category', 'Cooking Class');
     });
 
     it('sends correct headers including API key and field mask', async () => {

@@ -58,6 +58,42 @@ const PRICE_LEVEL_MAP: Record<string, number> = {
   PRICE_LEVEL_VERY_EXPENSIVE: 150,
 };
 
+// P3-08: map verbose Google Places primaryTypeDisplayName values to
+// the user-friendly category buckets the UI groups experiences by.
+// Unknown labels pass through unchanged so the experience tile still
+// renders meaningful text instead of a missing field.
+const CATEGORY_MAP: Record<string, string> = {
+  tourist_attraction: 'sightseeing',
+  point_of_interest: 'sightseeing',
+  museum: 'cultural',
+  art_gallery: 'cultural',
+  church: 'cultural',
+  hindu_temple: 'cultural',
+  mosque: 'cultural',
+  synagogue: 'cultural',
+  restaurant: 'dining',
+  cafe: 'dining',
+  bar: 'nightlife',
+  night_club: 'nightlife',
+  park: 'outdoor',
+  campground: 'outdoor',
+  hiking_area: 'outdoor',
+  amusement_park: 'entertainment',
+  zoo: 'entertainment',
+  aquarium: 'entertainment',
+  shopping_mall: 'shopping',
+  spa: 'wellness',
+  gym: 'wellness',
+  stadium: 'entertainment',
+  movie_theater: 'entertainment',
+};
+
+function normalizeCategory(rawCategory: string | null): string | null {
+  if (!rawCategory) return null;
+  const lower = rawCategory.toLowerCase().replace(/\s+/g, '_');
+  return CATEGORY_MAP[lower] ?? rawCategory;
+}
+
 function normalizePlace(place: GooglePlace): ExperienceResult {
   return {
     place_id: place.id,
@@ -68,7 +104,7 @@ function normalizePlace(place: GooglePlace): ExperienceResult {
     estimated_cost: place.priceLevel
       ? (PRICE_LEVEL_MAP[place.priceLevel] ?? null)
       : null,
-    category: place.primaryTypeDisplayName?.text ?? null,
+    category: normalizeCategory(place.primaryTypeDisplayName?.text ?? null),
     photo_ref: place.photos?.[0]?.name ?? null,
     latitude: place.location?.latitude ?? null,
     longitude: place.location?.longitude ?? null,

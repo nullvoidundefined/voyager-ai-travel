@@ -351,6 +351,7 @@ export default function TripDetailPage() {
       {/* Mobile tab bar */}
       <div className={styles.tabBar} role='tablist' aria-label='Trip view'>
         <button
+          type='button'
           id='tab-chat'
           role='tab'
           aria-selected={activeTab === 'chat'}
@@ -361,6 +362,7 @@ export default function TripDetailPage() {
           Chat
         </button>
         <button
+          type='button'
           id='tab-itinerary'
           role='tab'
           aria-selected={activeTab === 'itinerary'}

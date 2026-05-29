@@ -202,15 +202,6 @@ export const CITY_DATABASE: Record<string, CityData> = {
     timezone: 'America/Panama',
     currency: 'PAB',
   },
-  'panama city': {
-    lat: 8.9936,
-    lon: -79.5197,
-    country_code: 'PA',
-    country_name: 'Panama',
-    iata_code: 'PTY',
-    timezone: 'America/Panama',
-    currency: 'PAB',
-  },
   havana: {
     lat: 23.1136,
     lon: -82.3666,
