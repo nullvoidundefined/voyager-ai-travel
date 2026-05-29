@@ -2,6 +2,7 @@ export interface BudgetInput {
   total_budget: number;
   flight_cost: number;
   hotel_total_cost: number;
+  car_rental_cost: number;
   experience_costs: number[];
 }
 
@@ -16,16 +17,23 @@ export interface BudgetResult {
   breakdown: {
     flights: { amount: number; percentage: number };
     hotels: { amount: number; percentage: number };
+    car_rentals: { amount: number; percentage: number };
     experiences: { amount: number; percentage: number };
   };
 }
 
 export function calculateRemainingBudget(input: BudgetInput): BudgetResult {
-  const { total_budget, flight_cost, hotel_total_cost, experience_costs } =
-    input;
+  const {
+    total_budget,
+    flight_cost,
+    hotel_total_cost,
+    car_rental_cost,
+    experience_costs,
+  } = input;
 
   const experienceTotal = experience_costs.reduce((sum, cost) => sum + cost, 0);
-  const totalSpent = flight_cost + hotel_total_cost + experienceTotal;
+  const totalSpent =
+    flight_cost + hotel_total_cost + car_rental_cost + experienceTotal;
 
   if (total_budget <= 0) {
     return {
@@ -38,6 +46,7 @@ export function calculateRemainingBudget(input: BudgetInput): BudgetResult {
       breakdown: {
         flights: { amount: flight_cost, percentage: 0 },
         hotels: { amount: hotel_total_cost, percentage: 0 },
+        car_rentals: { amount: car_rental_cost, percentage: 0 },
         experiences: { amount: experienceTotal, percentage: 0 },
       },
     };
@@ -64,6 +73,10 @@ export function calculateRemainingBudget(input: BudgetInput): BudgetResult {
       hotels: {
         amount: hotel_total_cost,
         percentage: Math.round(pct(hotel_total_cost) * 100) / 100,
+      },
+      car_rentals: {
+        amount: car_rental_cost,
+        percentage: Math.round(pct(car_rental_cost) * 100) / 100,
       },
       experiences: {
         amount: experienceTotal,

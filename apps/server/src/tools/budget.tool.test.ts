@@ -8,6 +8,7 @@ describe('budget.tool', () => {
         total_budget: 3000,
         flight_cost: 900,
         hotel_total_cost: 1200,
+        car_rental_cost: 0,
         experience_costs: [50, 75, 100],
       });
 
@@ -19,11 +20,26 @@ describe('budget.tool', () => {
       expect(result.breakdown.experiences.amount).toBe(225);
     });
 
+    it('includes car_rental_cost in total_spent and breakdown (P2-04)', () => {
+      const result = calculateRemainingBudget({
+        total_budget: 3000,
+        flight_cost: 900,
+        hotel_total_cost: 1200,
+        car_rental_cost: 350,
+        experience_costs: [50, 75],
+      });
+
+      expect(result.total_spent).toBe(2575);
+      expect(result.remaining).toBe(425);
+      expect(result.breakdown.car_rentals.amount).toBe(350);
+    });
+
     it('returns correct percentages', () => {
       const result = calculateRemainingBudget({
         total_budget: 1000,
         flight_cost: 500,
         hotel_total_cost: 300,
+        car_rental_cost: 0,
         experience_costs: [100],
       });
 
@@ -38,6 +54,7 @@ describe('budget.tool', () => {
         total_budget: 1000,
         flight_cost: 600,
         hotel_total_cost: 500,
+        car_rental_cost: 0,
         experience_costs: [100],
       });
 
@@ -51,6 +68,7 @@ describe('budget.tool', () => {
         total_budget: 2000,
         flight_cost: 500,
         hotel_total_cost: 800,
+        car_rental_cost: 0,
         experience_costs: [],
       });
 
@@ -64,6 +82,7 @@ describe('budget.tool', () => {
         total_budget: 3000,
         flight_cost: 0,
         hotel_total_cost: 0,
+        car_rental_cost: 0,
         experience_costs: [],
       });
 
@@ -77,6 +96,7 @@ describe('budget.tool', () => {
         total_budget: 0,
         flight_cost: 500,
         hotel_total_cost: 300,
+        car_rental_cost: 0,
         experience_costs: [100],
       });
       expect(result.no_budget_set).toBe(true);
@@ -90,6 +110,7 @@ describe('budget.tool', () => {
         total_budget: 1000,
         flight_cost: 333.333,
         hotel_total_cost: 333.333,
+        car_rental_cost: 0,
         experience_costs: [333.333],
       });
 

@@ -11,6 +11,7 @@ vi.mock('app/repositories/trips/trips.js', () => ({
     total_budget: 3000,
     flight_cost: 900,
     hotel_total_cost: 1200,
+    car_rental_cost: 0,
     experience_costs: [50, 75],
   }),
 }));
@@ -315,6 +316,7 @@ describe('executeTool', () => {
         total_budget: 3000,
         flight_cost: 900,
         hotel_total_cost: 1200,
+        car_rental_cost: 0,
         experience_costs: [50, 75],
       });
     });
@@ -329,6 +331,7 @@ describe('executeTool', () => {
         total_budget: 1000,
         flight_cost: 500,
         hotel_total_cost: 300,
+        car_rental_cost: 50,
         experience_costs: [100],
       });
 
@@ -336,6 +339,7 @@ describe('executeTool', () => {
         total_budget: 1000,
         flight_cost: 500,
         hotel_total_cost: 300,
+        car_rental_cost: 50,
         experience_costs: [100],
       });
     });

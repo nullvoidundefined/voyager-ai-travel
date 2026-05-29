@@ -423,7 +423,26 @@ describe('trips repository integration', () => {
       expect(costs.total_budget).toBe(3000);
       expect(costs.flight_cost).toBe(900);
       expect(costs.hotel_total_cost).toBe(1200);
+      expect(costs.car_rental_cost).toBe(0);
       expect(costs.experience_costs.sort()).toEqual([50, 75]);
+    });
+
+    it('includes selected car_rental_cost in the totals (P2-04)', async () => {
+      const user = await seedUser();
+      const trip = await seedTrip(user.id, { budget_total: 3000 });
+
+      await insertTripCarRental(trip.id, {
+        provider: 'Avis',
+        car_name: 'Ford Focus',
+        car_type: 'compact',
+        price_per_day: 50,
+        total_price: 350,
+        currency: 'USD',
+      });
+
+      const costs = await getActualCostsForTrip(trip.id);
+
+      expect(costs.car_rental_cost).toBe(350);
     });
 
     it('returns zeros (not the trip budget) when nothing is selected', async () => {
@@ -435,6 +454,7 @@ describe('trips repository integration', () => {
       expect(costs.total_budget).toBe(2000);
       expect(costs.flight_cost).toBe(0);
       expect(costs.hotel_total_cost).toBe(0);
+      expect(costs.car_rental_cost).toBe(0);
       expect(costs.experience_costs).toEqual([]);
     });
   });

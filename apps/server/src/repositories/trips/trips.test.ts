@@ -82,13 +82,14 @@ describe('getActualCostsForTrip', () => {
     vi.clearAllMocks();
   });
 
-  it('queries the trip budget plus all 3 selection tables in one query', async () => {
+  it('queries the trip budget plus all 4 selection tables in one query', async () => {
     mockQuery.mockResolvedValueOnce({
       rows: [
         {
           budget_total: '3000.00',
           flight_cost: '900.00',
           hotel_total_cost: '1200.00',
+          car_rental_cost: '350.00',
           experience_costs: ['50.00', '75.00'],
         },
       ],
@@ -101,6 +102,7 @@ describe('getActualCostsForTrip', () => {
     const sql = mockQuery.mock.calls[0]![0] as string;
     expect(sql).toContain('trip_flights');
     expect(sql).toContain('trip_hotels');
+    expect(sql).toContain('trip_car_rentals');
     expect(sql).toContain('trip_experiences');
     expect(sql).toContain('selected = true');
 
@@ -108,6 +110,7 @@ describe('getActualCostsForTrip', () => {
       total_budget: 3000,
       flight_cost: 900,
       hotel_total_cost: 1200,
+      car_rental_cost: 350,
       experience_costs: [50, 75],
     });
   });
@@ -119,6 +122,7 @@ describe('getActualCostsForTrip', () => {
           budget_total: '2000.00',
           flight_cost: '0',
           hotel_total_cost: '0',
+          car_rental_cost: '0',
           experience_costs: '{}',
         },
       ],
@@ -139,6 +143,7 @@ describe('getActualCostsForTrip', () => {
           budget_total: null,
           flight_cost: '500.00',
           hotel_total_cost: '0',
+          car_rental_cost: '0',
           experience_costs: '{}',
         },
       ],
@@ -158,6 +163,7 @@ describe('getActualCostsForTrip', () => {
           budget_total: '1000.00',
           flight_cost: '0',
           hotel_total_cost: '0',
+          car_rental_cost: '0',
           experience_costs: '{50,75,100}',
         },
       ],

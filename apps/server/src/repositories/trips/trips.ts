@@ -248,14 +248,17 @@ export interface ActualTripCosts {
   total_budget: number;
   flight_cost: number;
   hotel_total_cost: number;
+  car_rental_cost: number;
   experience_costs: number[];
 }
 
 // P1-03: Single query that pulls the trip budget plus actually-selected
-// flight/hotel/experience prices from the DB. The agent has been observed
-// hallucinating cheaper numbers when it called calculate_remaining_budget;
-// passing this output into calculateRemainingBudget instead of the agent
-// input keeps the budget panel honest.
+// flight/hotel/car-rental/experience prices from the DB. The agent has
+// been observed hallucinating cheaper numbers when it called
+// calculate_remaining_budget; passing this output into
+// calculateRemainingBudget instead of the agent input keeps the budget
+// panel honest. P2-04 added car_rental_cost so car rentals are never
+// invisible in budget calculations.
 export async function getActualCostsForTrip(
   tripId: string,
 ): Promise<ActualTripCosts> {
@@ -263,12 +266,14 @@ export async function getActualCostsForTrip(
     budget_total: string | null;
     flight_cost: string | null;
     hotel_total_cost: string | null;
+    car_rental_cost: string | null;
     experience_costs: string[] | string | null;
   }>(
     `SELECT
        t.budget_total,
        (SELECT COALESCE(SUM(price), 0) FROM trip_flights WHERE trip_id = $1 AND selected = true) AS flight_cost,
        (SELECT COALESCE(SUM(total_price), 0) FROM trip_hotels WHERE trip_id = $1 AND selected = true) AS hotel_total_cost,
+       (SELECT COALESCE(SUM(total_price), 0) FROM trip_car_rentals WHERE trip_id = $1 AND selected = true) AS car_rental_cost,
        (SELECT COALESCE(ARRAY_AGG(estimated_cost), '{}') FROM trip_experiences WHERE trip_id = $1 AND selected = true) AS experience_costs
      FROM trips t
      WHERE t.id = $1`,
@@ -288,6 +293,7 @@ export async function getActualCostsForTrip(
     total_budget: Number(row?.budget_total ?? 0),
     flight_cost: Number(row?.flight_cost ?? 0),
     hotel_total_cost: Number(row?.hotel_total_cost ?? 0),
+    car_rental_cost: Number(row?.car_rental_cost ?? 0),
     experience_costs: costsArray
       .map((c) => Number(c))
       .filter((n) => !Number.isNaN(n)),

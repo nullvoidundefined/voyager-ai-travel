@@ -139,6 +139,11 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
           description:
             'Total hotel cost for entire stay (0 if none selected yet)',
         },
+        car_rental_cost: {
+          type: 'number',
+          description:
+            'Total car rental cost for the trip (0 if none selected yet)',
+        },
         experience_costs: {
           type: 'array',
           items: { type: 'number' },
@@ -150,6 +155,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
         'total_budget',
         'flight_cost',
         'hotel_total_cost',
+        'car_rental_cost',
         'experience_costs',
       ],
     },

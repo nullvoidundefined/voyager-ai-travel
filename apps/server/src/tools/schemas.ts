@@ -56,6 +56,7 @@ export const calculateBudgetSchema = z.object({
   total_budget: z.number(),
   flight_cost: z.number(),
   hotel_total_cost: z.number(),
+  car_rental_cost: z.number().nonnegative(),
   experience_costs: z.array(z.number()),
 });
 
