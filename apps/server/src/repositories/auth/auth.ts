@@ -104,9 +104,8 @@ export async function deleteSessionsForUser(userId: string): Promise<void> {
 }
 
 /**
- * Creates a user and their first session in a single transaction.
- * Avoids the 23505 race where createUser succeeds but createSession fails, leaving an orphan user.
- * Throws with code "23505" when email is already registered.
+ * Hard-deletes all sessions whose expires_at has passed. Returns the
+ * count removed. Intended for the periodic cleanup job.
  */
 export async function deleteExpiredSessions(): Promise<number> {
   const result = await query(
