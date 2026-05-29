@@ -162,6 +162,27 @@ describe('chat.helpers', () => {
       expect(buildMissingFieldsForm(baseTripDetails)).toBeNull();
     });
 
+    it('emits flexible_dates toggle alongside departure_date when departure_date is missing (F-05)', () => {
+      const trip = { ...baseTripDetails, departure_date: null };
+      const form = buildMissingFieldsForm(trip);
+      expect(form).not.toBeNull();
+      const names = (form as { fields: Array<{ name: string }> }).fields.map(
+        (f) => f.name,
+      );
+      expect(names).toContain('departure_date');
+      expect(names).toContain('flexible_dates');
+    });
+
+    it('does not emit flexible_dates when departure_date is already set', () => {
+      const trip = { ...baseTripDetails, origin: null };
+      const form = buildMissingFieldsForm(trip);
+      expect(form).not.toBeNull();
+      const names = (form as { fields: Array<{ name: string }> }).fields.map(
+        (f) => f.name,
+      );
+      expect(names).not.toContain('flexible_dates');
+    });
+
     it('lists missing origin field', () => {
       const trip = { ...baseTripDetails, origin: null };
       const form = buildMissingFieldsForm(trip);
@@ -277,6 +298,7 @@ describe('chat.helpers', () => {
         'destination',
         'origin',
         'departure_date',
+        'flexible_dates',
         'return_date',
         'budget',
         'travelers',

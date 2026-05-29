@@ -132,7 +132,8 @@ export function NodeRenderer({ node, callbacks = {} }: NodeRendererProps) {
           | 'return_date'
           | 'budget'
           | 'travelers'
-          | 'trip_type',
+          | 'trip_type'
+          | 'flexible_dates',
         label: f.label,
       }));
       return (

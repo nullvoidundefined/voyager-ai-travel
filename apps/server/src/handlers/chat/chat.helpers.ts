@@ -244,6 +244,15 @@ export function buildMissingFieldsForm(trip: TripWithDetails): ChatNode | null {
       field_type: 'date',
       required: true,
     });
+    // F-05: surface the Fixed/Flexible toggle alongside the date field
+    // so the user can express flexibility while planning dates. The
+    // toggle defaults to Fixed on the client when no value is supplied.
+    missingFields.push({
+      name: 'flexible_dates',
+      label: 'Date flexibility',
+      field_type: 'select',
+      required: false,
+    });
   }
   const isOneWay = trip.trip_type === 'one_way';
   if (!isOneWay && !trip.return_date) {
