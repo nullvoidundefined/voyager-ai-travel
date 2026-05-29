@@ -24,6 +24,8 @@ let capturedOnFormSubmit:
 let capturedOnFormValuesChange:
   | ((values: Record<string, string>) => void)
   | null = null;
+// Capture useSSEChat's onComplete so tests can simulate "agent turn done"
+let capturedOnComplete: (() => void) | null = null;
 
 vi.mock('./VirtualizedChat', () => ({
   VirtualizedChat: (props: {
@@ -44,15 +46,18 @@ vi.mock('./VirtualizedChat', () => ({
 }));
 
 vi.mock('./useSSEChat', () => ({
-  useSSEChat: () => ({
-    sendMessage: vi.fn().mockResolvedValue(undefined),
-    isSending: false,
-    streamingNodes: [],
-    toolProgress: [],
-    streamingText: '',
-    error: null,
-    clearError: vi.fn(),
-  }),
+  useSSEChat: (opts: { onComplete?: () => void }) => {
+    capturedOnComplete = opts.onComplete ?? null;
+    return {
+      sendMessage: vi.fn().mockResolvedValue(undefined),
+      isSending: false,
+      streamingNodes: [],
+      toolProgress: [],
+      streamingText: '',
+      error: null,
+      clearError: vi.fn(),
+    };
+  },
 }));
 
 vi.mock('@/lib/api/api', () => ({
@@ -79,20 +84,28 @@ vi.mock('@/lib/demoScript/demoScript', () => ({
 
 function renderChatBox() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
+  const result = render(
     <QueryClientProvider client={qc}>
       <ChatBox tripId='trip-test-1' />
     </QueryClientProvider>,
   );
+  return Object.assign(result, { queryClient: qc });
 }
 
 beforeEach(() => {
   capturedOnFormSubmit = null;
   capturedOnFormValuesChange = null;
+  capturedOnComplete = null;
   vi.clearAllMocks();
-  // Re-apply default mocks after clearAllMocks
+  // Re-apply default mocks after clearAllMocks. The costs endpoint
+  // gets its own shape so the trip-costs useQuery does not crash.
   (put as Mock).mockResolvedValue(undefined);
-  (get as Mock).mockResolvedValue({ messages: [] });
+  (get as Mock).mockImplementation((url: unknown) => {
+    if (typeof url === 'string' && url.includes('/costs')) {
+      return Promise.resolve({ total_tokens: 0, total_cost_usd: '0' });
+    }
+    return Promise.resolve({ messages: [] });
+  });
 });
 
 describe('ChatBox auto-save: trip_type and flexible_dates', () => {
@@ -247,5 +260,69 @@ describe('ChatBox handleFormSubmit: trip_type and flexible_dates', () => {
 
     const putCall = (put as Mock).mock.calls[0];
     expect(putCall[1]).not.toHaveProperty('trip_type');
+  });
+});
+
+describe('ChatBox cost refresh', () => {
+  function countCostsCalls(): number {
+    return (get as Mock).mock.calls.filter(
+      (c: unknown[]) =>
+        typeof c[0] === 'string' && (c[0] as string).includes('/costs'),
+    ).length;
+  }
+
+  it('queries trip-costs without a polling refetchInterval', async () => {
+    const { queryClient } = renderChatBox();
+
+    await vi.waitFor(() => {
+      const q = queryClient
+        .getQueryCache()
+        .find({ queryKey: ['trip-costs', 'trip-test-1'] });
+      expect(q).toBeDefined();
+    });
+
+    const costsQuery = queryClient
+      .getQueryCache()
+      .find({ queryKey: ['trip-costs', 'trip-test-1'] });
+
+    // The bug: refetchInterval was 5000, causing the costs endpoint to
+    // be polled forever while ChatBox was mounted. The endpoint joins
+    // agent_turn_cost + conversations + runs a SUM aggregate (~250ms),
+    // and the value only changes when an agent turn completes, so
+    // polling is wasted load. The fix is event-driven invalidation via
+    // useSSEChat's onComplete (asserted in the next test).
+    expect(costsQuery?.options.refetchInterval).toBeFalsy();
+  });
+
+  it('refetches trip-costs when useSSEChat fires onComplete', async () => {
+    const { queryClient } = renderChatBox();
+
+    // Let the initial query settle.
+    await vi.waitFor(() => {
+      expect(countCostsCalls()).toBeGreaterThanOrEqual(1);
+    });
+    const initialCalls = countCostsCalls();
+
+    // Force the costs query to "data" state so invalidate triggers a
+    // refetch (TanStack Query refetches only active queries; without
+    // settling, the query may still be in flight).
+    await vi.waitFor(() => {
+      const q = queryClient
+        .getQueryCache()
+        .find({ queryKey: ['trip-costs', 'trip-test-1'] });
+      expect(q?.state.status).toBe('success');
+    });
+
+    expect(capturedOnComplete).not.toBeNull();
+    await act(async () => {
+      capturedOnComplete?.();
+    });
+
+    await vi.waitFor(
+      () => {
+        expect(countCostsCalls()).toBeGreaterThan(initialCalls);
+      },
+      { timeout: 3000 },
+    );
   });
 });

@@ -70,13 +70,16 @@ export function ChatBox({
       ),
   });
 
+  // trip-costs is event-driven, not polled. The underlying value only
+  // changes when an agent turn completes (it sums agent_turn_cost),
+  // so refetching on a 5s interval was wasted DB load. Invalidation
+  // happens in useSSEChat's onComplete callback below.
   const { data: costsData } = useQuery({
     queryKey: ['trip-costs', tripId],
     queryFn: () =>
       get<{ total_tokens: number; total_cost_usd: string }>(
         `/trips/${tripId}/costs`,
       ),
-    refetchInterval: 5000,
   });
 
   // Merge server messages with optimistic pending user message
@@ -96,7 +99,15 @@ export function ChatBox({
     streamingText,
     error: sseError,
     clearError: clearSseError,
-  } = useSSEChat({ tripId, onComplete: () => setPendingUserMessage(null) });
+  } = useSSEChat({
+    tripId,
+    onComplete: () => {
+      setPendingUserMessage(null);
+      void queryClient.invalidateQueries({
+        queryKey: ['trip-costs', tripId],
+      });
+    },
+  });
 
   const timelineToolCalls = useMemo<ToolCall[]>(
     () =>
