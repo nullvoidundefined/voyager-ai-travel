@@ -31,6 +31,22 @@ Unlike simple chatbot wrappers, the agent makes **3 to 8 sequential tool calls p
 
 ---
 
+## What this demo actually demonstrates
+
+The agent loop is the marquee feature, but it is not the part that took the most judgment. The decisions a less thoughtful engineer would skip:
+
+**Self-audit as a published artifact, not a private exercise.** The 8 specialist audits in `docs/audits/` were not commissioned by anyone. I ran them on myself and published the results, including the Criticism audit that argues the business case is weak. Saying so in the repo is the cost of intellectual honesty; pretending otherwise would be the recognizable pattern.
+
+**Test-first bug fixing, enforced by a commit hook.** `lefthook.yml` blocks any `fix:`/`bug:`/`hotfix:` commit whose staged diff contains no test file. The 2026-04-06 retrospective measured a 68.6 percent violation rate across the first 51 fix commits even after the rule was codified in plain English; the only thing that changed behavior was promoting the warning to a blocking hook. Discipline lives in the toolchain, not in the wiki.
+
+**LLM output is treated as data, not as ground truth.** `calculate_remaining_budget` ignores the agent-supplied costs when a trip context is available and recomputes from the DB (`getActualCostsForTrip`). The agent has been observed quoting cheaper numbers than the user actually selected; the DB query is the source of truth. The same posture drives the plan-card interest allowlist (`SEC-03`), the Zod-validated `planConfirmation` body with hard caps on payload size (`SEC-04`), and the tool-input allowlist that prevents prompt-coerced SerpApi scraping.
+
+**Data-model invariants over ad-hoc fixes.** After a 9-commit fix storm in 85 minutes on the ChatBox surface, `ChatBox.invariants.test.tsx` was added as the only place to test the streaming-overlay merge rules. Every subsequent ChatBox fix extends that spec rather than spawning a new ad-hoc test, so symptom-level regressions are structurally impossible.
+
+**Cost containment in the toolchain.** SerpApi has a 250-request monthly cap on the free tier; the quota counter (`serpApiQuota.service.ts`) blocks the loop at 200 to leave headroom, and every successful response is cached for 6 hours so the same flight search does not burn quota across reloads. The destinations JSON asset has a build-time `accessSync` smoke because the production crash on 2026-04-04 was traced to `tsc` not transitively copying JSON, and the team learned that lesson twice before the smoke landed.
+
+The repo is meant to read like a system someone took seriously, not a portfolio piece tuned to look impressive on first scan.
+
 ## Core Features
 
 ### 1. Conversational Trip Planning
