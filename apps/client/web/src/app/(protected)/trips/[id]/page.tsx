@@ -15,6 +15,7 @@ import { Toast } from '@/components/Toast/Toast';
 import type { MapPin } from '@/components/TripMap/TripMap';
 import { TripMap } from '@/components/TripMap/TripMap';
 import { del, get, post, put } from '@/lib/api';
+import { budgetBarDivisor, isOverBudget } from '@/lib/budget';
 import { getDestinationImage } from '@/lib/destinationImage';
 import { downloadICS } from '@/lib/export-ics';
 import { formatCurrency, formatShortDate } from '@/lib/format';
@@ -273,6 +274,9 @@ export default function TripDetailPage() {
     trip.budget_total != null && Number.isFinite(trip.budget_total - allocated)
       ? trip.budget_total - allocated
       : null;
+  const budgetState = { budgetTotal: trip.budget_total, allocated };
+  const overBudget = isOverBudget(budgetState);
+  const barDivisor = budgetBarDivisor(budgetState);
 
   const hasFlights = trip.flights.length > 0;
 
@@ -480,7 +484,7 @@ export default function TripDetailPage() {
                   <div
                     className={styles.budgetSegment}
                     style={{
-                      width: `${(flightTotal / trip.budget_total) * 100}%`,
+                      width: `${(flightTotal / barDivisor) * 100}%`,
                       background: 'var(--ocean)',
                     }}
                   />
@@ -489,7 +493,7 @@ export default function TripDetailPage() {
                   <div
                     className={styles.budgetSegment}
                     style={{
-                      width: `${(hotelTotal / trip.budget_total) * 100}%`,
+                      width: `${(hotelTotal / barDivisor) * 100}%`,
                       background: 'var(--sand)',
                     }}
                   />
@@ -498,7 +502,7 @@ export default function TripDetailPage() {
                   <div
                     className={styles.budgetSegment}
                     style={{
-                      width: `${(experienceTotal / trip.budget_total) * 100}%`,
+                      width: `${(experienceTotal / barDivisor) * 100}%`,
                       background: 'var(--lagoon)',
                     }}
                   />
@@ -507,7 +511,7 @@ export default function TripDetailPage() {
                   <div
                     className={styles.budgetSegment}
                     style={{
-                      width: `${(carRentalTotal / trip.budget_total) * 100}%`,
+                      width: `${(carRentalTotal / barDivisor) * 100}%`,
                       background: 'var(--sunset)',
                     }}
                   />
@@ -552,13 +556,26 @@ export default function TripDetailPage() {
                     {formatCurrency(carRentalTotal, trip.budget_currency)}
                   </span>
                 )}
-                {remaining != null && (
+                {remaining != null && !overBudget && (
                   <span className={styles.legendItem}>
                     <span
                       className={styles.legendDot}
                       style={{ background: 'var(--surface)' }}
                     />
                     Remaining {formatCurrency(remaining, trip.budget_currency)}
+                  </span>
+                )}
+                {overBudget && remaining != null && (
+                  <span
+                    className={styles.legendItem}
+                    style={{ color: 'var(--sunset-deep, var(--sunset))' }}
+                  >
+                    <span
+                      className={styles.legendDot}
+                      style={{ background: 'var(--sunset)' }}
+                    />
+                    Over budget by{' '}
+                    {formatCurrency(Math.abs(remaining), trip.budget_currency)}
                   </span>
                 )}
               </div>
