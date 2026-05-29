@@ -187,6 +187,60 @@ describe('chat handlers', () => {
       expect(res.body).toContain('event: done');
     });
 
+    it('emits an SSE error event when runAgentLoop throws', async () => {
+      const app = createApp();
+
+      vi.mocked(tripRepo.getTripWithDetails).mockResolvedValueOnce({
+        id: tripId,
+        user_id: userId,
+        destination: 'Barcelona',
+        origin: 'JFK',
+        departure_date: '2026-07-01',
+        return_date: '2026-07-06',
+        budget_total: 3000,
+        budget_currency: 'USD',
+        travelers: 2,
+        flights: [],
+        hotels: [],
+        experiences: [],
+      } as never);
+
+      vi.mocked(convRepo.getOrCreateConversation).mockResolvedValueOnce({
+        id: convId,
+        trip_id: tripId,
+      } as never);
+      vi.mocked(convRepo.getMessagesByConversation).mockResolvedValueOnce([]);
+      vi.mocked(convRepo.insertMessage).mockResolvedValue({
+        id: uuid(3),
+        conversation_id: convId,
+        role: 'user',
+        content: 'Plan my trip',
+        sequence: 1,
+        created_at: '2026-01-01T00:00:00Z',
+      } as never);
+
+      vi.mocked(agentService.runAgentLoop).mockRejectedValueOnce(
+        new Error('Anthropic 503'),
+      );
+
+      const res = await request(app)
+        .post(`/trips/${tripId}/chat`)
+        .send({ message: 'Plan my trip' })
+        .buffer(true)
+        .parse((res, callback) => {
+          let data = '';
+          res.on('data', (chunk: Buffer) => {
+            data += chunk.toString();
+          });
+          res.on('end', () => callback(null, data));
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toContain('event: error');
+      expect(res.body).toContain('Agent encountered an error');
+      expect(res.body).not.toContain('event: done');
+    });
+
     it('persists user and assistant messages', async () => {
       const app = createApp();
 

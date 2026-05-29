@@ -1,54 +1,174 @@
-import { getActiveConversationCount } from 'app/handlers/chat/chat.js';
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import * as chatHandlers from 'app/handlers/chat/chat.js';
+import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
+import * as convRepo from 'app/repositories/conversations/conversations.js';
+import * as tripRepo from 'app/repositories/trips/trips.js';
+import * as agentService from 'app/services/agent/agent.service.js';
+import { uuid } from 'app/utils/tests/uuids.js';
+import express from 'express';
+import request from 'supertest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * ENG-02 backfill: regression tests for commit `7ad2249`
- * "fix: add conversation lock to prevent concurrent agent loops"
- * which shipped with no test.
- *
- * These tests document that:
- * 1. The chat handler exports getActiveConversationCount so the
- *    rest of the system can observe lock state
- * 2. The handler's source code contains the explicit lock check
- *    pattern so a future refactor that removes it will trip this
- *    guard
- * 3. The 409 conflict path is wired through ApiError
- *
- * A full concurrency test (two overlapping requests to the same
- * conversation, asserting the second gets 409) requires deferred-
- * promise test orchestration and a mocked agent loop that hangs;
- * that is a follow-up ENG-02-b test. These content-level guards
- * are the cheap regression protection that catches the most likely
- * regression, which is someone deleting the lock check during a
- * refactor.
- */
+vi.mock('app/repositories/conversations/conversations.js');
+vi.mock('app/repositories/trips/trips.js');
+vi.mock('app/repositories/userPreferences/userPreferences.js');
+vi.mock('app/services/agent/agent.service.js');
+vi.mock('app/tools/mock/isMockMode.js', () => ({
+  isMockMode: vi.fn().mockReturnValue(false),
+}));
+vi.mock('app/services/external/enrichment.js', () => ({
+  getEnrichmentNodes: vi.fn().mockResolvedValue([]),
+}));
+vi.mock('app/utils/logs/logger.js', () => ({
+  logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
+}));
 
-const chatSource = readFileSync(resolve(__dirname, 'chat.ts'), 'utf-8');
+const userId = uuid(0);
+const tripId = uuid(1);
 
-describe('chat handler conversation lock (ENG-02 backfill)', () => {
+function createApp() {
+  const app = express();
+  app.use(express.json());
+  app.use((req, _res, next) => {
+    req.user = {
+      id: userId,
+      email: 'user@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      created_at: new Date('2025-01-01'),
+      updated_at: null,
+    };
+    next();
+  });
+  app.post('/trips/:id/chat', chatHandlers.chat);
+  app.use(errorHandler);
+  return app;
+}
+
+function stubRepos(convId: string) {
+  vi.mocked(tripRepo.getTripWithDetails).mockResolvedValue({
+    id: tripId,
+    user_id: userId,
+    destination: 'Barcelona',
+    origin: 'JFK',
+    departure_date: '2026-07-01',
+    return_date: '2026-07-06',
+    budget_total: 3000,
+    budget_currency: 'USD',
+    travelers: 2,
+    flights: [],
+    hotels: [],
+    experiences: [],
+  } as never);
+  vi.mocked(convRepo.getOrCreateConversation).mockResolvedValue({
+    id: convId,
+    trip_id: tripId,
+  } as never);
+  vi.mocked(convRepo.getMessagesByConversation).mockResolvedValue([]);
+  vi.mocked(convRepo.insertMessage).mockResolvedValue({
+    id: uuid(99),
+    conversation_id: convId,
+    role: 'user',
+    content: 'Plan my trip',
+    sequence: 1,
+    created_at: '2026-01-01T00:00:00Z',
+  } as never);
+}
+
+async function waitFor(predicate: () => boolean, timeoutMs = 2000) {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('waitFor timed out');
+    }
+    await new Promise((r) => setImmediate(r));
+  }
+}
+
+describe('chat handler conversation lock (ENG-02)', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it('exports getActiveConversationCount for observability', () => {
-    expect(typeof getActiveConversationCount).toBe('function');
+    expect(typeof chatHandlers.getActiveConversationCount).toBe('function');
   });
 
-  it('initial active conversation count is 0', () => {
-    expect(getActiveConversationCount()).toBe(0);
+  it('rejects a second concurrent request to the same conversation with 409', async () => {
+    const app = createApp();
+    const convId = uuid(100);
+    stubRepos(convId);
+
+    // Deferred promise so the first agent loop hangs until we release it.
+    let releaseFirst: (value: never) => void = () => {};
+    vi.mocked(agentService.runAgentLoop).mockImplementationOnce(
+      () =>
+        new Promise<never>((resolve) => {
+          releaseFirst = resolve;
+        }),
+    );
+
+    // Fire the first request without awaiting; it will hang in
+    // runAgentLoop with the lock held. The .end callback is a no-op so
+    // supertest does not throw on the open connection.
+    const firstHandle = request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'first' })
+      .end(() => {});
+
+    // Wait until the chat handler has acquired the lock.
+    await waitFor(() => chatHandlers.getActiveConversationCount() === 1);
+
+    const second = await request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'second to same conversation' });
+
+    expect(second.status).toBe(409);
+    expect(chatHandlers.getActiveConversationCount()).toBe(1);
+
+    // Release the first loop so the lock is freed for subsequent tests.
+    releaseFirst({
+      response: 'done',
+      tool_calls: [],
+      total_tokens: {
+        input: 0,
+        output: 0,
+        cache_creation: 0,
+        cache_read: 0,
+      },
+      nodes: [{ type: 'text', content: 'done' }],
+    } as never);
+
+    await waitFor(() => chatHandlers.getActiveConversationCount() === 0);
+    firstHandle.abort();
   });
 
-  it('handler source contains the activeConversations lock check', () => {
-    expect(chatSource).toMatch(/activeConversations\.has\(/);
-  });
+  it('releases the lock after a successful run so the next request succeeds', async () => {
+    const app = createApp();
+    const convId = uuid(101);
+    stubRepos(convId);
 
-  it('handler source adds the conversation to the lock set', () => {
-    expect(chatSource).toMatch(/activeConversations\.add\(/);
-  });
+    vi.mocked(agentService.runAgentLoop).mockResolvedValue({
+      response: 'done',
+      tool_calls: [],
+      total_tokens: {
+        input: 0,
+        output: 0,
+        cache_creation: 0,
+        cache_read: 0,
+      },
+      nodes: [{ type: 'text', content: 'done' }],
+    } as never);
 
-  it('handler source removes the conversation from the lock on close', () => {
-    expect(chatSource).toMatch(/activeConversations\.delete\(/);
-  });
+    const first = await request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'first' });
+    expect(first.status).toBe(200);
 
-  it('handler source throws 409 CONFLICT when the lock is already held', () => {
-    expect(chatSource).toMatch(/409[\s\S]{0,50}CONFLICT/);
+    await waitFor(() => chatHandlers.getActiveConversationCount() === 0);
+
+    const second = await request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'second' });
+    expect(second.status).toBe(200);
   });
 });

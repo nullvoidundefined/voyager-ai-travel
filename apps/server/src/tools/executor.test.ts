@@ -34,6 +34,26 @@ vi.mock('app/tools/destination.tool.js', () => ({
     .fn()
     .mockReturnValue({ city_name: 'Barcelona', iata_code: 'BCN' }),
 }));
+vi.mock('app/tools/legs.tool.js', () => ({
+  handleAddLeg: vi.fn().mockResolvedValue({ success: true, leg_id: 'leg-1' }),
+  handleRemoveLeg: vi.fn().mockResolvedValue({ success: true }),
+  handleReorderLegs: vi.fn().mockResolvedValue({ success: true }),
+}));
+vi.mock('app/tools/schedule.tool.js', () => ({
+  handlePlanDailySchedule: vi
+    .fn()
+    .mockResolvedValue({ success: true, days_planned: 3 }),
+}));
+vi.mock('app/repositories/trips/trip-legs.repository.js', () => ({
+  createLeg: vi.fn(),
+  deleteLeg: vi.fn(),
+  listLegs: vi.fn(),
+  reorderLegs: vi.fn(),
+}));
+vi.mock('app/repositories/trips/schedule.repository.js', () => ({
+  addScheduleItem: vi.fn(),
+  upsertScheduleDay: vi.fn(),
+}));
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
@@ -318,6 +338,119 @@ describe('executeTool', () => {
         hotel_total_cost: 300,
         experience_costs: [100],
       });
+    });
+  });
+
+  describe('leg + schedule tool routing', () => {
+    it('routes add_leg to handleAddLeg with input and context', async () => {
+      const { handleAddLeg } = await import('app/tools/legs.tool.js');
+      const mock = vi.mocked(handleAddLeg);
+      mock.mockClear();
+
+      await executeTool(
+        'add_leg',
+        {
+          origin: 'JFK',
+          destination: 'CDG',
+          depart_date: '2026-09-01',
+          leg_order: 1,
+        },
+        ctx,
+      );
+
+      expect(mock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: 'JFK',
+          destination: 'CDG',
+          depart_date: '2026-09-01',
+          leg_order: 1,
+        }),
+        ctx,
+        expect.any(Object),
+      );
+    });
+
+    it('throws when add_leg lacks context', async () => {
+      await expect(
+        executeTool('add_leg', {
+          origin: 'JFK',
+          destination: 'CDG',
+          depart_date: '2026-09-01',
+          leg_order: 1,
+        }),
+      ).rejects.toThrow('requires trip context');
+    });
+
+    it('routes remove_leg to handleRemoveLeg with leg_id', async () => {
+      const { handleRemoveLeg } = await import('app/tools/legs.tool.js');
+      const mock = vi.mocked(handleRemoveLeg);
+      mock.mockClear();
+
+      await executeTool('remove_leg', { leg_id: 'leg-1' }, ctx);
+
+      expect(mock).toHaveBeenCalledWith(
+        { leg_id: 'leg-1' },
+        ctx,
+        expect.any(Object),
+      );
+    });
+
+    it('throws when remove_leg lacks context', async () => {
+      await expect(
+        executeTool('remove_leg', { leg_id: 'leg-1' }),
+      ).rejects.toThrow('requires trip context');
+    });
+
+    it('routes reorder_legs with ordered_leg_ids', async () => {
+      const { handleReorderLegs } = await import('app/tools/legs.tool.js');
+      const mock = vi.mocked(handleReorderLegs);
+      mock.mockClear();
+
+      await executeTool(
+        'reorder_legs',
+        { ordered_leg_ids: ['leg-2', 'leg-1', 'leg-3'] },
+        ctx,
+      );
+
+      expect(mock).toHaveBeenCalledWith(
+        { ordered_leg_ids: ['leg-2', 'leg-1', 'leg-3'] },
+        ctx,
+        expect.any(Object),
+      );
+    });
+
+    it('throws when reorder_legs lacks context', async () => {
+      await expect(
+        executeTool('reorder_legs', { ordered_leg_ids: ['a'] }),
+      ).rejects.toThrow('requires trip context');
+    });
+
+    it('routes plan_daily_schedule with days payload', async () => {
+      const { handlePlanDailySchedule } =
+        await import('app/tools/schedule.tool.js');
+      const mock = vi.mocked(handlePlanDailySchedule);
+      mock.mockClear();
+
+      const days = [
+        {
+          day_number: 1,
+          day_date: '2026-09-01',
+          items: [],
+        },
+      ];
+      await executeTool('plan_daily_schedule', { days }, ctx);
+
+      expect(mock).toHaveBeenCalledWith(
+        expect.objectContaining({ days }),
+        ctx,
+        expect.any(Object),
+      );
+    });
+
+    it('throws when plan_daily_schedule lacks context', async () => {
+      await expect(
+        executeTool('plan_daily_schedule', { days: [] }),
+      ).rejects.toThrow('requires trip context');
     });
   });
 
