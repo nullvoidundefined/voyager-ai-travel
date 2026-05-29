@@ -124,9 +124,22 @@ const CITY_SLUGS: Record<string, string> = {
   ...curatedSlugs,
 };
 
+// Country -> first-listed city slug, so a country-level destination
+// ("Portugal") still resolves to a representative image ("lisbon.jpg").
+// First-occurrence wins, so curation order in DESTINATIONS controls
+// which city represents a multi-city country (Italy -> Rome, not Naples).
+const COUNTRY_SLUGS: Record<string, string> = DESTINATIONS.reduce(
+  (acc, d) => {
+    const key = d.country.toLowerCase();
+    if (!(key in acc)) acc[key] = d.slug;
+    return acc;
+  },
+  {} as Record<string, string>,
+);
+
 export function getDestinationImage(cityName: string): { url: string | null } {
   const key = cityName.toLowerCase().trim();
-  const slug = CITY_SLUGS[key] ?? null;
+  const slug = CITY_SLUGS[key] ?? COUNTRY_SLUGS[key] ?? null;
   return { url: slug ? `/images/destinations/${slug}.jpg` : null };
 }
 

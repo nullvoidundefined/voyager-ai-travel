@@ -30,4 +30,31 @@ describe('getDestinationImage', () => {
     const result = getDestinationImage('Chicago');
     expect(result.url).toBe('/images/destinations/chicago.jpg');
   });
+
+  it('falls back to a representative city image when given a country name', () => {
+    expect(getDestinationImage('Portugal').url).toBe(
+      '/images/destinations/lisbon.jpg',
+    );
+  });
+
+  it('country lookup is case-insensitive', () => {
+    expect(getDestinationImage('portugal').url).toBe(
+      '/images/destinations/lisbon.jpg',
+    );
+    expect(getDestinationImage('PORTUGAL').url).toBe(
+      '/images/destinations/lisbon.jpg',
+    );
+  });
+
+  it('for a multi-city country, returns the first-listed city image', () => {
+    expect(getDestinationImage('Italy').url).toBe(
+      '/images/destinations/rome.jpg',
+    );
+  });
+
+  it('city lookup wins over country lookup when names collide', () => {
+    expect(getDestinationImage('Singapore').url).toBe(
+      '/images/destinations/singapore.jpg',
+    );
+  });
 });
