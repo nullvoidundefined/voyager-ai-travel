@@ -402,7 +402,7 @@ const CITIES = [
   {
     name: 'Tehran',
     slug: 'tehran',
-    query: 'Tehran Iran Alborz mountains city',
+    query: 'Tehran Iran',
   },
   {
     name: 'Jerusalem',
@@ -434,7 +434,7 @@ const CITIES = [
   {
     name: 'Rio de Janeiro',
     slug: 'rio-de-janeiro',
-    query: 'Rio de Janeiro Christ beaches',
+    query: 'Rio de Janeiro Brazil',
   },
   { name: 'Sao Paulo', slug: 'sao-paulo', query: 'Sao Paulo Brazil skyline' },
   {
@@ -448,7 +448,7 @@ const CITIES = [
     query: 'Medellin Colombia city mountains',
   },
   { name: 'Cusco', slug: 'cusco', query: 'Cusco Peru Machu Picchu Inca' },
-  { name: 'Quito', slug: 'quito', query: 'Quito Ecuador colonial old town' },
+  { name: 'Quito', slug: 'quito', query: 'Quito Ecuador' },
   {
     name: 'Montevideo',
     slug: 'montevideo',
@@ -483,7 +483,7 @@ const CITIES = [
     query: 'Addis Ababa Ethiopia city',
   },
   { name: 'Lagos', slug: 'lagos', query: 'Lagos Nigeria city waterfront' },
-  { name: 'Accra', slug: 'accra', query: 'Accra Ghana city coast' },
+  { name: 'Accra', slug: 'accra', query: 'Accra Ghana' },
   {
     name: 'Dar es Salaam',
     slug: 'dar-es-salaam',
@@ -502,7 +502,7 @@ const CITIES = [
     slug: 'brisbane',
     query: 'Brisbane Australia river city',
   },
-  { name: 'Perth', slug: 'perth', query: 'Perth Australia beach skyline' },
+  { name: 'Perth', slug: 'perth', query: 'Perth Australia' },
   {
     name: 'Auckland',
     slug: 'auckland',
