@@ -8,6 +8,17 @@ function getClient(): Anthropic {
   return anthropic;
 }
 
+// Cross-model judge validation (audit follow-up): the judge model
+// used to be hardcoded, which meant the eval score measured the
+// grader's self-consistency on one model, not the product's
+// robustness. EVAL_JUDGE_MODEL overrides the default at run time so
+// the adversarial runner can iterate across (e.g.) claude-haiku-4-5,
+// claude-sonnet-4-20250514, claude-opus-4-7 and compare pass-rates.
+const DEFAULT_JUDGE_MODEL = 'claude-sonnet-4-20250514';
+function getJudgeModel(): string {
+  return process.env.EVAL_JUDGE_MODEL ?? DEFAULT_JUDGE_MODEL;
+}
+
 const JUDGE_PROMPT = `You are an expert evaluator assessing the quality of a travel planning AI agent. You will be given a customer persona and a conversation transcript.
 
 Score the agent on each dimension from 0.0 to 1.0 (one decimal place). Provide a one-sentence justification for each.
@@ -48,7 +59,7 @@ Constraints: ${persona.constraints}`;
     .join('\n\n');
 
   const response = await getClient().messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: getJudgeModel(),
     max_tokens: 1000,
     system: JUDGE_PROMPT,
     messages: [
