@@ -1,9 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { useAuth } from '@/context/AuthContext';
 import { get } from '@/lib/api';
 import { APP_NAME, GITHUB_REPO_URL } from '@/lib/constants';
 import { type UserPreferences } from '@/lib/preferenceOptions';
+import * as Dialog from '@radix-ui/react-dialog';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -25,6 +28,13 @@ const authedLinks = [
 export function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Close the mobile drawer whenever the route changes so a nav click
+  // does not leave the panel hanging open over the destination page.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   const navLinks = user ? authedLinks : publicLinks;
 
@@ -89,6 +99,81 @@ export function Header() {
             Sign In
           </Link>
         )}
+
+        <Dialog.Root open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <Dialog.Trigger asChild>
+            <button
+              type='button'
+              className={styles.hamburger}
+              aria-label='Open navigation menu'
+            >
+              <span aria-hidden='true' className={styles.hamburgerBar} />
+              <span aria-hidden='true' className={styles.hamburgerBar} />
+              <span aria-hidden='true' className={styles.hamburgerBar} />
+            </button>
+          </Dialog.Trigger>
+          <Dialog.Portal>
+            <Dialog.Overlay className={styles.drawerOverlay} />
+            <Dialog.Content
+              className={styles.drawerPanel}
+              aria-describedby={undefined}
+            >
+              <Dialog.Title className={styles.drawerTitle}>
+                Navigation
+              </Dialog.Title>
+              <nav className={styles.drawerNav} aria-label='Mobile navigation'>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`${styles.drawerLink} ${pathname === link.href ? styles.active : ''}`}
+                  >
+                    {link.label}
+                    {link.href === '/account' && prefsIncomplete && (
+                      <span
+                        className={styles.incompleteBadge}
+                        aria-label='Preferences incomplete'
+                      />
+                    )}
+                  </Link>
+                ))}
+                <a
+                  href={GITHUB_REPO_URL}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className={styles.drawerLink}
+                >
+                  Source on GitHub
+                </a>
+                {user ? (
+                  <button
+                    type='button'
+                    className={styles.drawerLink}
+                    onClick={() => {
+                      logout();
+                      setDrawerOpen(false);
+                    }}
+                  >
+                    Sign Out
+                  </button>
+                ) : (
+                  <Link href='/login' className={styles.drawerLink}>
+                    Sign In
+                  </Link>
+                )}
+              </nav>
+              <Dialog.Close asChild>
+                <button
+                  type='button'
+                  className={styles.drawerClose}
+                  aria-label='Close navigation menu'
+                >
+                  Close
+                </button>
+              </Dialog.Close>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
       </div>
     </header>
   );

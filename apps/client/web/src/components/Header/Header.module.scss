@@ -111,6 +111,118 @@
   }
 }
 
+// Hamburger trigger is hidden on desktop; the inline nav is the
+// primary surface above 600px.
+.hamburger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 36px;
+  height: 36px;
+  margin-left: 4px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  color: var(--ink);
+
+  &:hover {
+    background: var(--ocean-light);
+  }
+}
+
+.hamburgerBar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.drawerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 25, 35, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 200;
+}
+
+.drawerPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(85vw, 320px);
+  background: var(--canvas);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 201;
+}
+
+.drawerTitle {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+
+.drawerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawerLink {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  text-align: left;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: var(--ocean-light);
+  }
+
+  &.active {
+    background: var(--ocean-light);
+    color: var(--ocean);
+  }
+}
+
+.drawerClose {
+  margin-top: auto;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--ink);
+    background: var(--ocean-light);
+  }
+}
+
+// Below 600px, swap the inline nav + GitHub + Sign In for the
+// hamburger drawer. The drawer holds all five interactive elements
+// without crowding the 375px viewport.
 @media (max-width: 600px) {
   .inner {
     padding: 0 16px;
@@ -121,36 +233,14 @@
     font-size: 16px;
   }
 
-  .navLink {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-
+  .nav,
+  .github,
   .signIn {
-    padding: 6px 14px;
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .inner {
-    padding: 0 12px;
-    height: 52px;
+    display: none;
   }
 
-  .nav {
-    gap: 0;
-    margin-right: 8px;
-  }
-
-  .navLink {
-    padding: 6px 6px;
-    font-size: 11px;
-  }
-
-  .signIn {
-    padding: 6px 10px;
-    font-size: 11px;
-    white-space: nowrap;
+  .hamburger {
+    display: inline-flex;
+    margin-left: auto;
   }
 }
