@@ -1,5 +1,5 @@
 import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
-import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/bookingSteps.js';
 import {
   getOrCreateConversation,
   updateBookingState,

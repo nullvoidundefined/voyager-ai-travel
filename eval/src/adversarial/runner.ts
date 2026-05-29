@@ -1,5 +1,5 @@
 import type { ParsedAntagonistResponse } from './antagonist.js';
-import { detectMustNotViolations } from './must-not.js';
+import { detectMustNotViolations } from './mustNot.js';
 import type {
   AdversarialTranscriptEntry,
   AntagonistOutcome,

@@ -3,7 +3,7 @@ import {
   type CompletionTracker,
   type TripState,
   getFlowPosition,
-} from 'app/prompts/booking-steps.js';
+} from 'app/prompts/bookingSteps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
 import type { TripWithDetails } from 'app/schemas/trips.js';
 import type { UserPreferences } from 'app/schemas/userPreferences.js';
@@ -11,7 +11,7 @@ import {
   EXPERIENCE_INTEREST_OPTIONS,
   type ExperienceInterest,
   type TripPlanCard,
-} from 'app/types/plan-card.js';
+} from 'app/types/planCard.js';
 import type { Response } from 'express';
 
 /** Map a TripWithDetails to the TripState shape needed by getFlowPosition. */

@@ -18,7 +18,7 @@ import {
   type MockScenarioName,
   isAnthropicMockMode,
   setMockScenario,
-} from 'app/test-fixtures/mock-anthropic-client/mock-anthropic-client.js';
+} from 'app/test-fixtures/mockAnthropicClient/mockAnthropicClient.js';
 import { logger } from 'app/utils/logs/logger.js';
 import cookieParser from 'cookie-parser';
 import express from 'express';

@@ -64,7 +64,7 @@ describe('TripMap', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMapboxgl.accessToken = '';
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapbox-token';
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapboxToken';
   });
 
   afterEach(() => {
@@ -85,7 +85,7 @@ describe('TripMap', () => {
   it('sets the Mapbox accessToken from the env var before initializing the map', async () => {
     render(<TripMap pins={[]} />);
     await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
-    expect(mockMapboxgl.accessToken).toBe('test-mapbox-token');
+    expect(mockMapboxgl.accessToken).toBe('test-mapboxToken');
   });
 
   it('creates a Mapbox Map instance with the correct style', async () => {
@@ -103,7 +103,7 @@ describe('TripMap fitBounds', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMapboxgl.accessToken = '';
-    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapbox-token';
+    process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapboxToken';
     vi.stubGlobal('fetch', mockFetchWithBbox);
     // Re-apply the load event firing after clearAllMocks
     mockMapInstance.on.mockImplementation((event: string, cb: () => void) => {

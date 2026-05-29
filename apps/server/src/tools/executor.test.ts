@@ -15,43 +15,43 @@ vi.mock('app/repositories/trips/trips.js', () => ({
     experience_costs: [50, 75],
   }),
 }));
-vi.mock('app/tools/flights.tool.js', () => ({
+vi.mock('app/tools/flightsTool.js', () => ({
   searchFlights: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('app/tools/hotels.tool.js', () => ({
+vi.mock('app/tools/hotelsTool.js', () => ({
   searchHotels: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('app/tools/experiences.tool.js', () => ({
+vi.mock('app/tools/experiencesTool.js', () => ({
   searchExperiences: vi.fn().mockResolvedValue([]),
 }));
-vi.mock('app/tools/car-rentals.tool.js', () => ({
+vi.mock('app/tools/carRentalsTool.js', () => ({
   searchCarRentals: vi.fn().mockResolvedValue({ rentals: [] }),
 }));
-vi.mock('app/tools/budget.tool.js', () => ({
+vi.mock('app/tools/budgetTool.js', () => ({
   calculateRemainingBudget: vi.fn().mockReturnValue({ remaining: 500 }),
 }));
-vi.mock('app/tools/destination.tool.js', () => ({
+vi.mock('app/tools/destinationTool.js', () => ({
   getDestinationInfo: vi
     .fn()
     .mockReturnValue({ city_name: 'Barcelona', iata_code: 'BCN' }),
 }));
-vi.mock('app/tools/legs.tool.js', () => ({
+vi.mock('app/tools/legsTool.js', () => ({
   handleAddLeg: vi.fn().mockResolvedValue({ success: true, leg_id: 'leg-1' }),
   handleRemoveLeg: vi.fn().mockResolvedValue({ success: true }),
   handleReorderLegs: vi.fn().mockResolvedValue({ success: true }),
 }));
-vi.mock('app/tools/schedule.tool.js', () => ({
+vi.mock('app/tools/scheduleTool.js', () => ({
   handlePlanDailySchedule: vi
     .fn()
     .mockResolvedValue({ success: true, days_planned: 3 }),
 }));
-vi.mock('app/repositories/trips/trip-legs.repository.js', () => ({
+vi.mock('app/repositories/trips/tripLegsRepository.js', () => ({
   createLeg: vi.fn(),
   deleteLeg: vi.fn(),
   listLegs: vi.fn(),
   reorderLegs: vi.fn(),
 }));
-vi.mock('app/repositories/trips/schedule.repository.js', () => ({
+vi.mock('app/repositories/trips/scheduleRepository.js', () => ({
   addScheduleItem: vi.fn(),
   upsertScheduleDay: vi.fn(),
 }));
@@ -297,7 +297,7 @@ describe('executeTool', () => {
   describe('calculate_remaining_budget DB-truth (P1-03)', () => {
     it('uses DB-truth costs instead of agent-supplied values when context exists', async () => {
       const { calculateRemainingBudget } =
-        await import('app/tools/budget.tool.js');
+        await import('app/tools/budgetTool.js');
       const mockCalc = vi.mocked(calculateRemainingBudget);
       mockCalc.mockClear();
 
@@ -323,7 +323,7 @@ describe('executeTool', () => {
 
     it('falls back to agent-supplied values when no context is provided', async () => {
       const { calculateRemainingBudget } =
-        await import('app/tools/budget.tool.js');
+        await import('app/tools/budgetTool.js');
       const mockCalc = vi.mocked(calculateRemainingBudget);
       mockCalc.mockClear();
 
@@ -347,7 +347,7 @@ describe('executeTool', () => {
 
   describe('leg + schedule tool routing', () => {
     it('routes add_leg to handleAddLeg with input and context', async () => {
-      const { handleAddLeg } = await import('app/tools/legs.tool.js');
+      const { handleAddLeg } = await import('app/tools/legsTool.js');
       const mock = vi.mocked(handleAddLeg);
       mock.mockClear();
 
@@ -386,7 +386,7 @@ describe('executeTool', () => {
     });
 
     it('routes remove_leg to handleRemoveLeg with leg_id', async () => {
-      const { handleRemoveLeg } = await import('app/tools/legs.tool.js');
+      const { handleRemoveLeg } = await import('app/tools/legsTool.js');
       const mock = vi.mocked(handleRemoveLeg);
       mock.mockClear();
 
@@ -406,7 +406,7 @@ describe('executeTool', () => {
     });
 
     it('routes reorder_legs with ordered_leg_ids', async () => {
-      const { handleReorderLegs } = await import('app/tools/legs.tool.js');
+      const { handleReorderLegs } = await import('app/tools/legsTool.js');
       const mock = vi.mocked(handleReorderLegs);
       mock.mockClear();
 
@@ -431,7 +431,7 @@ describe('executeTool', () => {
 
     it('routes plan_daily_schedule with days payload', async () => {
       const { handlePlanDailySchedule } =
-        await import('app/tools/schedule.tool.js');
+        await import('app/tools/scheduleTool.js');
       const mock = vi.mocked(handlePlanDailySchedule);
       mock.mockClear();
 

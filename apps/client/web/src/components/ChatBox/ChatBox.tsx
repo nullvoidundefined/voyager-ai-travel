@@ -15,7 +15,7 @@ import { Toast } from '@/components/Toast/Toast';
 import { ToolTimeline } from '@/components/ToolTimeline/ToolTimeline';
 import type { ToolCall } from '@/components/ToolTimeline/ToolTimeline';
 import { get, post, put } from '@/lib/api';
-import { runDemoScript } from '@/lib/demo-script';
+import { runDemoScript } from '@/lib/demoScript';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChatMessage, TripPlanCard } from '@voyager/shared-types';
 

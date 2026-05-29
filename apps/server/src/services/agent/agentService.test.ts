@@ -10,16 +10,16 @@ vi.mock('app/tools/executor.js');
 vi.mock('app/tools/mock/isMockMode.js', () => ({
   isMockMode: vi.fn().mockReturnValue(false),
 }));
-vi.mock('app/tools/mock/flights.mock.js', () => ({
+vi.mock('app/tools/mock/flightsMock.js', () => ({
   generateMockFlights: vi.fn(),
 }));
-vi.mock('app/tools/mock/hotels.mock.js', () => ({
+vi.mock('app/tools/mock/hotelsMock.js', () => ({
   generateMockHotels: vi.fn(),
 }));
-vi.mock('app/tools/mock/car-rentals.mock.js', () => ({
+vi.mock('app/tools/mock/carRentalsMock.js', () => ({
   generateMockCarRentals: vi.fn(),
 }));
-vi.mock('app/tools/mock/experiences.mock.js', () => ({
+vi.mock('app/tools/mock/experiencesMock.js', () => ({
   generateMockExperiences: vi.fn(),
 }));
 vi.mock('app/tools/definitions.js', () => ({

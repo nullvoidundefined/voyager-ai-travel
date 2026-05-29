@@ -1,4 +1,4 @@
-import type { CompletionTracker, FlowPosition } from './booking-steps.js';
+import type { CompletionTracker, FlowPosition } from './bookingSteps.js';
 import {
   type TripContext,
   formatChecklist,

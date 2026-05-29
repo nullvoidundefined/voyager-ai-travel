@@ -3,8 +3,8 @@ import type { ChatNode } from '@voyager/shared-types';
 import { lookupCity } from '../../data/cities.js';
 import { getDrivingRequirements } from './enrichment-sources/driving.js';
 import { fetchFCDOAdvisory } from './enrichment-sources/fcdo.js';
-import { fetchWeatherForecast } from './enrichment-sources/open-meteo.js';
-import { fetchStateDeptAdvisory } from './enrichment-sources/state-dept.js';
+import { fetchWeatherForecast } from './enrichment-sources/openMeteo.js';
+import { fetchStateDeptAdvisory } from './enrichment-sources/stateDept.js';
 import { getVisaRequirement } from './enrichment-sources/visa-matrix.js';
 
 export async function getEnrichmentNodes(

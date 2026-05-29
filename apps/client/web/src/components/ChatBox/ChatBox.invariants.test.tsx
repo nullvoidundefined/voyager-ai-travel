@@ -661,7 +661,7 @@ describe('ChatBox invariants', () => {
         post: vi.fn().mockResolvedValue({}),
         put: vi.fn().mockResolvedValue({}),
       }));
-      vi.doMock('@/lib/demo-script', () => ({
+      vi.doMock('@/lib/demoScript', () => ({
         runDemoScript: () => () => undefined,
       }));
 

@@ -7,7 +7,7 @@ import {
   noEngagement,
   normalizeCompletionTracker,
   updateCompletionTracker,
-} from 'app/prompts/booking-steps.js';
+} from 'app/prompts/bookingSteps.js';
 import { buildConversationAgentPrompt } from 'app/prompts/sub-agents/conversation.prompt.js';
 import { buildExperienceAgentPrompt } from 'app/prompts/sub-agents/experience.prompt.js';
 import { buildFlightAgentPrompt } from 'app/prompts/sub-agents/flight.prompt.js';
@@ -28,14 +28,14 @@ import {
   SUB_AGENT_TOOLS,
   buildDefaultPlanCard,
   selectSubAgent,
-} from 'app/services/agent/sub-agent.service.js';
+} from 'app/services/agent/subAgentService.js';
 import posthog from 'app/services/analytics/posthog.js';
 import {
   addTokenUsage,
   isOverDailyBudget,
-} from 'app/services/cache/tokenBudget.service.js';
+} from 'app/services/cache/tokenBudgetService.js';
 import { getEnrichmentNodes } from 'app/services/external/enrichment.js';
-import type { TripPlanCard } from 'app/types/plan-card.js';
+import type { TripPlanCard } from 'app/types/planCard.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import { logger } from 'app/utils/logs/logger.js';
 import type { Request, Response } from 'express';

@@ -4,7 +4,7 @@ import {
   deleteLeg,
   listLegs as listLegsRepo,
   reorderLegs as reorderLegsRepo,
-} from 'app/repositories/trips/trip-legs.repository.js';
+} from 'app/repositories/trips/tripLegsRepository.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';

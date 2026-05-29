@@ -73,7 +73,7 @@ vi.mock('@/components/ToolTimeline/ToolTimeline', () => ({
   ToolTimeline: () => null,
 }));
 
-vi.mock('@/lib/demo-script', () => ({
+vi.mock('@/lib/demoScript', () => ({
   runDemoScript: () => () => undefined,
 }));
 

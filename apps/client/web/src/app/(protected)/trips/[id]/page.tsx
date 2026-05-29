@@ -17,7 +17,7 @@ import { TripMap } from '@/components/TripMap/TripMap';
 import { del, get, post, put } from '@/lib/api';
 import { budgetBarDivisor, isOverBudget } from '@/lib/budget';
 import { getDestinationImage } from '@/lib/destinationImage';
-import { downloadICS } from '@/lib/export-ics';
+import { downloadICS } from '@/lib/exportIcs';
 import { formatCurrency, formatShortDate } from '@/lib/format';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';

@@ -1,5 +1,5 @@
 import { getAuthUser } from 'app/middleware/requireAuth/getAuthUser.js';
-import { getScheduleForTrip } from 'app/repositories/trips/schedule.repository.js';
+import { getScheduleForTrip } from 'app/repositories/trips/scheduleRepository.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { ApiError } from 'app/utils/ApiError.js';
 import type { Request, Response } from 'express';

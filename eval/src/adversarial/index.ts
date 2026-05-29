@@ -101,7 +101,7 @@ async function main() {
     createTrip = tripModule.createTrip;
     deleteTrip = tripModule.deleteTrip;
     const budgetModule = await import(
-      join(serverDist, 'services', 'cache', 'tokenBudget.service.js')
+      join(serverDist, 'services', 'cache', 'tokenBudgetService.js')
     );
     resetTokenBudget = budgetModule.resetTokenBudget;
     const dbModule = await import(join(serverDist, 'db', 'pool', 'pool.js'));

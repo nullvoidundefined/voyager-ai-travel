@@ -1,14 +1,14 @@
-import type { AddItemInput } from 'app/repositories/trips/schedule.repository.js';
+import type { AddItemInput } from 'app/repositories/trips/scheduleRepository.js';
 import {
   addScheduleItem,
   upsertScheduleDay,
-} from 'app/repositories/trips/schedule.repository.js';
+} from 'app/repositories/trips/scheduleRepository.js';
 import {
   createLeg,
   deleteLeg,
   listLegs,
   reorderLegs,
-} from 'app/repositories/trips/trip-legs.repository.js';
+} from 'app/repositories/trips/tripLegsRepository.js';
 import {
   getActualCostsForTrip,
   insertTripCarRental,
@@ -17,18 +17,18 @@ import {
   insertTripHotel,
   updateTrip,
 } from 'app/repositories/trips/trips.js';
-import { calculateRemainingBudget } from 'app/tools/budget.tool.js';
-import { searchCarRentals } from 'app/tools/car-rentals.tool.js';
-import { getDestinationInfo } from 'app/tools/destination.tool.js';
-import { searchExperiences } from 'app/tools/experiences.tool.js';
-import { searchFlights } from 'app/tools/flights.tool.js';
-import { searchHotels } from 'app/tools/hotels.tool.js';
+import { calculateRemainingBudget } from 'app/tools/budgetTool.js';
+import { searchCarRentals } from 'app/tools/carRentalsTool.js';
+import { getDestinationInfo } from 'app/tools/destinationTool.js';
+import { searchExperiences } from 'app/tools/experiencesTool.js';
+import { searchFlights } from 'app/tools/flightsTool.js';
+import { searchHotels } from 'app/tools/hotelsTool.js';
 import {
   handleAddLeg,
   handleRemoveLeg,
   handleReorderLegs,
-} from 'app/tools/legs.tool.js';
-import { handlePlanDailySchedule } from 'app/tools/schedule.tool.js';
+} from 'app/tools/legsTool.js';
+import { handlePlanDailySchedule } from 'app/tools/scheduleTool.js';
 import {
   calculateBudgetSchema,
   formatResponseSchema,

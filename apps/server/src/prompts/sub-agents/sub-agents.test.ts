@@ -1,6 +1,6 @@
-import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/bookingSteps.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
-import type { TripPlanCard } from 'app/types/plan-card.js';
+import type { TripPlanCard } from 'app/types/planCard.js';
 import { describe, expect, it } from 'vitest';
 
 import { buildConversationAgentPrompt } from './conversation.prompt.js';

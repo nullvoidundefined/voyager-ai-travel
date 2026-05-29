@@ -1,5 +1,5 @@
 import pool from 'app/db/pool/pool.js';
-import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/booking-steps.js';
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/bookingSteps.js';
 import {
   getMessagesByConversation,
   getOrCreateConversation,

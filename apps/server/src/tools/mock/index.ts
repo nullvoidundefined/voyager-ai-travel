@@ -1,5 +1,5 @@
 export { isMockMode } from './isMockMode.js';
-export { generateMockFlights } from './flights.mock.js';
-export { generateMockHotels } from './hotels.mock.js';
-export { generateMockCarRentals } from './car-rentals.mock.js';
-export { generateMockExperiences } from './experiences.mock.js';
+export { generateMockFlights } from './flightsMock.js';
+export { generateMockHotels } from './hotelsMock.js';
+export { generateMockCarRentals } from './carRentalsMock.js';
+export { generateMockExperiences } from './experiencesMock.js';

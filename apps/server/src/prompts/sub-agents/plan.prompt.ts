@@ -1,6 +1,6 @@
 import { formatTripContext } from 'app/prompts/trip-context.js';
 import type { TripContext } from 'app/prompts/trip-context.js';
-import type { TripPlanCard } from 'app/types/plan-card.js';
+import type { TripPlanCard } from 'app/types/planCard.js';
 
 export function buildPlanAgentPrompt(
   defaultCard: TripPlanCard,

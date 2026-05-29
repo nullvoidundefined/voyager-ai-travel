@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { ChatNode, SSEEvent } from '@voyager/shared-types';
 import { logger } from 'app/utils/logs/logger.js';
 
-import { buildNodeFromToolResult } from './node-builder.js';
+import { buildNodeFromToolResult } from './nodeBuilder.js';
 
 // Lowered from 15 to 8 per FIN-06 (2026-04-06 audit). The original cap
 // predates any cost observability. Until per-turn token cost is persisted

@@ -19,7 +19,7 @@ vi.mock('app/utils/logs/logger.js', () => ({
 }));
 
 // Mock the node builder — not the focus of these tests
-vi.mock('./node-builder.js', () => ({
+vi.mock('./nodeBuilder.js', () => ({
   buildNodeFromToolResult: vi.fn().mockReturnValue(null),
 }));
 

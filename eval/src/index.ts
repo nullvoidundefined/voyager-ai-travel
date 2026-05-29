@@ -117,7 +117,7 @@ async function main() {
     getTripWithDetails = tripModule.getTripWithDetails;
 
     const budgetModule = await import(
-      join(serverDist, 'services', 'cache', 'tokenBudget.service.js')
+      join(serverDist, 'services', 'cache', 'tokenBudgetService.js')
     );
     resetTokenBudget = budgetModule.resetTokenBudget;
   } catch (err) {

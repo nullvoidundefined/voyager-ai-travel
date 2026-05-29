@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CompletionTracker } from './booking-steps.js';
+import type { CompletionTracker } from './bookingSteps.js';
 import {
   type TripContext,
   formatChecklist,

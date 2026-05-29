@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_COMPLETION_TRACKER } from './booking-steps.js';
+import { DEFAULT_COMPLETION_TRACKER } from './bookingSteps.js';
 import { buildSystemPrompt } from './system-prompt.js';
 import type { TripContext } from './trip-context.js';
 
