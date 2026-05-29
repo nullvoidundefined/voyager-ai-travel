@@ -12,7 +12,9 @@ async function getAdvisoryFeed(): Promise<Record<string, unknown>[] | null> {
   if (cached) return cached;
 
   try {
-    const response = await fetch(STATE_DEPT_URL);
+    const response = await fetch(STATE_DEPT_URL, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (!response.ok) {
       logger.warn(
         { source: 'state_dept', status: response.status },

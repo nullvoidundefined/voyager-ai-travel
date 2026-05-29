@@ -69,6 +69,20 @@ describe('fetchFCDOAdvisory', () => {
     vi.unstubAllGlobals();
   });
 
+  it('passes an AbortSignal with a finite timeout to fetch', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ details: { parts: [] } }),
+    } as Response);
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await fetchFCDOAdvisory('JP');
+
+    const init = fetchSpy.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    vi.unstubAllGlobals();
+  });
+
   it('extracts entry-requirements advisory node when present', async () => {
     vi.stubGlobal(
       'fetch',

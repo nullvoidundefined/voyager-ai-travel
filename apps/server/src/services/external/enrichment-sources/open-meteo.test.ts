@@ -55,6 +55,28 @@ describe('fetchWeatherForecast', () => {
     vi.unstubAllGlobals();
   });
 
+  it('passes an AbortSignal with a finite timeout to fetch', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        daily: {
+          time: [],
+          temperature_2m_max: [],
+          temperature_2m_min: [],
+          weathercode: [],
+          precipitation_probability_max: [],
+        },
+      }),
+    } as Response);
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await fetchWeatherForecast(41.4, 2.2);
+
+    const init = fetchSpy.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    vi.unstubAllGlobals();
+  });
+
   it('returns weather_forecast node with parsed daily data', async () => {
     vi.stubGlobal(
       'fetch',

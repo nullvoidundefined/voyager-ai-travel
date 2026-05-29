@@ -36,6 +36,12 @@ function validateEnv(): void {
     console.error('Fatal: CORS_ORIGIN is required in production');
     process.exit(1);
   }
+  if (isProduction() && !process.env.NEXT_PUBLIC_APP_URL) {
+    console.error(
+      'Fatal: NEXT_PUBLIC_APP_URL is required in production (used for share-link generation)',
+    );
+    process.exit(1);
+  }
 }
 
 const app = express();
@@ -132,7 +138,19 @@ const destinationsPath = path.resolve(
   path.dirname(new URL(import.meta.url).pathname),
   'data/destinations.json',
 );
-const destinationsData = JSON.parse(fs.readFileSync(destinationsPath, 'utf-8'));
+let destinationsData: unknown;
+try {
+  destinationsData = JSON.parse(fs.readFileSync(destinationsPath, 'utf-8'));
+} catch (err) {
+  // The bea33cc5 retrospective covered this: tsc does not transitively
+  // copy JSON assets, so a missing dist/data/destinations.json at boot
+  // means the build smoke step failed silently. Fail loudly here.
+  console.error(
+    `Fatal: failed to load ${destinationsPath} at boot. Did the build copy JSON assets to dist/?`,
+    err,
+  );
+  process.exit(1);
+}
 app.get('/destinations', (_req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=86400');
   res.json(destinationsData);

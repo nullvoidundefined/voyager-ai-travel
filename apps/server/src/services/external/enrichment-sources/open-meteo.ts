@@ -66,6 +66,7 @@ export async function fetchWeatherForecast(
 
     const response = await fetch(
       `https://api.open-meteo.com/v1/forecast?${params.toString()}`,
+      { signal: AbortSignal.timeout(5000) },
     );
     if (!response.ok) {
       logger.warn(

@@ -56,6 +56,20 @@ describe('fetchStateDeptAdvisory', () => {
     vi.unstubAllGlobals();
   });
 
+  it('passes an AbortSignal with a finite timeout to fetch', async () => {
+    const fetchSpy = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ advisories: [] }),
+    } as Response);
+    vi.stubGlobal('fetch', fetchSpy);
+
+    await fetchStateDeptAdvisory('US');
+
+    const init = fetchSpy.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    vi.unstubAllGlobals();
+  });
+
   it('returns advisory node when match found in feed', async () => {
     vi.stubGlobal(
       'fetch',

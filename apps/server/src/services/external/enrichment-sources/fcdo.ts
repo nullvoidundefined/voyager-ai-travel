@@ -200,7 +200,9 @@ export async function fetchFCDOAdvisory(
 
   try {
     const url = `https://www.gov.uk/api/content/foreign-travel-advice/${slug}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+    });
     if (!response.ok) {
       logger.warn(
         { source: 'fcdo', countryCode, status: response.status },
