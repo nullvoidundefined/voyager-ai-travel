@@ -6,33 +6,9 @@ Fix within the next few work sessions. These are real bugs, missing tests, secur
 
 ## Engineering Audit (2026-05-28)
 
-### No Post-Build Smoke Test for `dist/data/destinations.json`
-
-The `bea33cc5` retrospective explicitly demanded this. Build script does `cp src/data/*.json dist/data/` but has no assertion step. The Dockerfile copies the file redundantly as a workaround, not a build contract.
-
-**Scope:** Append `&& node -e "require('fs').accessSync('dist/data/destinations.json')"` to the `build` script in `apps/server/package.json`.
-
----
-
-### `app.ts` `readFileSync` at Module Load With No try/catch
-
-If `dist/data/destinations.json` is absent at boot, the server crashes with an unhandled exception before handling any request.
-
-**Scope:** Wrap in try/catch; log a fatal error and `process.exit(1)` with a descriptive message.
-
----
-
-### No Timeout on Enrichment HTTP Fetches
-
-`fetchStateDeptAdvisory`, `fetchFCDOAdvisory`, `fetchWeatherForecast` have no `AbortSignal.timeout()`. A slow external advisory API holds up the first agent response.
-
-**Scope:** Wrap each `fetch()` with `AbortSignal.timeout(5000)`.
-
----
-
 ### Executor Test Gaps for 4 New Tools
 
-`add_leg`, `remove_leg`, `reorder_legs`, `plan_daily_schedule` in `executor.ts` (lines 137-253) are uncovered by unit tests. `executor.adapters.test.ts` covers only `search_flights` and `search_hotels`.
+`add_leg`, `remove_leg`, `reorder_legs`, `plan_daily_schedule` in `executor.ts` are uncovered by unit tests. `executor.adapters.test.ts` covers only `search_flights` and `search_hotels`.
 
 **Scope:** Extend `executor.test.ts` with happy-path and validation-error tests for all four.
 
@@ -40,17 +16,9 @@ If `dist/data/destinations.json` is absent at boot, the server crashes with an u
 
 ### `chat.ts` SSE Error Path Uncovered
 
-Lines 319-323 (SSE error emit on `runAgentLoop` throw) are untested.
+The SSE error emit on `runAgentLoop` throw is untested.
 
 **Scope:** Add a unit test mocking `runAgentLoop` to throw and assert the SSE `error` event is emitted and the connection is closed.
-
----
-
-### `NEXT_PUBLIC_APP_URL` Not Validated at Boot
-
-`share.ts` line 23 falls back to `''` if unset, producing relative share URLs. Not in `validateEnv()`.
-
-**Scope:** Add to `validateEnv()` or add a build-time check.
 
 ---
 
@@ -122,14 +90,6 @@ PLAN_TRIP phase and TripPlanWidget add a new step where users confirm a plan car
 
 ## UX Audit (2026-05-27)
 
-### Weather Table Uses Non-Semantic ARIA Markup
-
-`explore/[slug]/page.tsx:183-229` constructs a weather table using `<div role="table">`.
-
-**Scope:** Convert to native `<table>` with `<thead>`, `<tbody>`, `<th scope="col">`, `<th scope="row">`.
-
----
-
 ### Header Nav Overflow at 375px Mobile
 
 The authenticated nav contains 7 interactive elements in a 375px container. No hamburger menu. SCSS breakpoint only shrinks text, does not collapse.
@@ -162,9 +122,7 @@ No `jest-axe` integration at the component test level. Accessibility violations 
 
 ---
 
-## Code Quality Sweep (2026-05-27) -- Untracked P1s Now Filed as P2
-
-These were labeled P1 in the sweep but are code hygiene items, not portfolio trust-breakers. Filed here as P2.
+## Code Quality Sweep (2026-05-27)
 
 ### 5 Repository Test Files Mock the Database Pool (R-200 Anti-Pattern #5)
 
@@ -182,51 +140,11 @@ Non-trivial validation (`budget_total: z.number().positive()`, `travelers: z.num
 
 ---
 
-### `AgentOrchestrator.ts:57` No `max_tokens` Stop Reason Handling
-
-If the API returns `max_tokens`, the loop continues making API calls for 120s until wall-clock timeout, burning tokens.
-
-**Scope:** Add `max_tokens` to the stop_reason check and break the loop.
-
----
-
 ### `serpApiQuota.service.ts` Duplicate Redis Client
 
 Third independent Redis client alongside `cache.service.ts` and `tokenBudget.service.ts`. Three separate connection pools in production.
 
 **Scope:** Consolidate to a shared Redis client module.
-
----
-
-### `serpapi.service.ts:83` Quota Counter Drift
-
-`void incrementMonthlyUsage()` fires inside `serpApiBreaker.call(...)` on success. If `response.json()` throws after increment, counter drifts ahead.
-
-**Scope:** Move increment to after successful JSON parse.
-
----
-
-### `executor.ts:125-136` `update_trip` Returns Misleading Success Shape
-
-Returns `{ success: false, message: 'No fields to update' }` -- agent sees success-shaped JSON with `success: false`.
-
-**Scope:** Return a clear error structure or throw.
-
----
-
-### `isMockMode.test.ts` Incomplete Branch Coverage
-
-Only covers `EVAL_MOCK_SEARCH`. `E2E_MOCK_TOOLS` branch untested.
-
-**Scope:** Add test for `E2E_MOCK_TOOLS` branch.
-
----
-
-### `login/page.tsx:94` Forgot Password Dead Self-Link
-
-"Forgot password?" link href is `/login` (current page). Dead self-link reloads the page.
-
-**Scope:** Link to a password reset page or show a Toast explaining the feature is coming.
 
 ---
 
@@ -243,14 +161,6 @@ Only covers `EVAL_MOCK_SEARCH`. `E2E_MOCK_TOOLS` branch untested.
 `<button>` wrapping card has no `aria-label`. Screen reader announces raw text dump.
 
 **Scope:** Add descriptive `aria-label` (e.g., "Select Delta DL100 flight, $450").
-
----
-
-### `auth.ts:107-110` Copy-Pasted JSDoc
-
-JSDoc above `deleteExpiredSessions` is copy-pasted from `createUserAndSession`. Wrong description.
-
-**Scope:** Fix the JSDoc.
 
 ---
 
@@ -272,79 +182,13 @@ US-19 (travel_plan_form flow) and US-23 (tile selection confirmed via `confirmed
 
 ---
 
-## Security Audit (2026-05-28 Opus)
-
-### SEC-03: Prompt Injection via Unvalidated `experience_interests`
-
-`apps/server/src/handlers/chat/chat.helpers.ts:79-81` (`applyPlanConfirmation`) filters interest values to `typeof v === 'string'` only. The strings flow verbatim into the system prompts of three sub-agents (`flight.prompt.ts:12`, `hotel.prompt.ts:12`, `experience.prompt.ts:27-29`) on every subsequent LLM turn. Canonical valid values are defined in `EXPERIENCE_INTEREST_OPTIONS` (`apps/server/src/types/plan-card.ts:44-55`) but never used as an allowlist.
-
-**Scope:** Add `&& VALID_INTEREST_IDS.has(v as ExperienceInterest)` to the filter, sourced from `EXPERIENCE_INTEREST_OPTIONS`. Apply the same allowlist in `normalizeCompletionTracker` (chat.ts) for defense in depth.
-
----
-
-### SEC-04: `planConfirmation` Body Lacks Zod Schema and Size Limits
-
-`apps/server/src/handlers/chat/chat.ts:177-185` accepts `planConfirmation` if `typeof === 'object'` and `categories` is an array. No Zod schema is applied. No cap on category count, sub_option count, value-array length, or per-value string length. Payload is written to the `booking_state` JSONB column.
-
-**Scope:** Add a Zod schema for `TripPlanCard`. Bounds: max 10 categories, max 3 sub_options per category, max 20 values per sub_option, max 100 chars per value string. Reject 400 on failure. This also reinforces SEC-03.
-
----
-
 ## UX Audit (2026-05-28 Opus)
-
-### F-01/F-02: Reduced-Motion Fix Defeats Global Reset
-
-`apps/client/web/src/app/(protected)/trips/new/newTrip.module.scss:50-55` adds a `@media (prefers-reduced-motion: reduce)` block that sets `animation-duration: 1.5s !important; animation-iteration-count: infinite !important`. This fights the global reset in `globals.scss` (`animation-duration: 0.01ms !important; animation-iteration-count: 1 !important`). Outcome depends on cascade order. Best case: the spinner still rotates for users with vestibular disorders.
-
-**Scope:** Delete the local `@media (prefers-reduced-motion: reduce)` block entirely. The global reset covers it.
-
----
-
-### F-03/F-14: Budget Bar Renders Broken When Over Budget
-
-`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:469-496` computes segment widths as `(categoryTotal / budget_total) * 100` with no clamp. When segments sum past 100%, the bar overflows (clipped by `overflow: hidden`). When `remaining < 0`, the "Remaining" legend shows a negative number in `--muted` gray with no warning color or label change.
-
-**Scope:** Clamp each segment width to 100% of total. When `remaining < 0`, switch the legend label to "Over budget" with a warning color. Surface the over-budget state on the page itself, not only inside the BookingConfirmation modal.
-
----
 
 ### F-05: "Flexible Dates" Toggle Unreachable Via UI
 
 `apps/client/web/src/components/ChatBox/TripDetailsForm.tsx:181-201` renders the Fixed/Flexible toggle only when the form definition includes a `flexible_dates` field. `apps/server/src/handlers/chat/chat.helpers.ts:206-264` (`buildMissingFieldsForm`) never includes that field. The toggle exists in the DB and the system prompt but has no user-facing entry point.
 
-**Scope:** Add `flexible_dates` to the field-emission logic in `buildMissingFieldsForm`. Default the value to `'false'`.
-
----
-
-### F-07/F-08: Toggle Group Labels Not Programmatically Associated
-
-`TripDetailsForm.tsx:157-179` (`tripTypeToggle`) and `181-201` (`flexibleDatesToggle`) render toggle buttons inside a `<div>` with no `role="group"` and no `aria-labelledby`. The sibling `<label htmlFor="trip_type">` and `<label htmlFor="flexible_dates">` point at IDs that do not exist. Screen reader users hear "Round Trip, button, pressed" with no field label.
-
-**Scope:** Wrap each toggle group in `<div role="group" aria-labelledby={labelId}>` where `labelId` matches `<label id={labelId}>`. Remove the dead `htmlFor` references.
-
----
-
-### F-10: Budget `min={100}` Has No App-Level Error
-
-`TripDetailsForm.tsx:223` sets `min={100}` on the budget input. On submit, native browser validation blocks with a browser-default tooltip that does not match the app's design. On some mobile browsers the tooltip is not shown, silently blocking submit.
-
-**Scope:** Render an inline error message below the input when `value < 100`. Match the existing form-error pattern.
-
----
-
-### F-12: Mobile Tab Bar Lacks ARIA Tablist Pattern
-
-`apps/client/web/src/app/(protected)/trips/[id]/page.tsx:348-361` implements the Chat/Itinerary switcher as two plain buttons. No `role="tablist"`, no `role="tab"`, no `aria-selected`. The panes have no `role="tabpanel"` and no `aria-labelledby`. Screen reader users cannot tell which pane is active.
-
-**Scope:** Apply the standard ARIA tab pattern: `role="tablist"` on container, `role="tab"` + `aria-selected` on each button, `role="tabpanel"` + `aria-labelledby` on each pane.
-
----
-
-### F-13: Skeleton Loading Has No `aria-busy` or `aria-live`
-
-`apps/client/web/src/components/Skeleton/Skeleton.tsx:13` correctly uses `aria-hidden="true"` on the skeleton elements. But the parent container has no `aria-busy="true"` during load, and no `aria-live` region announces when loading completes. Screen reader users hear nothing during load, then content appears.
-
-**Scope:** Add `aria-busy={isLoading}` to parent containers on the trips list and trip detail pages. Add an `aria-live="polite"` announcer for load completion.
+**Scope:** Add `flexible_dates` to the field-emission logic in `buildMissingFieldsForm`. Default the value to `'false'`. Also extend the NodeRenderer type-union mapping on the client so the field type passes through, and confirm trip_type is being emitted somewhere (or also missing).
 
 ---
 
