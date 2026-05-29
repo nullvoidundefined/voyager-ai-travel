@@ -517,15 +517,40 @@ Every testable user-facing flow in the application.
 
 ---
 
+## Plan Card Flow (PLAN_TRIP Phase)
+
+### US-36: Confirm a trip plan card before the agent starts searching
+
+**As a** user starting a new trip
+**I want to** confirm what the agent will search for (flights, hotels, experiences, car rental) and tweak the experience-interest categories
+**So that** I can shape the agent's plan before it spends API budget on searches I do not want
+
+**Acceptance criteria:**
+
+- After the trip-details form is submitted, the agent emits a `plan_card` node before any `search_*` tool is called.
+- The TripPlanWidget renders the plan card with toggles per category (flights, hotels, experiences, car rental).
+- For the experiences category, a multi-select sub-option ("interests") with the canonical EXPERIENCE_INTEREST_OPTIONS values is shown.
+- Toggling a category off marks it as `not_applicable` in the booking state and the agent skips that sub-agent for the rest of the trip.
+- Clicking "Start planning" confirms the plan: a `planConfirmation` payload is POSTed to `/trips/{id}/chat` and the booking state's `plan_confirmed` flag is set to `true`.
+- The plan card is hidden in subsequent turns once confirmed; the agent moves into the first enabled category's sub-agent flow.
+- The `planConfirmation` payload is validated server-side against `planCardSchema` (max 10 categories, max 3 sub_options per category, max 20 values per sub_option, max 100 chars per value string) and rejected with 400 on any violation.
+
+**Sources:** TripPlanWidget component, `applyPlanConfirmation` in `chat.helpers.ts`, `plan.prompt.ts`, `planCardSchema` (SEC-04).
+
+**Test coverage:** Plan-card rendering invariants live in `ChatBox.invariants.test.tsx` (TripPlanWidget render assertion). Server-side acceptance lives in `chat.helpers.test.ts` (applyPlanConfirmation) and `planCard.test.ts` (schema bounds). An end-to-end test of the full submit-form -> plan-card -> confirm -> first-search loop is blocked on the MockAnthropic state machine (ENG-17 / B24); restore alongside US-19 and US-23 when that lands.
+
+---
+
 ## Summary
 
-| Domain          | Stories             | Test File                           |
-| --------------- | ------------------- | ----------------------------------- |
-| Public Pages    | US-1 through US-7   | `public.spec.ts`, `explore.spec.ts` |
-| Authentication  | US-8 through US-12  | `auth.spec.ts`                      |
-| Trip Management | US-13 through US-17 | `trips.spec.ts`                     |
-| Chat & Booking  | US-18 through US-24 | `chat.spec.ts`                      |
-| Checkout        | US-25 through US-28 | `checkout.spec.ts`                  |
-| Preferences     | US-29 through US-33 | `preferences.spec.ts`               |
-| Account         | US-34, US-35        | `account.spec.ts`                   |
-| **Total**       | **35 stories**      | **8 test files**                    |
+| Domain          | Stories             | Test File                                                                                                  |
+| --------------- | ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Public Pages    | US-1 through US-7   | `public.spec.ts`, `explore.spec.ts`                                                                        |
+| Authentication  | US-8 through US-12  | `auth.spec.ts`                                                                                             |
+| Trip Management | US-13 through US-17 | `trips.spec.ts`                                                                                            |
+| Chat & Booking  | US-18 through US-24 | `chat.spec.ts`                                                                                             |
+| Checkout        | US-25 through US-28 | `checkout.spec.ts`                                                                                         |
+| Preferences     | US-29 through US-33 | `preferences.spec.ts`                                                                                      |
+| Account         | US-34, US-35        | `account.spec.ts`                                                                                          |
+| Plan Card Flow  | US-36               | covered by `ChatBox.invariants.test.tsx`, `chat.helpers.test.ts`, `planCard.test.ts` (E2E gated on ENG-17) |
+| **Total**       | **36 stories**      | **8 test files**                                                                                           |
