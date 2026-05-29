@@ -1,4 +1,7 @@
-import { DIETARY_OPTIONS, DINING_STYLE_OPTIONS } from '@/lib/preferenceOptions';
+import {
+  DIETARY_OPTIONS,
+  DINING_STYLE_OPTIONS,
+} from '@/lib/preferenceOptions/preferenceOptions';
 
 import styles from '../PreferencesWizard.module.scss';
 

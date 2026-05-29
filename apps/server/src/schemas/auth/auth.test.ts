@@ -1,4 +1,8 @@
-import { loginSchema, registerSchema, userSchema } from 'app/schemas/auth.js';
+import {
+  loginSchema,
+  registerSchema,
+  userSchema,
+} from 'app/schemas/auth/auth.js';
 import { describe, expect, it } from 'vitest';
 
 describe('registerSchema', () => {

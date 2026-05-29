@@ -1,14 +1,14 @@
-import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/bookingSteps.js';
-import type { TripContext } from 'app/prompts/trip-context.js';
+import { DEFAULT_COMPLETION_TRACKER } from 'app/prompts/bookingSteps/bookingSteps.js';
+import type { TripContext } from 'app/prompts/tripContext/tripContext.js';
 import type { TripPlanCard } from 'app/types/planCard.js';
 import { describe, expect, it } from 'vitest';
 
-import { buildConversationAgentPrompt } from './conversation.prompt.js';
-import { buildExperienceAgentPrompt } from './experience.prompt.js';
-import { buildFlightAgentPrompt } from './flight.prompt.js';
-import { buildGroundAgentPrompt } from './ground.prompt.js';
-import { buildHotelAgentPrompt } from './hotel.prompt.js';
-import { buildPlanAgentPrompt } from './plan.prompt.js';
+import { buildConversationAgentPrompt } from './conversationPrompt.js';
+import { buildExperienceAgentPrompt } from './experiencePrompt.js';
+import { buildFlightAgentPrompt } from './flightPrompt.js';
+import { buildGroundAgentPrompt } from './groundPrompt.js';
+import { buildHotelAgentPrompt } from './hotelPrompt.js';
+import { buildPlanAgentPrompt } from './planPrompt.js';
 
 function baseContext(overrides: Partial<TripContext> = {}): TripContext {
   return {

@@ -1,4 +1,4 @@
-import { formatCurrency, formatShortDate } from '@/lib/format';
+import { formatCurrency, formatShortDate } from '@/lib/format/format';
 
 import styles from './HotelCard.module.scss';
 import { MapPreviewCard } from './MapPreviewCard';

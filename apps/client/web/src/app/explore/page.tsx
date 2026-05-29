@@ -7,7 +7,10 @@ import {
   DESTINATIONS,
   type Destination,
 } from '@/data/destinations';
-import { HERO_IMAGES, getDestinationImage } from '@/lib/destinationImage';
+import {
+  HERO_IMAGES,
+  getDestinationImage,
+} from '@/lib/destinationImage/destinationImage';
 import Image from 'next/image';
 import Link from 'next/link';
 

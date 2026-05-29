@@ -2,7 +2,7 @@ import { query } from 'app/db/pool/pool.js';
 import {
   type UserPreferences,
   normalizePreferences,
-} from 'app/schemas/userPreferences.js';
+} from 'app/schemas/userPreferences/userPreferences.js';
 
 export interface UserPreferencesRow {
   id: string;

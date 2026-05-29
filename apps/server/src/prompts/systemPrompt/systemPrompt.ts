@@ -1,9 +1,12 @@
-import type { CompletionTracker, FlowPosition } from './bookingSteps.js';
+import type {
+  CompletionTracker,
+  FlowPosition,
+} from 'app/prompts/bookingSteps/bookingSteps.js';
 import {
   type TripContext,
   formatChecklist,
   formatTripContext,
-} from './trip-context.js';
+} from 'app/prompts/tripContext/tripContext.js';
 
 const CORE_PROMPT = `You are Voyager, an expert travel planning advisor. Help users plan trips by searching for flights, hotels, car rentals, and experiences. You're knowledgeable, concise for transactional exchanges, and more detailed when advising.
 

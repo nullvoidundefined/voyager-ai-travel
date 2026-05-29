@@ -10,7 +10,7 @@
  * - trip_type and flexible_dates are included in PUT requests
  * - flexible_dates is coerced from string 'true'/'false' to boolean
  */
-import { get, put } from '@/lib/api';
+import { get, put } from '@/lib/api/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render } from '@testing-library/react';
 import { type Mock, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -55,7 +55,7 @@ vi.mock('./useSSEChat', () => ({
   }),
 }));
 
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/api', () => ({
   get: vi.fn().mockResolvedValue({ messages: [] }),
   post: vi.fn().mockResolvedValue(undefined),
   put: vi.fn().mockResolvedValue(undefined),
@@ -73,7 +73,7 @@ vi.mock('@/components/ToolTimeline/ToolTimeline', () => ({
   ToolTimeline: () => null,
 }));
 
-vi.mock('@/lib/demoScript', () => ({
+vi.mock('@/lib/demoScript/demoScript', () => ({
   runDemoScript: () => () => undefined,
 }));
 

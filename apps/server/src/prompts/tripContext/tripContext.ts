@@ -2,7 +2,7 @@ import {
   type CompletionTracker,
   type TrackerStatus,
   statusLabel,
-} from './bookingSteps.js';
+} from 'app/prompts/bookingSteps/bookingSteps.js';
 
 export interface TripContext {
   destination: string;

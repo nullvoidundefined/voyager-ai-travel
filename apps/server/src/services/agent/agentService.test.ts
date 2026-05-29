@@ -31,7 +31,7 @@ vi.mock('app/tools/definitions.js', () => ({
     },
   ],
 }));
-vi.mock('app/prompts/system-prompt.js', () => ({
+vi.mock('app/prompts/systemPrompt/systemPrompt.js', () => ({
   buildSystemPrompt: vi.fn().mockReturnValue('You are a travel planner.'),
 }));
 vi.mock('app/utils/logs/logger.js', () => ({

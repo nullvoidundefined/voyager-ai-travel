@@ -1,5 +1,3 @@
-import { describe, expect, it } from 'vitest';
-
 import {
   type CompletionTracker,
   DEFAULT_COMPLETION_TRACKER,
@@ -14,7 +12,8 @@ import {
   normalizeCompletionTracker,
   statusLabel,
   updateCompletionTracker,
-} from './bookingSteps.js';
+} from 'app/prompts/bookingSteps/bookingSteps.js';
+import { describe, expect, it } from 'vitest';
 
 const baseTripState: TripState = {
   destination: 'Paris',

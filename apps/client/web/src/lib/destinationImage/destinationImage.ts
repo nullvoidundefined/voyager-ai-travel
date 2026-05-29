@@ -1,4 +1,4 @@
-import { DESTINATIONS } from '../data/destinations';
+import { DESTINATIONS } from '../../data/destinations';
 
 // Build the base lookup from curated destinations. Curated slugs take
 // precedence over the extended list, so renaming a slug in destinations.ts

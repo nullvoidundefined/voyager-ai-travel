@@ -8,9 +8,9 @@ import type {
 import {
   type CompletionTracker,
   type FlowPosition,
-} from 'app/prompts/bookingSteps.js';
-import { buildSystemPrompt } from 'app/prompts/system-prompt.js';
-import type { TripContext } from 'app/prompts/trip-context.js';
+} from 'app/prompts/bookingSteps/bookingSteps.js';
+import { buildSystemPrompt } from 'app/prompts/systemPrompt/systemPrompt.js';
+import type { TripContext } from 'app/prompts/tripContext/tripContext.js';
 import { insertAgentTurnCost } from 'app/repositories/agentTurnCost/agentTurnCost.js';
 import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.js';
 import { getMockAnthropicClientIfEnabled } from 'app/test-fixtures/mockAnthropicClient/mockAnthropicClient.js';

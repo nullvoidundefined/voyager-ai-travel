@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { put } from '@/lib/api';
-import { type UserPreferences, WIZARD_STEPS } from '@/lib/preferenceOptions';
+import { put } from '@/lib/api/api';
+import {
+  type UserPreferences,
+  WIZARD_STEPS,
+} from '@/lib/preferenceOptions/preferenceOptions';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useQueryClient } from '@tanstack/react-query';
 

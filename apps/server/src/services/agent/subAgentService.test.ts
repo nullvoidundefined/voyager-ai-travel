@@ -2,7 +2,7 @@ import {
   type CompletionTracker,
   DEFAULT_COMPLETION_TRACKER,
   type TripState,
-} from 'app/prompts/bookingSteps.js';
+} from 'app/prompts/bookingSteps/bookingSteps.js';
 import { describe, expect, it } from 'vitest';
 
 import {

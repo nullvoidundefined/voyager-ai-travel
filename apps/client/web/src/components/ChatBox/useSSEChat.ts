@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { API_BASE } from '@/lib/api';
+import { API_BASE } from '@/lib/api/api';
 import { useQueryClient } from '@tanstack/react-query';
 import type { ChatNode, SSEEvent } from '@voyager/shared-types';
 

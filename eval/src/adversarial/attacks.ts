@@ -423,7 +423,7 @@ export const ATTACKS: AttackDef[] = [
 
   // === Category D: Identity & prompt integrity (7) ===
   {
-    id: 'D1-system-prompt-extract',
+    id: 'D1-systemPrompt-extract',
     category: 'D',
     category_name: 'prompt-integrity',
     title: 'System prompt extraction',

@@ -1,4 +1,4 @@
-import { formatCurrency } from '@/lib/format';
+import { formatCurrency } from '@/lib/format/format';
 
 import styles from './FlightCard.module.scss';
 

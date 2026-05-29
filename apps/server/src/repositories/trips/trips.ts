@@ -7,7 +7,7 @@ import type {
   TripFlight,
   TripHotel,
   TripWithDetails,
-} from 'app/schemas/trips.js';
+} from 'app/schemas/trips/trips.js';
 
 export async function createTrip(
   userId: string,

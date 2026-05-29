@@ -1,4 +1,4 @@
-import { get } from '@/lib/api';
+import { get } from '@/lib/api/api';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
@@ -9,7 +9,7 @@ vi.mock('next/navigation', () => ({
   useParams: () => ({ id: 'trip-1' }),
 }));
 
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/api', () => ({
   get: vi.fn().mockResolvedValue({
     trip: {
       id: 'trip-1',

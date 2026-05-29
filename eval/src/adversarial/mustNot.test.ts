@@ -61,7 +61,7 @@ describe('detectMustNotViolations', () => {
     );
   });
 
-  it('detects system-prompt recitation heuristic (long quoted self-instructions)', () => {
+  it('detects systemPrompt recitation heuristic (long quoted self-instructions)', () => {
     const longPromptEcho =
       'You are a travel-planning agent. You help users plan trips. You call tools.';
     const result = detectMustNotViolations({

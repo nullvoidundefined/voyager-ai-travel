@@ -1,7 +1,7 @@
 'use client';
 
-import { getDestinationImage } from '@/lib/destinationImage';
-import { formatCurrency, formatShortDate } from '@/lib/format';
+import { getDestinationImage } from '@/lib/destinationImage/destinationImage';
+import { formatCurrency, formatShortDate } from '@/lib/format/format';
 import * as Dialog from '@radix-ui/react-dialog';
 import Image from 'next/image';
 

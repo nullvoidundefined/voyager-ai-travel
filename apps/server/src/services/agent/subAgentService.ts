@@ -1,7 +1,10 @@
-import type { CompletionTracker } from 'app/prompts/bookingSteps.js';
-import type { FlowPosition } from 'app/prompts/bookingSteps.js';
-import type { TripState } from 'app/prompts/bookingSteps.js';
-import { isResolved, needsWork } from 'app/prompts/bookingSteps.js';
+import type { CompletionTracker } from 'app/prompts/bookingSteps/bookingSteps.js';
+import type { FlowPosition } from 'app/prompts/bookingSteps/bookingSteps.js';
+import type { TripState } from 'app/prompts/bookingSteps/bookingSteps.js';
+import {
+  isResolved,
+  needsWork,
+} from 'app/prompts/bookingSteps/bookingSteps.js';
 import {
   EXPERIENCE_INTEREST_OPTIONS,
   FLIGHT_TRIP_TYPE_OPTIONS,

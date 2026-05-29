@@ -1,14 +1,13 @@
-import { describe, expect, it } from 'vitest';
-
-import type { CompletionTracker } from './bookingSteps.js';
+import type { CompletionTracker } from 'app/prompts/bookingSteps/bookingSteps.js';
 import {
   type TripContext,
   formatChecklist,
   formatTripContext,
-} from './trip-context.js';
+} from 'app/prompts/tripContext/tripContext.js';
+import { describe, expect, it } from 'vitest';
 
 /**
- * Unit tests for the trip-context formatter. ENG-18 flagged this
+ * Unit tests for the tripContext formatter. ENG-18 flagged this
  * file at 10% branch coverage despite being the sole driver of the
  * system prompt body. These tests exercise every conditional
  * branch in both exported functions so a change to the prompt

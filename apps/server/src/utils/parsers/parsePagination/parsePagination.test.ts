@@ -1,4 +1,4 @@
-import { parsePagination } from 'app/utils/parsers/parsePagination.js';
+import { parsePagination } from 'app/utils/parsers/parsePagination/parsePagination.js';
 import { describe, expect, it } from 'vitest';
 
 describe('parsePagination', () => {

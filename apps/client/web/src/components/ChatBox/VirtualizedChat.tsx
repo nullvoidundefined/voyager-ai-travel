@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME } from '@/lib/constants/constants';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type {
   ChatMessage,

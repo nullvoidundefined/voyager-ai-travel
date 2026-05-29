@@ -1,4 +1,4 @@
-import { TRAVEL_PACE_OPTIONS } from '@/lib/preferenceOptions';
+import { TRAVEL_PACE_OPTIONS } from '@/lib/preferenceOptions/preferenceOptions';
 
 import styles from '../PreferencesWizard.module.scss';
 

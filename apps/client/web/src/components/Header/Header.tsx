@@ -3,9 +3,9 @@
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '@/context/AuthContext';
-import { get } from '@/lib/api';
-import { APP_NAME, GITHUB_REPO_URL } from '@/lib/constants';
-import { type UserPreferences } from '@/lib/preferenceOptions';
+import { get } from '@/lib/api/api';
+import { APP_NAME, GITHUB_REPO_URL } from '@/lib/constants/constants';
+import { type UserPreferences } from '@/lib/preferenceOptions/preferenceOptions';
 import * as Dialog from '@radix-ui/react-dialog';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';

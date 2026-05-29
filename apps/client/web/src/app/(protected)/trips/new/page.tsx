@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { post } from '@/lib/api';
+import { post } from '@/lib/api/api';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 

@@ -1,5 +1,5 @@
 import { DESTINATIONS, getDestinationBySlug } from '@/data/destinations';
-import { getDestinationImage } from '@/lib/destinationImage';
+import { getDestinationImage } from '@/lib/destinationImage/destinationImage';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';

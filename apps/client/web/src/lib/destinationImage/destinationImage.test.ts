@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { DESTINATIONS } from '../data/destinations';
+import { DESTINATIONS } from '../../data/destinations';
 import { getDestinationImage } from './destinationImage';
 
 describe('getDestinationImage', () => {

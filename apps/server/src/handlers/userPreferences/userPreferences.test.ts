@@ -2,8 +2,8 @@ import * as prefsHandlers from 'app/handlers/userPreferences/userPreferences.js'
 import { errorHandler } from 'app/middleware/errorHandler/errorHandler.js';
 import { requireAuth } from 'app/middleware/requireAuth/requireAuth.js';
 import * as prefsRepo from 'app/repositories/userPreferences/userPreferences.js';
-import type { User } from 'app/schemas/auth.js';
-import type { UserPreferences } from 'app/schemas/userPreferences.js';
+import type { User } from 'app/schemas/auth/auth.js';
+import type { UserPreferences } from 'app/schemas/userPreferences/userPreferences.js';
 import { uuid } from 'app/utils/tests/uuids.js';
 import cookieParser from 'cookie-parser';
 import express from 'express';

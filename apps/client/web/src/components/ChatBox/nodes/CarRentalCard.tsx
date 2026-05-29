@@ -1,4 +1,4 @@
-import { formatCurrency, formatShortDate } from '@/lib/format';
+import { formatCurrency, formatShortDate } from '@/lib/format/format';
 import type { CarRental } from '@voyager/shared-types';
 
 import styles from './CarRentalCard.module.scss';

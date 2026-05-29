@@ -1,4 +1,4 @@
-import { BUDGET_COMFORT_OPTIONS } from '@/lib/preferenceOptions';
+import { BUDGET_COMFORT_OPTIONS } from '@/lib/preferenceOptions/preferenceOptions';
 
 import styles from '../PreferencesWizard.module.scss';
 

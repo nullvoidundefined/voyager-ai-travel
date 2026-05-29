@@ -7,13 +7,13 @@ import {
   noEngagement,
   normalizeCompletionTracker,
   updateCompletionTracker,
-} from 'app/prompts/bookingSteps.js';
-import { buildConversationAgentPrompt } from 'app/prompts/sub-agents/conversation.prompt.js';
-import { buildExperienceAgentPrompt } from 'app/prompts/sub-agents/experience.prompt.js';
-import { buildFlightAgentPrompt } from 'app/prompts/sub-agents/flight.prompt.js';
-import { buildGroundAgentPrompt } from 'app/prompts/sub-agents/ground.prompt.js';
-import { buildHotelAgentPrompt } from 'app/prompts/sub-agents/hotel.prompt.js';
-import { buildPlanAgentPrompt } from 'app/prompts/sub-agents/plan.prompt.js';
+} from 'app/prompts/bookingSteps/bookingSteps.js';
+import { buildConversationAgentPrompt } from 'app/prompts/subAgents/conversationPrompt.js';
+import { buildExperienceAgentPrompt } from 'app/prompts/subAgents/experiencePrompt.js';
+import { buildFlightAgentPrompt } from 'app/prompts/subAgents/flightPrompt.js';
+import { buildGroundAgentPrompt } from 'app/prompts/subAgents/groundPrompt.js';
+import { buildHotelAgentPrompt } from 'app/prompts/subAgents/hotelPrompt.js';
+import { buildPlanAgentPrompt } from 'app/prompts/subAgents/planPrompt.js';
 import {
   getMessagesByConversation,
   getOrCreateConversation,
@@ -22,7 +22,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
-import { planCardSchema } from 'app/schemas/planCard.js';
+import { planCardSchema } from 'app/schemas/planCard/planCard.js';
 import { runAgentLoop } from 'app/services/agent/agentService.js';
 import {
   SUB_AGENT_TOOLS,
