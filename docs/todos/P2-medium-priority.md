@@ -62,14 +62,6 @@ Both covered only by integration tests, not the faster unit suite.
 
 ---
 
-### Potential Missing Index on `agent_turn_cost(conversation_id)`
-
-`agent_turn_cost` is queried with `JOIN conversations c ON c.id = atc.conversation_id WHERE c.trip_id = $1`. Postgres does not auto-index FKs.
-
-**Scope:** Verify migration 1771879388561 creates this index. If not, add a migration.
-
----
-
 ### CSRF Guard is Header-Presence-Only
 
 `csrfGuard` checks for the presence of `X-Requested-With` but does not validate its value or use a cryptographic token.
@@ -80,19 +72,19 @@ Both covered only by integration tests, not the faster unit suite.
 
 ## Criticism Audit (2026-05-28)
 
-### ChatBox Invariant 11 is Source-Grep, Not Behavior Test
-
-`ChatBox.invariants.test.tsx:559-570` reads `ChatBox.tsx` as a string with `readFileSync` and asserts the constant `BOOKING_CONFIRMATION_TRIGGER` is defined. Does not test the actual behavior.
-
-**Scope:** Replace with a behavioral test that fires `handleSend('Save itinerary')` and asserts `onBookTrip` was called.
-
----
-
 ### 10 `readFileSync` Source-Grep Content Tests Are Confidence Theater
 
 `page.content.test.ts`, `AuthContext.content.test.ts`, `faq/page.content.test.ts`, `globals.content.test.ts`, `account/page.content.test.ts`, `trips/page.content.test.ts`, `trips/[id]/page.content.test.ts`, `trips/new/page.content.test.ts`, `register/page.content.test.ts`, `login/page.content.test.ts`. Each reads its target as a string and asserts `.toContain(...)`.
 
 **Scope:** Delete the 9 pure source-grep files (exception: `BookingConfirmation.content.test.tsx` uses `render()`). Replace with E2E or render-test assertions where the checks matter.
+
+---
+
+### ChatBox Invariant 11 is Source-Grep, Not Behavior Test
+
+`ChatBox.invariants.test.tsx` invariant 11 reads `ChatBox.tsx` as a string with `readFileSync` and asserts the constant `BOOKING_CONFIRMATION_TRIGGER` is defined. Does not test the actual behavior.
+
+**Scope:** Replace with a behavioral test that fires `handleSend('Save itinerary')` and asserts `onBookTrip` was called.
 
 ---
 
@@ -129,38 +121,6 @@ PLAN_TRIP phase and TripPlanWidget add a new step where users confirm a plan car
 ---
 
 ## UX Audit (2026-05-27)
-
-### Inline Form Error `<p>` Elements Have No `role="alert"`
-
-In `login/page.tsx:103` and `register/page.tsx:144`, inline validation errors are rendered as `<p className={styles.error}>`. Screen readers do not announce these.
-
-**Scope:** Add `role="alert"` to all inline form error elements.
-
----
-
-### Chat Form Has No `aria-live` Announcement of Agent State
-
-When a message is sent and the agent starts working, there is no programmatic announcement. Blind users have no feedback.
-
-**Scope:** Add `aria-live` region that announces when the agent starts and finishes responding.
-
----
-
-### Send Button Text "..." During Sending Has No Accessible Label
-
-The send button content changes from "Send" to "..." while `isSending`. No `aria-label` update.
-
-**Scope:** Add `aria-label="Sending"` or `aria-busy="true"` during sending state.
-
----
-
-### Account Deletion Promised in FAQ But Not Implemented
-
-`faq/page.tsx:84-86` states: "You can delete your account at any time from the Account page." The account page has no such option. Legal exposure under GDPR Art. 17.
-
-**Scope:** Either implement account deletion or remove the FAQ claim.
-
----
 
 ### Weather Table Uses Non-Semantic ARIA Markup
 
@@ -206,46 +166,6 @@ No `jest-axe` integration at the component test level. Accessibility violations 
 
 These were labeled P1 in the sweep but are code hygiene items, not portfolio trust-breakers. Filed here as P2.
 
-### `chat.ts:198` Double-Cast Through `unknown`
-
-`updateBookingState(conversation.id, newTracker as unknown as Record<string, unknown>)` bypasses type safety.
-
-**Scope:** Define a proper type for the booking state tracker.
-
----
-
-### `chat.ts:47` `req.user!` Non-Null Assertion Pattern
-
-Safe behind `requireAuth` but creates a hidden contract. Same pattern at 10+ locations.
-
-**Scope:** Create a typed `authenticatedUser(req)` helper that throws if missing.
-
----
-
-### `chat.ts:250` `('tool' as string)` Cast
-
-`.filter((m) => m.role !== ('tool' as string))` hides a real type mismatch.
-
-**Scope:** Fix the type definition so the filter doesn't need a cast.
-
----
-
-### `trips.ts:85-87` Lexicographic Date Comparison
-
-`departure_date < today` compares ISO strings lexicographically. Works for `YYYY-MM-DD` but breaks with datetime strings.
-
-**Scope:** Use `new Date()` comparison or a date library.
-
----
-
-### `userPreferences.ts:27-44` Read-Then-Write Race
-
-`upsert` performs read-then-write outside a transaction. Two concurrent requests clobber each other.
-
-**Scope:** Use `ON CONFLICT DO UPDATE SET preferences = user_preferences.preferences || $2` for atomic JSONB merge.
-
----
-
 ### 5 Repository Test Files Mock the Database Pool (R-200 Anti-Pattern #5)
 
 `auth.test.ts`, `conversations.test.ts`, `tool-call-log.test.ts`, `trips.test.ts`, `userPreferences.test.ts` all mock the pool and make tautological assertions.
@@ -286,14 +206,6 @@ Third independent Redis client alongside `cache.service.ts` and `tokenBudget.ser
 
 ---
 
-### `agent.service.test.ts:204` Stale Assertion Limit
-
-Test says "Should stop at 15 tool calls" but `DEFAULT_MAX_ITERATIONS` is 8. Assertion `<= 15` passes trivially.
-
-**Scope:** Update assertion to match actual limit.
-
----
-
 ### `executor.ts:125-136` `update_trip` Returns Misleading Success Shape
 
 Returns `{ success: false, message: 'No fields to update' }` -- agent sees success-shaped JSON with `success: false`.
@@ -310,27 +222,11 @@ Only covers `EVAL_MOCK_SEARCH`. `E2E_MOCK_TOOLS` branch untested.
 
 ---
 
-### `account/page.tsx:104` Hardcoded "6" Should Be 7
-
-"N of **6** categories completed" but `PREFERENCE_CATEGORIES` has 7 entries.
-
-**Scope:** Use `PREFERENCE_CATEGORIES.length` instead of hardcoded 6.
-
----
-
 ### `login/page.tsx:94` Forgot Password Dead Self-Link
 
 "Forgot password?" link href is `/login` (current page). Dead self-link reloads the page.
 
 **Scope:** Link to a password reset page or show a Toast explaining the feature is coming.
-
----
-
-### `ChatBox.invariants.test.tsx:88-103` Fixture Violates Type Contract
-
-Flight fixture uses `offer_id: 'F1'` and `segments: []`, but `Flight` type has `id: string` and no `segments` field. `tsc --noEmit` produces TS2322.
-
-**Scope:** Fix the fixture to match the `Flight` type.
 
 ---
 
@@ -350,22 +246,6 @@ Flight fixture uses `offer_id: 'F1'` and `segments: []`, but `Flight` type has `
 
 ---
 
-### `AuthContext.tsx:23-35` `authError` Not in Interface
-
-`authError` state is set and included in `useMemo` value but NOT declared in `AuthContextValue` interface. TypeScript silently narrows it out. Field is entirely inert.
-
-**Scope:** Either add to interface or remove the dead state.
-
----
-
-### `api.ts:39-41` `return undefined as T` Type Lie
-
-For 204 responses, returns `undefined as T`. If `T` is concrete, callers destructuring throw at runtime.
-
-**Scope:** Return a proper sentinel or narrow the generic.
-
----
-
 ### `auth.ts:107-110` Copy-Pasted JSDoc
 
 JSDoc above `deleteExpiredSessions` is copy-pasted from `createUserAndSession`. Wrong description.
@@ -379,12 +259,6 @@ JSDoc above `deleteExpiredSessions` is copy-pasted from `createUserAndSession`. 
 ### B21: Hotel Tiles Missing Prices
 
 Many hotel tiles don't display prices. All should show `price_per_night` and `total_price`.
-
----
-
-### B22: Over-Budget Value Shows NaN
-
-When `total_spent` exceeds `budget_total`, remaining budget displays NaN instead of a negative number. Partial fix landed in `d20af7f` (trip-form-polish "P1 budget fix"); verify production no longer shows NaN in over-budget scenarios.
 
 ---
 
