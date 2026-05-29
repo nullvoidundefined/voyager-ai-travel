@@ -635,16 +635,61 @@ describe('ChatBox invariants', () => {
     });
   });
 
-  describe('invariant 11: ChatBox booking magic string uses named constant', () => {
-    it('BOOKING_CONFIRMATION_TRIGGER constant exists and no bare string comparison remains', () => {
-      const src = fs.readFileSync(
-        path.resolve(__dirname, 'ChatBox.tsx'),
-        'utf-8',
+  describe('invariant 11: booking trigger string routes to onBookTrip', () => {
+    it('exports the trigger constant with the expected value', async () => {
+      const mod = await import('./ChatBox');
+      expect(mod.BOOKING_CONFIRMATION_TRIGGER).toBe('Save itinerary');
+    });
+
+    it('handleSend(trigger) calls onBookTrip and never enters sendMessage', async () => {
+      const sendMessage = vi.fn();
+      const onBookTrip = vi.fn();
+      vi.resetModules();
+      vi.doMock('./useSSEChat', () => ({
+        useSSEChat: () => ({
+          sendMessage,
+          isSending: false,
+          streamingNodes: [],
+          toolProgress: [],
+          streamingText: '',
+          error: null,
+          clearError: () => {},
+        }),
+      }));
+      vi.doMock('@/lib/api', () => ({
+        get: vi.fn().mockResolvedValue({ messages: [] }),
+        post: vi.fn().mockResolvedValue({}),
+        put: vi.fn().mockResolvedValue({}),
+      }));
+      vi.doMock('@/lib/demo-script', () => ({
+        runDemoScript: () => () => undefined,
+      }));
+
+      const { ChatBox, BOOKING_CONFIRMATION_TRIGGER } =
+        await import('./ChatBox');
+      const { QueryClient, QueryClientProvider } =
+        await import('@tanstack/react-query');
+      const { fireEvent } = await import('@testing-library/react');
+
+      const qc = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      });
+      render(
+        <QueryClientProvider client={qc}>
+          <ChatBox tripId='trip-1' onBookTrip={onBookTrip} />
+        </QueryClientProvider>,
       );
-      expect(src).toContain(
-        "const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary'",
-      );
-      expect(src).not.toMatch(/===\s*['"]Save itinerary['"]/);
+
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, {
+        target: { value: BOOKING_CONFIRMATION_TRIGGER },
+      });
+      const form = input.closest('form');
+      expect(form).not.toBeNull();
+      fireEvent.submit(form!);
+
+      expect(onBookTrip).toHaveBeenCalledTimes(1);
+      expect(sendMessage).not.toHaveBeenCalled();
     });
   });
 });

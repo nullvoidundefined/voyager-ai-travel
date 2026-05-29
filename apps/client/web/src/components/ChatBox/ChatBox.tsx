@@ -23,7 +23,7 @@ import styles from './ChatBox.module.scss';
 import { VirtualizedChat } from './VirtualizedChat';
 import { useSSEChat } from './useSSEChat';
 
-const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary';
+export const BOOKING_CONFIRMATION_TRIGGER = 'Save itinerary';
 
 interface ChatBoxProps {
   tripId: string;
