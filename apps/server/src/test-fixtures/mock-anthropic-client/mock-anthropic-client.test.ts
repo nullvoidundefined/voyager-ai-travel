@@ -696,3 +696,97 @@ describe('selection scenario', () => {
     expect(block.name).toBe('format_response');
   });
 });
+
+describe('selectFlight scenario (ENG-17 / B24)', () => {
+  const BASE_PARAMS = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    system: 'test',
+    tools: [],
+  };
+
+  afterEach(() => {
+    resetMockScenario();
+  });
+
+  it('emits select_flight when user signals selection (step 2)', async () => {
+    setMockScenario('selectFlight');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip to SF' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: "I'll take the cheapest flight" },
+      ],
+    });
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('tool_use');
+    const block = final.content[0];
+    if (block?.type !== 'tool_use') throw new Error('expected tool_use');
+    expect(block.name).toBe('select_flight');
+    const input = block.input as Record<string, unknown>;
+    expect(input).toMatchObject({
+      airline: 'Iberia',
+      flight_number: 'IB456',
+      origin: 'DEN',
+      destination: 'SFO',
+      price: 380,
+      currency: 'USD',
+    });
+  });
+
+  it('follows select_flight with booking confirmation (step 3)', async () => {
+    setMockScenario('selectFlight');
+    const client = new MockAnthropicClient();
+    // Three prior assistant turns: search, format_response,
+    // select_flight. The fourth turn should deliver the booking
+    // confirmation format_response.
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: 'cheapest' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+      ],
+    });
+    const final = await stream.finalMessage();
+
+    expect(final.stop_reason).toBe('tool_use');
+    const block = final.content[0];
+    if (block?.type !== 'tool_use') throw new Error('expected tool_use');
+    expect(block.name).toBe('format_response');
+    const input = block.input as { text: string; quick_replies: string[] };
+    expect(input.text).toContain('booking');
+    expect(input.quick_replies).toContain('Confirm booking');
+  });
+
+  it('ends the turn after the confirmation step', async () => {
+    setMockScenario('selectFlight');
+    const client = new MockAnthropicClient();
+    const stream = client.messages.stream({
+      ...BASE_PARAMS,
+      // 4 prior assistant turns (the script has 4 active steps before
+      // the fallback end_turn)
+      messages: [
+        { role: 'user', content: 'Plan a trip' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: 'cheapest' },
+        { role: 'assistant', content: [] },
+        { role: 'user', content: [] },
+        { role: 'assistant', content: [] },
+      ],
+    });
+    const final = await stream.finalMessage();
+    expect(final.stop_reason).toBe('end_turn');
+  });
+});

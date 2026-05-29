@@ -173,11 +173,16 @@ if (process.env.NODE_ENV !== 'production') {
       res.status(404).json({ error: 'Not available outside mock mode' });
       return;
     }
+    const VALID_SCENARIOS: MockScenarioName[] = [
+      'default',
+      'selection',
+      'selectFlight',
+    ];
     const { scenario } = req.body as { scenario?: string };
-    if (scenario !== 'default' && scenario !== 'selection') {
-      res
-        .status(400)
-        .json({ error: 'Invalid scenario. Must be "default" or "selection".' });
+    if (!VALID_SCENARIOS.includes(scenario as MockScenarioName)) {
+      res.status(400).json({
+        error: `Invalid scenario. Must be one of: ${VALID_SCENARIOS.join(', ')}.`,
+      });
       return;
     }
     setMockScenario(scenario as MockScenarioName);

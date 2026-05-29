@@ -80,7 +80,7 @@ export interface ScenarioStep {
 
 export type ScenarioScript = ScenarioStep[];
 
-export type MockScenarioName = 'default' | 'selection';
+export type MockScenarioName = 'default' | 'selection' | 'selectFlight';
 
 // ── Helpers ────────────────────────────────────────────────────────
 
@@ -191,6 +191,38 @@ function buildEndTurn(): MockFinalMessage {
   };
 }
 
+// ENG-17 / B24: persisting a selection on the server is what flips
+// aria-pressed=true on the tile (the SelectableCardGroup reads
+// confirmedId from the GET /trips/:id response, not from the local
+// click). This step calls select_flight so the next trip GET sees
+// trip_flights.selected = true for this flight, and the next render
+// shows aria-pressed=true on the chosen tile. Used by the
+// selection-with-persistence scenario for US-23 E2E coverage.
+function buildSelectFlightCall(): MockFinalMessage {
+  return {
+    content: [
+      {
+        type: 'tool_use',
+        id: 'mock-toolu-select-flight-1',
+        name: 'select_flight',
+        // Fields must match selectFlightSchema. The mock picks a
+        // fixture-shaped flight (Iberia IB456 at $380) so an E2E test
+        // can assert which tile becomes aria-pressed.
+        input: {
+          airline: 'Iberia',
+          flight_number: 'IB456',
+          origin: 'DEN',
+          destination: 'SFO',
+          price: 380,
+          currency: 'USD',
+        },
+      },
+    ],
+    stop_reason: 'tool_use',
+    usage: { input_tokens: 0, output_tokens: 0 },
+  };
+}
+
 // ── Scenario scripts ───────────────────────────────────────────────
 
 const DEFAULT_SCRIPT: ScenarioScript = [
@@ -233,9 +265,42 @@ const SELECTION_SCRIPT: ScenarioScript = [
   },
 ];
 
+// ENG-17: selection scenario with server-side persistence. Step 2
+// calls select_flight so the server inserts a trip_flight row with
+// selected=true. The orchestrator runs select_flight, then re-enters
+// the loop for step 3 which delivers the booking confirmation.
+const SELECT_FLIGHT_SCRIPT: ScenarioScript = [
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 0,
+    response: buildIterationOneToolUse,
+  },
+  {
+    condition: (msgs) => countAssistantMessages(msgs) === 1,
+    response: buildIterationTwoFormatResponse,
+  },
+  {
+    // User signals selection: call select_flight to persist.
+    condition: (msgs) =>
+      countAssistantMessages(msgs) === 2 &&
+      lastUserMessageContainsKeyword(msgs, SELECTION_KEYWORDS),
+    response: buildSelectFlightCall,
+  },
+  {
+    // Right after select_flight returns success, narrate confirmation.
+    condition: (msgs) => countAssistantMessages(msgs) === 3,
+    response: buildBookingConfirmationFormatResponse,
+  },
+  {
+    // Fallback: end the turn.
+    condition: () => true,
+    response: buildEndTurn,
+  },
+];
+
 const SCENARIO_MAP: Record<MockScenarioName, ScenarioScript> = {
   default: DEFAULT_SCRIPT,
   selection: SELECTION_SCRIPT,
+  selectFlight: SELECT_FLIGHT_SCRIPT,
 };
 
 // ── Module-level state ─────────────────────────────────────────────
