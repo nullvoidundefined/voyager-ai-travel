@@ -26,6 +26,19 @@ export default defineConfig({
         '**/*.test.ts',
         'src/index.ts',
         'src/constants/**',
+        // R-200 anti-pattern #5 fix (2026-05-29): the 4 repositories
+        // below were unit-tested via tautological pool mocks
+        // (mockResolvedValue(row); expect(result).toEqual(row)). The
+        // unit tests were deleted in favor of the integration tests
+        // in src/__integration__/repositories/* which hit a real
+        // Postgres. Integration tests are excluded from the default
+        // vitest run, so the unit-coverage pass should not count
+        // these files against the threshold. The repositories ARE
+        // still covered, just at the integration layer.
+        'src/repositories/auth/auth.ts',
+        'src/repositories/conversations/conversations.ts',
+        'src/repositories/tool-call-log/tool-call-log.ts',
+        'src/repositories/userPreferences/userPreferences.ts',
       ],
       provider: 'v8',
       reporter: ['text', 'lcov'],
