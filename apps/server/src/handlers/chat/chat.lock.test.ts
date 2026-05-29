@@ -22,6 +22,20 @@ vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
+// P2-01: capture redis.set / redis.del calls so the test can assert
+// the Redis lock layer is wired (in addition to the in-memory Set).
+const mockRedisSet = vi.fn().mockResolvedValue('OK');
+const mockRedisDel = vi.fn().mockResolvedValue(1);
+vi.mock('app/services/cache/cache.service.js', async () => {
+  const actual = await vi.importActual<
+    typeof import('app/services/cache/cache.service.js')
+  >('app/services/cache/cache.service.js');
+  return {
+    ...actual,
+    getRedis: () => ({ set: mockRedisSet, del: mockRedisDel }),
+  };
+});
+
 const userId = uuid(0);
 const tripId = uuid(1);
 
@@ -87,6 +101,8 @@ async function waitFor(predicate: () => boolean, timeoutMs = 2000) {
 describe('chat handler conversation lock (ENG-02)', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    mockRedisSet.mockResolvedValue('OK');
+    mockRedisDel.mockResolvedValue(1);
   });
 
   it('exports getActiveConversationCount for observability', () => {
@@ -170,5 +186,55 @@ describe('chat handler conversation lock (ENG-02)', () => {
       .post(`/trips/${tripId}/chat`)
       .send({ message: 'second' });
     expect(second.status).toBe(200);
+  });
+
+  it('acquires + releases the Redis lock around the agent loop (P2-01)', async () => {
+    const app = createApp();
+    const convId = uuid(102);
+    stubRepos(convId);
+    mockRedisSet.mockClear();
+    mockRedisDel.mockClear();
+
+    vi.mocked(agentService.runAgentLoop).mockResolvedValue({
+      response: 'done',
+      tool_calls: [],
+      total_tokens: {
+        input: 0,
+        output: 0,
+        cache_creation: 0,
+        cache_read: 0,
+      },
+      nodes: [{ type: 'text', content: 'done' }],
+    } as never);
+
+    const res = await request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'first' });
+    expect(res.status).toBe(200);
+
+    expect(mockRedisSet).toHaveBeenCalledWith(
+      `conversation:lock:${convId}`,
+      '1',
+      'EX',
+      180,
+      'NX',
+    );
+    expect(mockRedisDel).toHaveBeenCalledWith(`conversation:lock:${convId}`);
+  });
+
+  it('returns 409 when Redis says the lock is already held by another replica (P2-01)', async () => {
+    const app = createApp();
+    const convId = uuid(103);
+    stubRepos(convId);
+    mockRedisSet.mockClear();
+    // Simulate another replica already holding the lock: SET NX returns null.
+    mockRedisSet.mockResolvedValueOnce(null);
+
+    const res = await request(app)
+      .post(`/trips/${tripId}/chat`)
+      .send({ message: 'first' });
+
+    expect(res.status).toBe(409);
+    expect(chatHandlers.getActiveConversationCount()).toBe(0);
   });
 });

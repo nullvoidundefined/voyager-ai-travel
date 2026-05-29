@@ -51,12 +51,53 @@ import {
   toFlowInput,
 } from './chat.helpers.js';
 
-// In-memory lock to prevent concurrent agent loops per conversation
+// In-memory lock for single-replica defense; Redis SET NX EX layer
+// (acquireConversationLock below) prevents concurrent agent loops
+// across replicas on horizontal scale.
 const activeConversations = new Set<string>();
 
 /** Returns the number of currently active agent loops (for health monitoring). */
 export function getActiveConversationCount(): number {
   return activeConversations.size;
+}
+
+// P2-01: lock TTL is a safety net; if a worker dies mid-loop the lock
+// auto-expires so the conversation is not permanently wedged.
+const REDIS_LOCK_TTL_S = 180;
+
+async function acquireConversationLock(
+  conversationId: string,
+): Promise<boolean> {
+  if (activeConversations.has(conversationId)) return false;
+  activeConversations.add(conversationId);
+  try {
+    const { getRedis } = await import('app/services/cache/cache.service.js');
+    const redis = getRedis();
+    if (redis) {
+      const key = `conversation:lock:${conversationId}`;
+      const acquired = await redis.set(key, '1', 'EX', REDIS_LOCK_TTL_S, 'NX');
+      if (!acquired) {
+        activeConversations.delete(conversationId);
+        return false;
+      }
+    }
+  } catch {
+    // Redis unavailable: fall through to in-memory lock only.
+  }
+  return true;
+}
+
+async function releaseConversationLock(conversationId: string): Promise<void> {
+  activeConversations.delete(conversationId);
+  try {
+    const { getRedis } = await import('app/services/cache/cache.service.js');
+    const redis = getRedis();
+    if (redis) {
+      await redis.del(`conversation:lock:${conversationId}`);
+    }
+  } catch {
+    // Best-effort: TTL will expire the lock.
+  }
 }
 
 export async function chat(req: Request, res: Response) {
@@ -103,14 +144,13 @@ export async function chat(req: Request, res: Response) {
   const userPrefs = await findUserPreferences(userId);
   const conversation = await getOrCreateConversation(tripId);
 
-  if (activeConversations.has(conversation.id)) {
+  if (!(await acquireConversationLock(conversation.id))) {
     throw new ApiError(
       409,
       'CONFLICT',
       'A response is already being generated for this trip. Please wait.',
     );
   }
-  activeConversations.add(conversation.id);
 
   const history = await getMessagesByConversation(conversation.id);
   const claudeMessages = buildClaudeMessages(history, message);
@@ -128,7 +168,7 @@ export async function chat(req: Request, res: Response) {
   req.socket.setTimeout(150_000);
 
   req.on('close', () => {
-    activeConversations.delete(conversation.id);
+    void releaseConversationLock(conversation.id);
   });
 
   // Persist user message
@@ -317,7 +357,7 @@ export async function chat(req: Request, res: Response) {
     );
     flushSSE(res);
   } finally {
-    activeConversations.delete(conversation.id);
+    await releaseConversationLock(conversation.id);
     res.end();
   }
 }
