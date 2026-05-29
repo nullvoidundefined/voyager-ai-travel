@@ -206,7 +206,7 @@ const CITIES = [
   {
     name: 'Calgary',
     slug: 'calgary',
-    query: 'Calgary Alberta mountains skyline',
+    query: 'Calgary downtown',
   },
   // Europe
   { name: 'London', slug: 'london', query: 'London Big Ben Thames' },
@@ -284,7 +284,7 @@ const CITIES = [
   {
     name: 'Seville',
     slug: 'seville',
-    query: 'Seville Spain flamenco orange trees',
+    query: 'Seville Spain cathedral',
   },
   { name: 'Florence', slug: 'florence', query: 'Florence Duomo Tuscany' },
   { name: 'Venice', slug: 'venice', query: 'Venice gondola canal romantic' },
@@ -356,7 +356,7 @@ const CITIES = [
     slug: 'ho-chi-minh-city',
     query: 'Ho Chi Minh City Vietnam skyline',
   },
-  { name: 'Bali', slug: 'bali', query: 'Bali Indonesia temple rice terraces' },
+  { name: 'Bali', slug: 'bali', query: 'Bali Indonesia beach' },
   {
     name: 'New Delhi',
     slug: 'new-delhi',
@@ -385,7 +385,7 @@ const CITIES = [
   {
     name: 'Phnom Penh',
     slug: 'phnom-penh',
-    query: 'Phnom Penh Cambodia palace river',
+    query: 'Phnom Penh Cambodia',
   },
   { name: 'Yangon', slug: 'yangon', query: 'Yangon Myanmar Shwedagon pagoda' },
   { name: 'Dhaka', slug: 'dhaka', query: 'Dhaka Bangladesh river city' },
