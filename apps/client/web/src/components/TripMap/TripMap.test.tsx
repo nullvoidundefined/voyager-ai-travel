@@ -99,13 +99,11 @@ describe('TripMap', () => {
   });
 });
 
-describe('TripMap fitBounds', () => {
+describe('TripMap geocoded view', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockMapboxgl.accessToken = '';
     process.env.NEXT_PUBLIC_MAPBOX_TOKEN = 'test-mapboxToken';
-    vi.stubGlobal('fetch', mockFetchWithBbox);
-    // Re-apply the load event firing after clearAllMocks
     mockMapInstance.on.mockImplementation((event: string, cb: () => void) => {
       if (event === 'load') cb();
     });
@@ -116,19 +114,72 @@ describe('TripMap fitBounds', () => {
     vi.unstubAllGlobals();
   });
 
-  it('calls fitBounds with bbox when geocode returns bbox and no pins present', async () => {
+  it('centers a city geocode on the feature point at city zoom, ignoring an oversized bbox', async () => {
+    // Mapbox returns Tokyo as a place with a bbox extending south-east to the
+    // Ogasawara Islands (~1000km offshore). Naively fitting to that bbox puts
+    // the map center in the Pacific Ocean. The component must use the feature
+    // center and a place-appropriate zoom instead.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              place_type: ['place'],
+              center: [139.6917, 35.6895],
+              bbox: [138.94, 24.22, 142.31, 35.9],
+            },
+          ],
+        }),
+      }),
+    );
+
+    render(<TripMap pins={[]} destinationName='Tokyo' />);
+
+    await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
+
+    expect(mockMapboxgl.Map).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: [139.6917, 35.6895],
+        zoom: 11,
+      }),
+    );
+    expect(mockMapInstance.fitBounds).not.toHaveBeenCalled();
+  });
+
+  it('zooms out for country-level geocode results', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          features: [
+            {
+              place_type: ['country'],
+              center: [-8.22, 39.39],
+              bbox: [-9.5, 36.8, -6.2, 42.2],
+            },
+          ],
+        }),
+      }),
+    );
+
     render(<TripMap pins={[]} destinationName='Portugal' />);
 
     await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
-    await new Promise((r) => setTimeout(r, 50));
 
-    expect(mockMapInstance.fitBounds).toHaveBeenCalledWith(
-      [-9.5, 36.8, -6.2, 42.2],
-      expect.objectContaining({ padding: 40 }),
+    expect(mockMapboxgl.Map).toHaveBeenCalledWith(
+      expect.objectContaining({
+        center: [-8.22, 39.39],
+        zoom: 5,
+      }),
     );
+    expect(mockMapInstance.fitBounds).not.toHaveBeenCalled();
   });
 
   it('does not call fitBounds when pins are present', async () => {
+    vi.stubGlobal('fetch', mockFetchWithBbox);
     render(
       <TripMap
         pins={[
@@ -139,7 +190,6 @@ describe('TripMap fitBounds', () => {
     );
 
     await waitFor(() => expect(mockMapboxgl.Map).toHaveBeenCalled());
-    await new Promise((r) => setTimeout(r, 50));
 
     expect(mockMapInstance.fitBounds).not.toHaveBeenCalled();
   });

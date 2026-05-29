@@ -27,9 +27,26 @@ const PIN_COLORS: Record<MapPin['type'], string> = {
 
 const PLACEHOLDER_DESTINATIONS = new Set(['New trip', 'Planning...']);
 
+// Per-place-type zoom. Mapbox bboxes can be misleading for administrative
+// regions whose territory extends far offshore (Tokyo prefecture reaches the
+// Ogasawara Islands ~1000km into the Pacific), so we ignore bbox entirely and
+// center on the feature point at a type-appropriate zoom.
+const ZOOM_BY_PLACE_TYPE: Record<string, number> = {
+  country: 5,
+  region: 7,
+  district: 9,
+  postcode: 11,
+  place: 11,
+  locality: 12,
+  neighborhood: 13,
+  address: 15,
+  poi: 15,
+};
+const DEFAULT_GEOCODED_ZOOM = 11;
+
 interface GeocodeResult {
   center: [number, number];
-  bbox?: [number, number, number, number];
+  zoom: number;
 }
 
 async function geocodeDestination(
@@ -41,13 +58,18 @@ async function geocodeDestination(
   if (!res.ok) return null;
   const data = (await res.json()) as {
     features: {
+      place_type?: string[];
       center: [number, number];
-      bbox?: [number, number, number, number];
     }[];
   };
   const feature = data.features[0];
   if (!feature) return null;
-  return { center: feature.center, bbox: feature.bbox };
+  const placeType = feature.place_type?.[0];
+  const resolvedZoom =
+    placeType != null
+      ? (ZOOM_BY_PLACE_TYPE[placeType] ?? DEFAULT_GEOCODED_ZOOM)
+      : DEFAULT_GEOCODED_ZOOM;
+  return { center: feature.center, zoom: resolvedZoom };
 }
 
 export function TripMap({
@@ -69,7 +91,7 @@ export function TripMap({
 
     async function initMap() {
       let resolvedCenter: [number, number];
-      let resolvedBbox: [number, number, number, number] | undefined;
+      let resolvedZoom = zoom;
 
       if (center != null) {
         resolvedCenter = center;
@@ -82,7 +104,7 @@ export function TripMap({
         const geocoded = await geocodeDestination(destinationName, token!);
         if (cancelled) return;
         resolvedCenter = geocoded?.center ?? [0, 20];
-        resolvedBbox = geocoded?.bbox;
+        if (geocoded) resolvedZoom = geocoded.zoom;
       } else {
         resolvedCenter = [0, 20];
       }
@@ -98,7 +120,7 @@ export function TripMap({
         container: containerRef.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: resolvedCenter,
-        zoom,
+        zoom: resolvedZoom,
       });
 
       mapRef.current = map;
@@ -106,12 +128,6 @@ export function TripMap({
       (map as { on: (event: string, cb: () => void) => void }).on(
         'load',
         () => {
-          if (resolvedBbox && pins.length === 0) {
-            (map as { fitBounds: (b: unknown, o: unknown) => void }).fitBounds(
-              resolvedBbox,
-              { padding: 40 },
-            );
-          }
           pins.forEach((pin) => {
             const el = document.createElement('div');
             el.style.backgroundColor = PIN_COLORS[pin.type];
