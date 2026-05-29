@@ -24,6 +24,22 @@ export interface HotelSearchInput {
   max_price_per_night?: number;
 }
 
+// F-17: distinct outcome shape so the agent can narrate the correct
+// user-facing message instead of generic "no hotels found" for every
+// failure mode (timeout, quota exhausted, upstream error).
+export type HotelSearchStatus =
+  | 'ok'
+  | 'no_results'
+  | 'timeout'
+  | 'quota_exhausted'
+  | 'error';
+
+export interface HotelSearchOutcome {
+  status: HotelSearchStatus;
+  hotels: HotelResult[];
+  message?: string;
+}
+
 export interface HotelResult {
   hotel_id: string;
   offer_id: string;
@@ -105,7 +121,7 @@ function normalizeHotel(
 
 export async function searchHotels(
   input: HotelSearchInput,
-): Promise<HotelResult[]> {
+): Promise<HotelSearchOutcome> {
   // Mock mode for eval runs
   if (isMockMode()) {
     return generateMockHotels(input);
@@ -119,7 +135,7 @@ export async function searchHotels(
     starRatingMin: input.star_rating_min,
   });
 
-  const cached = await cacheGet<HotelResult[]>(cacheKey);
+  const cached = await cacheGet<HotelSearchOutcome>(cacheKey);
   if (cached) {
     logger.debug({ cacheKey }, 'Hotel search cache hit');
     return cached;
@@ -146,18 +162,34 @@ export async function searchHotels(
         { city: input.city },
         'Hotel search unavailable: SerpApi monthly cap reached',
       );
-      return [];
+      return {
+        status: 'quota_exhausted',
+        hotels: [],
+        message:
+          'Hotel search is temporarily unavailable: the monthly SerpApi quota for this demo has been reached. Try again next month or skip hotels for now.',
+      };
     }
-    // Mirror B2's fail-soft pattern: any other SerpApi failure (5xx,
-    // region not supported, network) should not propagate to the
-    // agent loop. Log at warn and return empty so the agent narrates
-    // "no hotels found" instead of "having trouble accessing."
+    // F-17: distinguish timeout from generic upstream errors so the
+    // agent can narrate the appropriate state to the user.
+    const isTimeout = err instanceof Error && err.name === 'TimeoutError';
     const errorMessage = err instanceof Error ? err.message : String(err);
     logger.warn(
-      { err, city: input.city, errorMessage },
-      'Hotel search failed; returning empty result',
+      { err, city: input.city, errorMessage, isTimeout },
+      'Hotel search failed; returning structured outcome',
     );
-    return [];
+    return isTimeout
+      ? {
+          status: 'timeout',
+          hotels: [],
+          message:
+            'Hotel search timed out before results arrived. The upstream API is slow right now; try again in a moment.',
+        }
+      : {
+          status: 'error',
+          hotels: [],
+          message:
+            'Hotel search hit an upstream error. The result is not "no hotels" -- the search itself failed. Suggest the user try again or proceed without hotels.',
+        };
   }
 
   let results = (response.properties ?? []).map((h, i) =>
@@ -176,11 +208,16 @@ export async function searchHotels(
 
   results = results.sort((a, b) => a.total_price - b.total_price).slice(0, 5);
 
-  await cacheSet(cacheKey, results, CACHE_TTL);
+  const outcome: HotelSearchOutcome =
+    results.length > 0
+      ? { status: 'ok', hotels: results }
+      : { status: 'no_results', hotels: [] };
+
+  await cacheSet(cacheKey, outcome, CACHE_TTL);
   logger.info(
     { count: results.length, city: input.city },
     'Hotel search complete',
   );
 
-  return results;
+  return outcome;
 }

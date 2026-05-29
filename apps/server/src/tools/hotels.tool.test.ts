@@ -80,7 +80,10 @@ describe('hotels.tool', () => {
 
   describe('searchHotels', () => {
     it('returns cached results when available', async () => {
-      const cached = [{ name: 'Hotel Barcelona', price_per_night: 150 }];
+      const cached = {
+        status: 'ok' as const,
+        hotels: [{ name: 'Hotel Barcelona', price_per_night: 150 }],
+      };
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(cached);
 
       const result = await searchHotels({
@@ -107,11 +110,12 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('name');
-      expect(result[0]).toHaveProperty('total_price');
-      expect(result[0]).toHaveProperty('star_rating');
-      expect(result[0]).toHaveProperty('hotel_id');
+      expect(result.status).toBe('ok');
+      expect(result.hotels).toHaveLength(2);
+      expect(result.hotels[0]).toHaveProperty('name');
+      expect(result.hotels[0]).toHaveProperty('total_price');
+      expect(result.hotels[0]).toHaveProperty('star_rating');
+      expect(result.hotels[0]).toHaveProperty('hotel_id');
     });
 
     it('sorts results by total price ascending', async () => {
@@ -127,8 +131,8 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result[0]!.total_price).toBeLessThanOrEqual(
-        result[1]!.total_price,
+      expect(result.hotels[0]!.total_price).toBeLessThanOrEqual(
+        result.hotels[1]!.total_price,
       );
     });
 
@@ -147,12 +151,12 @@ describe('hotels.tool', () => {
 
       expect(cacheService.cacheSet).toHaveBeenCalledWith(
         'test-hotel-cache-key',
-        expect.any(Array),
+        expect.objectContaining({ status: 'ok' }),
         21600,
       );
     });
 
-    it('handles empty results gracefully', async () => {
+    it('returns status:no_results when SerpApi has zero properties', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({
         properties: [],
@@ -165,7 +169,8 @@ describe('hotels.tool', () => {
         guests: 1,
       });
 
-      expect(result).toEqual([]);
+      expect(result.status).toBe('no_results');
+      expect(result.hotels).toEqual([]);
     });
 
     it('filters by star_rating_min', async () => {
@@ -182,8 +187,8 @@ describe('hotels.tool', () => {
         star_rating_min: 3,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('Hotel Barcelona Beach');
+      expect(result.hotels).toHaveLength(1);
+      expect(result.hotels[0]!.name).toBe('Hotel Barcelona Beach');
     });
 
     it('filters by max_price_per_night', async () => {
@@ -200,8 +205,8 @@ describe('hotels.tool', () => {
         max_price_per_night: 100,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.name).toBe('Budget Inn Barcelona');
+      expect(result.hotels).toHaveLength(1);
+      expect(result.hotels[0]!.name).toBe('Budget Inn Barcelona');
     });
 
     it('populates address from nearby_places landmark when present', async () => {
@@ -229,7 +234,7 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result[0]!.address).toBe('Near Las Ramblas, Barcelona');
+      expect(result.hotels[0]!.address).toBe('Near Las Ramblas, Barcelona');
     });
 
     it('falls back to city when nearby_places is absent', async () => {
@@ -253,7 +258,7 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result[0]!.address).toBe('Barcelona');
+      expect(result.hotels[0]!.address).toBe('Barcelona');
     });
 
     it('falls back to city when nearby_places is an empty array', async () => {
@@ -278,7 +283,7 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result[0]!.address).toBe('Barcelona');
+      expect(result.hotels[0]!.address).toBe('Barcelona');
     });
 
     it("parses hotel_class string format (e.g. '4-star hotel')", async () => {
@@ -302,10 +307,10 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result[0]!.star_rating).toBe(4);
+      expect(result.hotels[0]!.star_rating).toBe(4);
     });
 
-    it('returns an empty array when SerpApi monthly quota is exceeded', async () => {
+    it('returns status:quota_exhausted when SerpApi monthly quota is hit (F-17)', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       const { SerpApiQuotaExceededError } = serpApiService as {
         SerpApiQuotaExceededError: new () => Error;
@@ -321,10 +326,12 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result).toEqual([]);
+      expect(result.status).toBe('quota_exhausted');
+      expect(result.hotels).toEqual([]);
+      expect(result.message).toMatch(/quota/i);
     });
 
-    it('returns [] when SerpApi throws a non-quota error', async () => {
+    it('returns status:error with message when SerpApi throws a non-quota error (F-17)', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
         new Error('SerpApi 503: service unavailable'),
@@ -337,7 +344,27 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result).toEqual([]);
+      expect(result.status).toBe('error');
+      expect(result.hotels).toEqual([]);
+      expect(result.message).toBeTruthy();
+    });
+
+    it('returns status:timeout when SerpApi aborts (F-17)', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      const timeoutErr = new Error('The operation was aborted due to timeout');
+      timeoutErr.name = 'TimeoutError';
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(timeoutErr);
+
+      const result = await searchHotels({
+        city: 'Barcelona',
+        check_in: '2026-07-01',
+        check_out: '2026-07-06',
+        guests: 2,
+      });
+
+      expect(result.status).toBe('timeout');
+      expect(result.hotels).toEqual([]);
+      expect(result.message).toMatch(/timed out/i);
     });
 
     it('does not throw when SerpApi throws a network error', async () => {
@@ -381,22 +408,25 @@ describe('hotels.tool', () => {
         isMockMode: vi.fn().mockReturnValue(true),
       }));
       vi.doMock('app/tools/mock/hotels.mock.js', () => ({
-        generateMockHotels: vi.fn().mockReturnValue([
-          {
-            offer_id: 'mock-hotel-0',
-            name: 'Test Boutique Hotel',
-            city: 'Barcelona',
-            star_rating: 4,
-            price_per_night: 220,
-            total_price: 660,
-            currency: 'USD',
-            check_in: '2026-07-01',
-            check_out: '2026-07-06',
-            image_url: null,
-            latitude: null,
-            longitude: null,
-          },
-        ]),
+        generateMockHotels: vi.fn().mockReturnValue({
+          status: 'ok',
+          hotels: [
+            {
+              offer_id: 'mock-hotel-0',
+              name: 'Test Boutique Hotel',
+              city: 'Barcelona',
+              star_rating: 4,
+              price_per_night: 220,
+              total_price: 660,
+              currency: 'USD',
+              check_in: '2026-07-01',
+              check_out: '2026-07-06',
+              image_url: null,
+              latitude: null,
+              longitude: null,
+            },
+          ],
+        }),
       }));
       const mod = await import('app/tools/hotels.tool.js');
       searchHotels = mod.searchHotels;
@@ -410,8 +440,8 @@ describe('hotels.tool', () => {
         guests: 2,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('Test Boutique Hotel');
+      expect(result.hotels).toHaveLength(1);
+      expect(result.hotels[0]?.name).toBe('Test Boutique Hotel');
     });
   });
 });

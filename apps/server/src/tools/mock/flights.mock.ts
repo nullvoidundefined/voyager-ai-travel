@@ -1,8 +1,13 @@
-import type { FlightResult, FlightSearchInput } from '../flights.tool.js';
+import type {
+  FlightSearchInput,
+  FlightSearchOutcome,
+} from '../flights.tool.js';
 
-export function generateMockFlights(input: FlightSearchInput): FlightResult[] {
+export function generateMockFlights(
+  input: FlightSearchInput,
+): FlightSearchOutcome {
   const airlines = ['Delta', 'United', 'American'];
-  return airlines.map((airline, i) => ({
+  const flights = airlines.map((airline, i) => ({
     offer_id: `mock-flight-${i}`,
     airline,
     airline_logo: null,
@@ -29,4 +34,5 @@ export function generateMockFlights(input: FlightSearchInput): FlightResult[] {
       },
     ],
   }));
+  return { status: 'ok', flights };
 }

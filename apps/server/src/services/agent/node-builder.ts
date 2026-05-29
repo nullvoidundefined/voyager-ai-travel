@@ -139,12 +139,23 @@ function extractArray<T>(result: unknown, key: string): T[] {
   return [];
 }
 
+// F-17: when the tool returned a structured failure (status: timeout,
+// quota_exhausted, error), skip the empty tile render so the user only
+// sees the agent's narration of the failure mode, not an empty card list.
+function shouldRenderTiles(result: unknown): boolean {
+  if (result == null || typeof result !== 'object') return true;
+  const status = (result as { status?: unknown }).status;
+  if (typeof status !== 'string') return true;
+  return status === 'ok';
+}
+
 export function buildNodeFromToolResult(
   toolName: string,
   result: unknown,
 ): ChatNode | null {
   switch (toolName) {
     case 'search_flights':
+      if (!shouldRenderTiles(result)) return null;
       return {
         type: 'flight_tiles',
         flights: normalizeFlights(extractArray<FlightRaw>(result, 'flights')),
@@ -152,6 +163,7 @@ export function buildNodeFromToolResult(
       };
 
     case 'search_hotels':
+      if (!shouldRenderTiles(result)) return null;
       return {
         type: 'hotel_tiles',
         hotels: normalizeHotels(extractArray<HotelRaw>(result, 'hotels')),

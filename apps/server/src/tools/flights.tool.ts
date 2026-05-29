@@ -56,6 +56,22 @@ export interface FlightResult {
   }>;
 }
 
+// F-17: distinct outcome shape so the agent can narrate the correct
+// user-facing message instead of generic "no flights found" for every
+// failure mode (timeout, quota exhausted, upstream error).
+export type FlightSearchStatus =
+  | 'ok'
+  | 'no_results'
+  | 'timeout'
+  | 'quota_exhausted'
+  | 'error';
+
+export interface FlightSearchOutcome {
+  status: FlightSearchStatus;
+  flights: FlightResult[];
+  message?: string;
+}
+
 interface SerpApiFlight {
   flights: Array<{
     departure_airport: { id: string; time: string };
@@ -113,7 +129,7 @@ function normalizeOffer(offer: SerpApiFlight, index: number): FlightResult {
 
 export async function searchFlights(
   input: FlightSearchInput,
-): Promise<FlightResult[]> {
+): Promise<FlightSearchOutcome> {
   // Mock mode for eval runs
   if (isMockMode()) {
     return generateMockFlights(input);
@@ -131,7 +147,7 @@ export async function searchFlights(
     flexibleDates: input.flexible_dates,
   });
 
-  const cached = await cacheGet<FlightResult[]>(cacheKey);
+  const cached = await cacheGet<FlightSearchOutcome>(cacheKey);
   if (cached) {
     logger.debug({ cacheKey }, 'Flight search cache hit');
     return cached;
@@ -182,7 +198,11 @@ export async function searchFlights(
       ? perDay.filter((r) => r.price <= input.max_price!)
       : perDay;
     const sorted = filtered.sort((a, b) => a.price - b.price);
-    await cacheSet(cacheKey, sorted, CACHE_TTL);
+    const outcome: FlightSearchOutcome =
+      sorted.length > 0
+        ? { status: 'ok', flights: sorted }
+        : { status: 'no_results', flights: [] };
+    await cacheSet(cacheKey, outcome, CACHE_TTL);
     logger.info(
       {
         count: sorted.length,
@@ -191,7 +211,7 @@ export async function searchFlights(
       },
       'Flexible flight search complete',
     );
-    return sorted;
+    return outcome;
   }
 
   const params: Record<string, string | number | undefined> = {
@@ -218,14 +238,16 @@ export async function searchFlights(
         { origin: input.origin, destination: input.destination },
         'Flight search unavailable: SerpApi monthly cap reached',
       );
-      // Graceful degrade: return empty results with a hint that the
-      // agent can include in its user-facing response.
-      return [];
+      return {
+        status: 'quota_exhausted',
+        flights: [],
+        message:
+          'Flight search is temporarily unavailable: the monthly SerpApi quota for this demo has been reached. Try again next month or skip flights for now.',
+      };
     }
-    // Mirror B2's fail-soft pattern: any other SerpApi failure (5xx,
-    // region not supported, network) should not propagate to the
-    // agent loop. Log at warn and return empty so the agent narrates
-    // "no flights found" instead of "having trouble accessing."
+    // F-17: distinguish timeout from other errors so the agent can
+    // narrate the appropriate state to the user.
+    const isTimeout = err instanceof Error && err.name === 'TimeoutError';
     const errorMessage = err instanceof Error ? err.message : String(err);
     logger.warn(
       {
@@ -233,10 +255,23 @@ export async function searchFlights(
         origin: input.origin,
         destination: input.destination,
         errorMessage,
+        isTimeout,
       },
-      'Flight search failed; returning empty result',
+      'Flight search failed; returning structured outcome',
     );
-    return [];
+    return isTimeout
+      ? {
+          status: 'timeout',
+          flights: [],
+          message:
+            'Flight search timed out before results arrived. The upstream API is slow right now; try again in a moment.',
+        }
+      : {
+          status: 'error',
+          flights: [],
+          message:
+            'Flight search hit an upstream error. The result is not "no flights" -- the search itself failed. Suggest the user try again or proceed without flights.',
+        };
   }
 
   const allFlights = [
@@ -252,7 +287,12 @@ export async function searchFlights(
 
   results = results.sort((a, b) => a.price - b.price).slice(0, 5);
 
-  await cacheSet(cacheKey, results, CACHE_TTL);
+  const outcome: FlightSearchOutcome =
+    results.length > 0
+      ? { status: 'ok', flights: results }
+      : { status: 'no_results', flights: [] };
+
+  await cacheSet(cacheKey, outcome, CACHE_TTL);
   logger.info(
     {
       count: results.length,
@@ -262,5 +302,5 @@ export async function searchFlights(
     'Flight search complete',
   );
 
-  return results;
+  return outcome;
 }

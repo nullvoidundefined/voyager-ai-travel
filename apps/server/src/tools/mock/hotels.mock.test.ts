@@ -11,15 +11,16 @@ describe('generateMockHotels', () => {
     guests: 2,
   };
 
-  it('returns an array of HotelResult objects', () => {
-    const results = generateMockHotels(input);
-    expect(results).toBeInstanceOf(Array);
-    expect(results.length).toBeGreaterThan(0);
+  it('returns a status:ok outcome with an array of HotelResult objects', () => {
+    const outcome = generateMockHotels(input);
+    expect(outcome.status).toBe('ok');
+    expect(outcome.hotels).toBeInstanceOf(Array);
+    expect(outcome.hotels.length).toBeGreaterThan(0);
   });
 
-  it('each result has required HotelResult fields', () => {
-    const results = generateMockHotels(input);
-    for (const r of results) {
+  it('each hotel has required HotelResult fields', () => {
+    const outcome = generateMockHotels(input);
+    for (const r of outcome.hotels) {
       expect(r).toHaveProperty('hotel_id');
       expect(r).toHaveProperty('offer_id');
       expect(r).toHaveProperty('name');
@@ -34,8 +35,8 @@ describe('generateMockHotels', () => {
   });
 
   it('includes a range of star ratings', () => {
-    const results = generateMockHotels(input);
-    const ratings = results.map((r) => r.star_rating);
+    const outcome = generateMockHotels(input);
+    const ratings = outcome.hotels.map((r) => r.star_rating);
     expect(Math.min(...ratings)).toBeLessThanOrEqual(2);
     expect(Math.max(...ratings)).toBeGreaterThanOrEqual(4);
   });

@@ -1,6 +1,8 @@
-import type { HotelResult, HotelSearchInput } from '../hotels.tool.js';
+import type { HotelSearchInput, HotelSearchOutcome } from '../hotels.tool.js';
 
-export function generateMockHotels(input: HotelSearchInput): HotelResult[] {
+export function generateMockHotels(
+  input: HotelSearchInput,
+): HotelSearchOutcome {
   const mockHotels = [
     {
       name: `${input.city} Backpacker Hostel`,
@@ -33,7 +35,7 @@ export function generateMockHotels(input: HotelSearchInput): HotelResult[] {
       landmark: 'Waterfront',
     },
   ];
-  return mockHotels.map((h, i) => ({
+  const hotels = mockHotels.map((h, i) => ({
     hotel_id: `mock-hotel-${i}`,
     offer_id: `mock-hotel-offer-${i}`,
     name: h.name,
@@ -49,4 +51,5 @@ export function generateMockHotels(input: HotelSearchInput): HotelResult[] {
     latitude: null,
     longitude: null,
   }));
+  return { status: 'ok', hotels };
 }

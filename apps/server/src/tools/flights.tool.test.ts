@@ -96,7 +96,10 @@ describe('flights.tool', () => {
 
   describe('searchFlights', () => {
     it('returns cached results when available', async () => {
-      const cached = [{ origin: 'SFO', destination: 'BCN', price: 450 }];
+      const cached = {
+        status: 'ok' as const,
+        flights: [{ origin: 'SFO', destination: 'BCN', price: 450 }],
+      };
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(cached);
 
       const result = await searchFlights({
@@ -133,12 +136,13 @@ describe('flights.tool', () => {
         }),
       );
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toHaveProperty('origin', 'SFO');
-      expect(result[0]).toHaveProperty('destination', 'BCN');
-      expect(result[0]).toHaveProperty('price');
-      expect(result[0]).toHaveProperty('airline');
-      expect(result[0]).toHaveProperty('airline_logo');
+      expect(result.status).toBe('ok');
+      expect(result.flights).toHaveLength(2);
+      expect(result.flights[0]).toHaveProperty('origin', 'SFO');
+      expect(result.flights[0]).toHaveProperty('destination', 'BCN');
+      expect(result.flights[0]).toHaveProperty('price');
+      expect(result.flights[0]).toHaveProperty('airline');
+      expect(result.flights[0]).toHaveProperty('airline_logo');
     });
 
     it('sorts results by price ascending', async () => {
@@ -154,7 +158,9 @@ describe('flights.tool', () => {
         passengers: 1,
       });
 
-      expect(result[0]!.price).toBeLessThanOrEqual(result[1]!.price);
+      expect(result.flights[0]!.price).toBeLessThanOrEqual(
+        result.flights[1]!.price,
+      );
     });
 
     it('caches results after fetching', async () => {
@@ -172,12 +178,12 @@ describe('flights.tool', () => {
 
       expect(cacheService.cacheSet).toHaveBeenCalledWith(
         'test-cache-key',
-        expect.any(Array),
+        expect.objectContaining({ status: 'ok' }),
         21600,
       );
     });
 
-    it('handles empty results gracefully', async () => {
+    it('returns status:no_results when SerpApi has zero matches', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockResolvedValueOnce({});
 
@@ -188,7 +194,8 @@ describe('flights.tool', () => {
         passengers: 1,
       });
 
-      expect(result).toEqual([]);
+      expect(result.status).toBe('no_results');
+      expect(result.flights).toEqual([]);
     });
 
     it('filters by max_price', async () => {
@@ -205,11 +212,11 @@ describe('flights.tool', () => {
         max_price: 400,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]!.price).toBe(380);
+      expect(result.flights).toHaveLength(1);
+      expect(result.flights[0]!.price).toBe(380);
     });
 
-    it('returns [] when SerpApi throws a non-quota error', async () => {
+    it('returns status:error with message when SerpApi throws a non-quota error (F-17)', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(
         new Error('SerpApi 503: service unavailable'),
@@ -222,7 +229,27 @@ describe('flights.tool', () => {
         passengers: 1,
       });
 
-      expect(result).toEqual([]);
+      expect(result.status).toBe('error');
+      expect(result.flights).toEqual([]);
+      expect(result.message).toBeTruthy();
+    });
+
+    it('returns status:timeout when SerpApi aborts (F-17)', async () => {
+      vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
+      const timeoutErr = new Error('The operation was aborted due to timeout');
+      timeoutErr.name = 'TimeoutError';
+      vi.mocked(serpApiService.serpApiGet).mockRejectedValueOnce(timeoutErr);
+
+      const result = await searchFlights({
+        origin: 'SFO',
+        destination: 'BCN',
+        departure_date: '2026-07-01',
+        passengers: 1,
+      });
+
+      expect(result.status).toBe('timeout');
+      expect(result.flights).toEqual([]);
+      expect(result.message).toMatch(/timed out/i);
     });
 
     it('does not throw when SerpApi throws a network error', async () => {
@@ -241,7 +268,7 @@ describe('flights.tool', () => {
       ).resolves.toBeDefined();
     });
 
-    it('returns an empty array when SerpApi monthly quota is exceeded', async () => {
+    it('returns status:quota_exhausted when SerpApi monthly quota is hit (F-17)', async () => {
       vi.mocked(cacheService.cacheGet).mockResolvedValueOnce(null);
       const { SerpApiQuotaExceededError } = serpApiService as {
         SerpApiQuotaExceededError: new () => Error;
@@ -257,8 +284,9 @@ describe('flights.tool', () => {
         passengers: 1,
       });
 
-      // Graceful degrade: empty results, no rethrow.
-      expect(result).toEqual([]);
+      expect(result.status).toBe('quota_exhausted');
+      expect(result.flights).toEqual([]);
+      expect(result.message).toMatch(/quota/i);
     });
   });
 
@@ -336,7 +364,7 @@ describe('flights.tool', () => {
         });
       }
 
-      const results = await searchFlights({
+      const result = await searchFlights({
         origin: 'JFK',
         destination: 'CDG',
         departure_date: '2026-07-04',
@@ -344,10 +372,12 @@ describe('flights.tool', () => {
         flexible_dates: true,
       });
 
-      expect(results.length).toBeGreaterThan(0);
-      expect(results.length).toBeLessThanOrEqual(7);
-      for (let i = 0; i < results.length - 1; i++) {
-        expect(results[i]!.price).toBeLessThanOrEqual(results[i + 1]!.price);
+      expect(result.flights.length).toBeGreaterThan(0);
+      expect(result.flights.length).toBeLessThanOrEqual(7);
+      for (let i = 0; i < result.flights.length - 1; i++) {
+        expect(result.flights[i]!.price).toBeLessThanOrEqual(
+          result.flights[i + 1]!.price,
+        );
       }
     });
   });
@@ -376,18 +406,21 @@ describe('flights.tool', () => {
         isMockMode: vi.fn().mockReturnValue(true),
       }));
       vi.doMock('app/tools/mock/flights.mock.js', () => ({
-        generateMockFlights: vi.fn().mockReturnValue([
-          {
-            offer_id: 'mock-flight-0',
-            airline: 'Delta',
-            airline_logo: null,
-            flight_number: 'DL100',
-            origin: 'SFO',
-            destination: 'BCN',
-            price: 300,
-            currency: 'USD',
-          },
-        ]),
+        generateMockFlights: vi.fn().mockReturnValue({
+          status: 'ok',
+          flights: [
+            {
+              offer_id: 'mock-flight-0',
+              airline: 'Delta',
+              airline_logo: null,
+              flight_number: 'DL100',
+              origin: 'SFO',
+              destination: 'BCN',
+              price: 300,
+              currency: 'USD',
+            },
+          ],
+        }),
       }));
       const mod = await import('app/tools/flights.tool.js');
       searchFlights = mod.searchFlights;
@@ -401,8 +434,8 @@ describe('flights.tool', () => {
         passengers: 1,
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0]?.airline).toBe('Delta');
+      expect(result.flights).toHaveLength(1);
+      expect(result.flights[0]?.airline).toBe('Delta');
       // The real SerpApi client from the outer describe's mock
       // setup is not used in this branch, so we cannot assert
       // "not called" without re-importing. Asserting the mock
