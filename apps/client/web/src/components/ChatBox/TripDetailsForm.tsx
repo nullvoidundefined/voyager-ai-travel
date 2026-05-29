@@ -225,20 +225,32 @@ export function TripDetailsForm({
             />
           )}
           {field.type === 'budget' && (
-            <div className={styles.budgetInput}>
-              <span className={styles.prefix}>$</span>
-              <input
-                id='budget'
-                type='number'
-                className={styles.input}
-                placeholder='3000'
-                min={100}
-                value={values.budget ?? ''}
-                onChange={(e) => set('budget', e.target.value)}
-                disabled={disabled || isLocked}
-                readOnly={isLocked}
-              />
-            </div>
+            <>
+              <div className={styles.budgetInput}>
+                <span className={styles.prefix}>$</span>
+                <input
+                  id='budget'
+                  type='number'
+                  className={styles.input}
+                  placeholder='3000'
+                  min={100}
+                  aria-describedby={
+                    values.budget && Number(values.budget) < 100
+                      ? 'budget-error'
+                      : undefined
+                  }
+                  value={values.budget ?? ''}
+                  onChange={(e) => set('budget', e.target.value)}
+                  disabled={disabled || isLocked}
+                  readOnly={isLocked}
+                />
+              </div>
+              {values.budget && Number(values.budget) < 100 && (
+                <p id='budget-error' className={styles.fieldError} role='alert'>
+                  Budget must be at least $100.
+                </p>
+              )}
+            </>
           )}
           {field.type === 'travelers' && (
             <input

@@ -20,6 +20,12 @@
   text-transform: uppercase;
 }
 
+.fieldError {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--sunset, #c0392b);
+}
+
 .input {
   padding: 10px 14px;
   border: 1.5px solid var(--border);

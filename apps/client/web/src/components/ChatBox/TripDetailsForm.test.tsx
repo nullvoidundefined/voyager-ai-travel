@@ -59,3 +59,27 @@ it('excludes flexible_dates from allFilled requirement', () => {
   const submit = screen.getByRole('button', { name: 'Start Planning' });
   expect(submit).toBeDisabled();
 });
+
+it('renders inline error when budget input is below the $100 minimum (F-10)', () => {
+  render(
+    <TripDetailsForm
+      fields={[{ type: 'budget', label: 'Budget', required: true }]}
+      onSubmit={() => {}}
+    />,
+  );
+  const input = screen.getByRole('spinbutton');
+  fireEvent.change(input, { target: { value: '50' } });
+  expect(screen.getByRole('alert')).toHaveTextContent(/at least \$100/i);
+});
+
+it('does not render the budget error when value is >= 100', () => {
+  render(
+    <TripDetailsForm
+      fields={[{ type: 'budget', label: 'Budget', required: true }]}
+      onSubmit={() => {}}
+    />,
+  );
+  const input = screen.getByRole('spinbutton');
+  fireEvent.change(input, { target: { value: '500' } });
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
