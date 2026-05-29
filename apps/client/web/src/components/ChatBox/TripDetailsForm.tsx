@@ -115,7 +115,11 @@ export function TripDetailsForm({
     >
       {fields.map((field) => (
         <div key={field.type} className={styles.field}>
-          <label htmlFor={field.type} className={styles.label}>
+          <label
+            id={`${field.type}-label`}
+            htmlFor={field.type}
+            className={styles.label}
+          >
             {field.label}
           </label>
           {field.type === 'destination' && (
@@ -155,7 +159,11 @@ export function TripDetailsForm({
             />
           )}
           {field.type === 'trip_type' && (
-            <div className={styles.tripTypeToggle}>
+            <div
+              className={styles.tripTypeToggle}
+              role='group'
+              aria-labelledby='trip_type-label'
+            >
               <button
                 type='button'
                 aria-pressed={
@@ -179,7 +187,11 @@ export function TripDetailsForm({
             </div>
           )}
           {field.type === 'flexible_dates' && (
-            <div className={styles.flexibleDatesToggle}>
+            <div
+              className={styles.flexibleDatesToggle}
+              role='group'
+              aria-labelledby='flexible_dates-label'
+            >
               <button
                 type='button'
                 aria-pressed={values.flexible_dates !== 'true'}

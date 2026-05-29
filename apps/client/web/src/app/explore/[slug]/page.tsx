@@ -172,56 +172,59 @@ export default async function DestinationDetailPage({
         {/* 7. Weather */}
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Weather</h2>
-          <div
+          <table
             className={styles.weatherTable}
-            role='table'
             aria-label='Monthly weather averages'
           >
-            <div className={styles.weatherRow} role='row'>
-              <span className={styles.weatherHeader} role='columnheader'>
-                Month
-              </span>
-              {dest.weather.map((w) => (
-                <span
-                  key={w.month}
-                  className={styles.weatherHeader}
-                  role='columnheader'
-                >
-                  {w.month.slice(0, 3)}
-                </span>
-              ))}
-            </div>
-            <div className={styles.weatherRow} role='row'>
-              <span className={styles.weatherLabel} role='rowheader'>
-                High
-              </span>
-              {dest.weather.map((w) => (
-                <span key={w.month} className={styles.weatherHigh} role='cell'>
-                  {w.high_c}°
-                </span>
-              ))}
-            </div>
-            <div className={styles.weatherRow} role='row'>
-              <span className={styles.weatherLabel} role='rowheader'>
-                Low
-              </span>
-              {dest.weather.map((w) => (
-                <span key={w.month} className={styles.weatherLow} role='cell'>
-                  {w.low_c}°
-                </span>
-              ))}
-            </div>
-            <div className={styles.weatherRow} role='row'>
-              <span className={styles.weatherLabel} role='rowheader'>
-                Rain
-              </span>
-              {dest.weather.map((w) => (
-                <span key={w.month} className={styles.weatherRain} role='cell'>
-                  {w.rainfall_mm}mm
-                </span>
-              ))}
-            </div>
-          </div>
+            <thead>
+              <tr className={styles.weatherRow}>
+                <th scope='col' className={styles.weatherHeader}>
+                  Month
+                </th>
+                {dest.weather.map((w) => (
+                  <th
+                    key={w.month}
+                    scope='col'
+                    className={styles.weatherHeader}
+                  >
+                    {w.month.slice(0, 3)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr className={styles.weatherRow}>
+                <th scope='row' className={styles.weatherLabel}>
+                  High
+                </th>
+                {dest.weather.map((w) => (
+                  <td key={w.month} className={styles.weatherHigh}>
+                    {w.high_c}°
+                  </td>
+                ))}
+              </tr>
+              <tr className={styles.weatherRow}>
+                <th scope='row' className={styles.weatherLabel}>
+                  Low
+                </th>
+                {dest.weather.map((w) => (
+                  <td key={w.month} className={styles.weatherLow}>
+                    {w.low_c}°
+                  </td>
+                ))}
+              </tr>
+              <tr className={styles.weatherRow}>
+                <th scope='row' className={styles.weatherLabel}>
+                  Rain
+                </th>
+                {dest.weather.map((w) => (
+                  <td key={w.month} className={styles.weatherRain}>
+                    {w.rainfall_mm}mm
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </section>
 
         {/* 8. Travel Advisories */}

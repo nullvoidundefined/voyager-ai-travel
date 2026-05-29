@@ -229,7 +229,7 @@ export default function TripDetailPage() {
 
   if (isLoading) {
     return (
-      <div className={styles.page}>
+      <div className={styles.page} aria-busy='true' aria-live='polite'>
         <div className={styles.skeletonLayout}>
           <Skeleton width='60%' height={28} />
           <Skeleton width='100%' height={400} />
@@ -345,14 +345,22 @@ export default function TripDetailPage() {
       </div>
 
       {/* Mobile tab bar */}
-      <div className={styles.tabBar}>
+      <div className={styles.tabBar} role='tablist' aria-label='Trip view'>
         <button
+          id='tab-chat'
+          role='tab'
+          aria-selected={activeTab === 'chat'}
+          aria-controls='panel-chat'
           className={`${styles.tab} ${activeTab === 'chat' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('chat')}
         >
           Chat
         </button>
         <button
+          id='tab-itinerary'
+          role='tab'
+          aria-selected={activeTab === 'itinerary'}
+          aria-controls='panel-itinerary'
           className={`${styles.tab} ${activeTab === 'itinerary' ? styles.tabActive : ''}`}
           onClick={() => setActiveTab('itinerary')}
         >
@@ -364,6 +372,9 @@ export default function TripDetailPage() {
       <div className={styles.splitView}>
         {/* Chat pane (left) */}
         <div
+          id='panel-chat'
+          role='tabpanel'
+          aria-labelledby='tab-chat'
           className={`${styles.chatPane} ${activeTab === 'chat' ? styles.paneActive : ''}`}
         >
           <ChatBox
@@ -380,6 +391,9 @@ export default function TripDetailPage() {
 
         {/* Itinerary pane (right) */}
         <div
+          id='panel-itinerary'
+          role='tabpanel'
+          aria-labelledby='tab-itinerary'
           className={`${styles.itineraryPane} ${activeTab === 'itinerary' ? styles.paneActive : ''}`}
         >
           {/* Interactive map */}

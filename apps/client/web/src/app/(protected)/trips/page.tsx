@@ -109,7 +109,12 @@ export default function TripsPage() {
       </div>
 
       {isLoading && (
-        <div className={styles.skeletonGrid}>
+        <div
+          className={styles.skeletonGrid}
+          aria-busy='true'
+          aria-live='polite'
+          aria-label='Loading trips'
+        >
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} width='100%' height={160} borderRadius={12} />
           ))}
