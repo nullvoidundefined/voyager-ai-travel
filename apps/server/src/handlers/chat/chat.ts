@@ -22,6 +22,7 @@ import {
 } from 'app/repositories/conversations/conversations.js';
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
+import { planCardSchema } from 'app/schemas/planCard.js';
 import { runAgentLoop } from 'app/services/agent/agent.service.js';
 import {
   SUB_AGENT_TOOLS,
@@ -174,13 +175,13 @@ export async function chat(req: Request, res: Response) {
     conversation.booking_state ?? DEFAULT_COMPLETION_TRACKER,
   );
 
-  if (
-    planConfirmation !== null &&
-    planConfirmation !== undefined &&
-    typeof planConfirmation === 'object' &&
-    Array.isArray((planConfirmation as Record<string, unknown>).categories)
-  ) {
-    tracker = applyPlanConfirmation(tracker, planConfirmation as TripPlanCard);
+  if (planConfirmation !== null && planConfirmation !== undefined) {
+    // SEC-04: validate shape + bounds before persisting to booking_state.
+    const parsed = planCardSchema.safeParse(planConfirmation);
+    if (!parsed.success) {
+      throw ApiError.badRequest('Invalid planConfirmation payload');
+    }
+    tracker = applyPlanConfirmation(tracker, parsed.data as TripPlanCard);
     await updateBookingState(conversation.id, tracker);
   }
 

@@ -7,7 +7,11 @@ import {
 import type { TripContext } from 'app/prompts/trip-context.js';
 import type { TripWithDetails } from 'app/schemas/trips.js';
 import type { UserPreferences } from 'app/schemas/userPreferences.js';
-import type { TripPlanCard } from 'app/types/plan-card.js';
+import {
+  EXPERIENCE_INTEREST_OPTIONS,
+  type ExperienceInterest,
+  type TripPlanCard,
+} from 'app/types/plan-card.js';
 import type { Response } from 'express';
 
 /** Map a TripWithDetails to the TripState shape needed by getFlowPosition. */
@@ -76,8 +80,15 @@ export function applyPlanConfirmation(
     (o) => o.id === 'interests',
   );
   if (interestsOpt?.type === 'multi') {
+    // SEC-03: values flow verbatim into sub-agent system prompts on every
+    // subsequent LLM turn. Restrict to the canonical allowlist so a
+    // crafted plan card cannot inject prompts via this field.
+    const validInterestIds = new Set<string>(
+      EXPERIENCE_INTEREST_OPTIONS.map((o) => o.id),
+    );
     updated.experience_interests = interestsOpt.values.filter(
-      (v): v is string => typeof v === 'string',
+      (v): v is ExperienceInterest =>
+        typeof v === 'string' && validInterestIds.has(v),
     );
   }
 
