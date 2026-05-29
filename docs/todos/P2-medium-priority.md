@@ -6,14 +6,6 @@ Fix within the next few work sessions. These are real bugs, missing tests, secur
 
 ## Criticism Audit (2026-05-28)
 
-### No "What Does This Demo Demonstrate" README Section
-
-README needs 200-500 words answering: "What engineering decisions did you make here that a less thoughtful engineer would not?"
-
-**Scope:** Write the section. Front-load the self-audit practice as the differentiator.
-
----
-
 ### Plan Card Flow Not in User Stories or E2E Tested
 
 PLAN_TRIP phase and TripPlanWidget add a new step where users confirm a plan card before the agent starts searching. No user story documents this. No E2E test covers it.
@@ -29,22 +21,6 @@ PLAN_TRIP phase and TripPlanWidget add a new step where users confirm a plan car
 The authenticated nav contains 7 interactive elements in a 375px container. No hamburger menu. SCSS breakpoint only shrinks text, does not collapse.
 
 **Scope:** Add a mobile hamburger/drawer menu at the `600px` breakpoint.
-
----
-
-### Add Password Strength Indicator on Register Page
-
-Only feedback is a min-8-chars error after submission. A real-time strength bar eliminates the round trip.
-
-**Scope:** Add a character counter or strength indicator.
-
----
-
-### Integrate `jest-axe` Into Component Render Tests
-
-No `jest-axe` integration at the component test level. Accessibility violations are not caught by the test suite.
-
-**Scope:** Add `jest-axe` assertions to existing render tests, starting with Toast, BookingConfirmation, PreferencesWizard.
 
 ---
 
