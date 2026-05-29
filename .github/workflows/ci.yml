@@ -86,8 +86,8 @@ jobs:
           CSRF_SECRET: test-csrf-secret
           ANTHROPIC_API_KEY: sk-ant-test
 
-      - name: Web-client unit tests
-        run: pnpm --filter voyager-web run test
+      - name: Web-client unit tests with coverage
+        run: pnpm --filter voyager-web run test:coverage
 
       - name: Server integration tests
         run: pnpm --filter voyager-server run test:integration

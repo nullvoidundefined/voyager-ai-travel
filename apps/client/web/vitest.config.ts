@@ -21,5 +21,33 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', '.next', 'e2e'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: 'coverage',
+      exclude: [
+        '**/*.config.*',
+        '**/*.d.ts',
+        '**/*.test.{ts,tsx}',
+        '.next/**',
+        'e2e/**',
+        'public/**',
+        'src/test/**',
+        'src/app/layout.tsx',
+        'src/app/**/loading.tsx',
+        'src/app/**/error.tsx',
+        'src/app/**/not-found.tsx',
+      ],
+      // Initial gate calibrated below current numbers (lines 71%,
+      // branches 73%, functions 52%, statements 72% as of 2026-05-29)
+      // so CI catches regressions without flaking. Raise this when
+      // adding tests; never lower silently.
+      thresholds: {
+        branches: 65,
+        functions: 45,
+        lines: 65,
+        statements: 65,
+      },
+    },
   },
 });

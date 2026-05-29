@@ -137,6 +137,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.1
         version: 6.0.1(vite@7.3.1(@types/node@20.19.37)(sass@1.98.0)(tsx@4.21.0))
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.13)(@types/node@20.19.37)(jsdom@29.0.1(@noble/hashes@1.8.0))(sass@1.98.0)(tsx@4.21.0))
       eslint:
         specifier: ^9.39.4
         version: 9.39.4
@@ -6332,6 +6335,25 @@ snapshots:
     dependencies:
       '@rolldown/pluginutils': 1.0.0-rc.7
       vite: 7.3.1(@types/node@20.19.37)(sass@1.98.0)(tsx@4.21.0)
+
+  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/debug@4.1.13)(@types/node@20.19.37)(jsdom@29.0.1(@noble/hashes@1.8.0))(sass@1.98.0)(tsx@4.21.0))':
+    dependencies:
+      '@ampproject/remapping': 2.3.0
+      '@bcoe/v8-coverage': 1.0.2
+      ast-v8-to-istanbul: 0.3.12
+      debug: 4.4.3(supports-color@5.5.0)
+      istanbul-lib-coverage: 3.2.2
+      istanbul-lib-report: 3.0.1
+      istanbul-lib-source-maps: 5.0.6
+      istanbul-reports: 3.2.0
+      magic-string: 0.30.21
+      magicast: 0.3.5
+      std-env: 3.10.0
+      test-exclude: 7.0.2
+      tinyrainbow: 2.0.0
+      vitest: 3.2.4(@types/debug@4.1.13)(@types/node@20.19.37)(jsdom@29.0.1(@noble/hashes@1.8.0))(sass@1.98.0)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - supports-color
 
   '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/debug@4.1.13)(@types/node@25.5.0)(jsdom@29.0.1(@noble/hashes@1.8.0))(sass@1.98.0)(tsx@4.21.0))':
     dependencies:
