@@ -1,4 +1,5 @@
 import { cleanup, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { BookingConfirmation } from './BookingConfirmation';
@@ -46,5 +47,11 @@ describe('BookingConfirmation', () => {
     expect(
       screen.getByRole('button', { name: 'Make changes' }),
     ).toBeInTheDocument();
+  });
+
+  it('has no axe violations', async () => {
+    const { container } = render(<BookingConfirmation {...baseProps} />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });
