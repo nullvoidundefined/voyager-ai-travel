@@ -62,13 +62,19 @@ export function HotelCard({
           {formatShortDate(checkIn)} &ndash; {formatShortDate(checkOut)}
         </span>
         <div className={styles.pricing}>
-          <span className={styles.perNight}>
-            {formatCurrency(pricePerNight, currency)}
-            <small>/night</small>
-          </span>
-          <span className={styles.total}>
-            {formatCurrency(totalPrice, currency)} total
-          </span>
+          {pricePerNight > 0 ? (
+            <span className={styles.perNight}>
+              {formatCurrency(pricePerNight, currency)}
+              <small>/night</small>
+            </span>
+          ) : (
+            <span className={styles.perNight}>Price unavailable</span>
+          )}
+          {totalPrice > 0 && (
+            <span className={styles.total}>
+              {formatCurrency(totalPrice, currency)} total
+            </span>
+          )}
         </div>
       </div>
 

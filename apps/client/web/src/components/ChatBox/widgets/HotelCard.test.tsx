@@ -90,6 +90,34 @@ describe('HotelCard', () => {
     });
   });
 
+  describe('missing prices (B21)', () => {
+    it('shows "Price unavailable" instead of $0/night when pricePerNight is 0', () => {
+      render(
+        <HotelCard {...allFieldsProps} pricePerNight={0} totalPrice={0} />,
+      );
+
+      expect(screen.queryByText(/\$0/)).not.toBeInTheDocument();
+      expect(screen.getByText(/price unavailable/i)).toBeInTheDocument();
+    });
+
+    it('hides the total line when totalPrice is 0', () => {
+      render(
+        <HotelCard {...allFieldsProps} pricePerNight={0} totalPrice={0} />,
+      );
+
+      expect(screen.queryByText(/total/i)).not.toBeInTheDocument();
+    });
+
+    it('still shows /night when pricePerNight is non-zero but totalPrice is 0', () => {
+      render(
+        <HotelCard {...allFieldsProps} pricePerNight={150} totalPrice={0} />,
+      );
+
+      expect(screen.getByText(/\$150/)).toBeInTheDocument();
+      expect(screen.queryByText(/total/i)).not.toBeInTheDocument();
+    });
+  });
+
   describe('selected state', () => {
     it('sets aria-pressed="true" when selected', () => {
       render(<HotelCard {...allFieldsProps} selected={true} />);
