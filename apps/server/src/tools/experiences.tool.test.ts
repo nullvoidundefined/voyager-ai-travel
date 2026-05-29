@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('app/services/cache/cache.service.js');
+vi.mock('app/services/cache/cacheService.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
@@ -9,7 +9,7 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 let searchExperiences: typeof import('app/tools/experiences.tool.js').searchExperiences;
-let cacheService: typeof import('app/services/cache/cache.service.js');
+let cacheService: typeof import('app/services/cache/cacheService.js');
 
 const mockPlacesResponse = {
   places: [
@@ -37,7 +37,7 @@ describe('experiences.tool', () => {
     vi.clearAllMocks();
     vi.resetModules();
 
-    vi.doMock('app/services/cache/cache.service.js', () => ({
+    vi.doMock('app/services/cache/cacheService.js', () => ({
       cacheGet: vi.fn(),
       cacheSet: vi.fn(),
       normalizeCacheKey: vi.fn().mockReturnValue('test-exp-cache-key'),
@@ -56,7 +56,7 @@ describe('experiences.tool', () => {
 
     const expMod = await import('app/tools/experiences.tool.js');
     searchExperiences = expMod.searchExperiences;
-    cacheService = await import('app/services/cache/cache.service.js');
+    cacheService = await import('app/services/cache/cacheService.js');
   });
 
   describe('searchExperiences', () => {

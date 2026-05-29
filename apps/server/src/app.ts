@@ -108,7 +108,7 @@ app.get('/health/ready', async (_req, res) => {
   }
 
   try {
-    const { getRedis } = await import('app/services/cache/cache.service.js');
+    const { getRedis } = await import('app/services/cache/cacheService.js');
     const redis = getRedis();
     if (redis) {
       await redis.ping();

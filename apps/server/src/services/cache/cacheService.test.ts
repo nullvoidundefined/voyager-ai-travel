@@ -5,7 +5,7 @@ import {
   cacheGet,
   cacheSet,
   normalizeCacheKey,
-} from './cache.service.js';
+} from './cacheService.js';
 import { getRedis } from './redis.service.js';
 
 const mockRedisInstance = {
@@ -27,7 +27,7 @@ vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
-describe('cache.service', () => {
+describe('cacheService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getRedis).mockReturnValue(mockRedisInstance as never);

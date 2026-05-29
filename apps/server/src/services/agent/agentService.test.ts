@@ -3,7 +3,7 @@ import { insertToolCallLog } from 'app/repositories/tool-call-log/tool-call-log.
 import { executeTool } from 'app/tools/executor.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { runAgentLoop } from './agent.service.js';
+import { runAgentLoop } from './agentService.js';
 
 vi.mock('@anthropic-ai/sdk');
 vi.mock('app/tools/executor.js');
@@ -64,7 +64,7 @@ function createMockStream(response: Record<string, unknown>) {
   };
 }
 
-describe('agent.service', () => {
+describe('agentService', () => {
   let mockStream: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {

@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('app/services/external/serpapi.service.js');
-vi.mock('app/services/cache/cache.service.js');
+vi.mock('app/services/cache/cacheService.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 let searchCarRentals: typeof import('app/tools/car-rentals.tool.js').searchCarRentals;
 let serpApiService: typeof import('app/services/external/serpapi.service.js');
-let cacheService: typeof import('app/services/cache/cache.service.js');
+let cacheService: typeof import('app/services/cache/cacheService.js');
 
 const mockCarRentalResponse = {
   cars_results: [
@@ -41,7 +41,7 @@ describe('car-rentals.tool', () => {
     vi.doMock('app/services/external/serpapi.service.js', () => ({
       serpApiGet: vi.fn(),
     }));
-    vi.doMock('app/services/cache/cache.service.js', () => ({
+    vi.doMock('app/services/cache/cacheService.js', () => ({
       cacheGet: vi.fn(),
       cacheSet: vi.fn(),
       normalizeCacheKey: vi.fn().mockReturnValue('test-car-rental-cache-key'),
@@ -59,7 +59,7 @@ describe('car-rentals.tool', () => {
     const carRentalMod = await import('app/tools/car-rentals.tool.js');
     searchCarRentals = carRentalMod.searchCarRentals;
     serpApiService = await import('app/services/external/serpapi.service.js');
-    cacheService = await import('app/services/cache/cache.service.js');
+    cacheService = await import('app/services/cache/cacheService.js');
   });
 
   describe('searchCarRentals', () => {

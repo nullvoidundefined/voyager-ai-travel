@@ -2,7 +2,7 @@ import {
   cacheGet,
   cacheSet,
   normalizeCacheKey,
-} from 'app/services/cache/cache.service.js';
+} from 'app/services/cache/cacheService.js';
 import {
   SerpApiQuotaExceededError,
   serpApiGet,

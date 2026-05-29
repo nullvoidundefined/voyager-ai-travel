@@ -23,7 +23,7 @@ import {
 import { getTripWithDetails } from 'app/repositories/trips/trips.js';
 import { findByUserId as findUserPreferences } from 'app/repositories/userPreferences/userPreferences.js';
 import { planCardSchema } from 'app/schemas/planCard.js';
-import { runAgentLoop } from 'app/services/agent/agent.service.js';
+import { runAgentLoop } from 'app/services/agent/agentService.js';
 import {
   SUB_AGENT_TOOLS,
   buildDefaultPlanCard,
@@ -49,7 +49,7 @@ import {
   createSSEEmitter,
   flushSSE,
   toFlowInput,
-} from './chat.helpers.js';
+} from './helpers.js';
 
 // In-memory lock for single-replica defense; Redis SET NX EX layer
 // (acquireConversationLock below) prevents concurrent agent loops
@@ -71,7 +71,7 @@ async function acquireConversationLock(
   if (activeConversations.has(conversationId)) return false;
   activeConversations.add(conversationId);
   try {
-    const { getRedis } = await import('app/services/cache/cache.service.js');
+    const { getRedis } = await import('app/services/cache/cacheService.js');
     const redis = getRedis();
     if (redis) {
       const key = `conversation:lock:${conversationId}`;
@@ -90,7 +90,7 @@ async function acquireConversationLock(
 async function releaseConversationLock(conversationId: string): Promise<void> {
   activeConversations.delete(conversationId);
   try {
-    const { getRedis } = await import('app/services/cache/cache.service.js');
+    const { getRedis } = await import('app/services/cache/cacheService.js');
     const redis = getRedis();
     if (redis) {
       await redis.del(`conversation:lock:${conversationId}`);

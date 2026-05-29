@@ -12,14 +12,14 @@ vi.mock('app/services/external/serpapi.service.js', () => {
     SerpApiQuotaExceededError,
   };
 });
-vi.mock('app/services/cache/cache.service.js');
+vi.mock('app/services/cache/cacheService.js');
 vi.mock('app/utils/logs/logger.js', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }));
 
 let searchFlights: typeof import('app/tools/flights.tool.js').searchFlights;
 let serpApiService: typeof import('app/services/external/serpapi.service.js');
-let cacheService: typeof import('app/services/cache/cache.service.js');
+let cacheService: typeof import('app/services/cache/cacheService.js');
 
 const mockFlightsResponse = {
   best_flights: [
@@ -73,7 +73,7 @@ describe('flights.tool', () => {
         SerpApiQuotaExceededError,
       };
     });
-    vi.doMock('app/services/cache/cache.service.js', () => ({
+    vi.doMock('app/services/cache/cacheService.js', () => ({
       cacheGet: vi.fn(),
       cacheSet: vi.fn(),
       normalizeCacheKey: vi.fn().mockReturnValue('test-cache-key'),
@@ -91,7 +91,7 @@ describe('flights.tool', () => {
     const flightsMod = await import('app/tools/flights.tool.js');
     searchFlights = flightsMod.searchFlights;
     serpApiService = await import('app/services/external/serpapi.service.js');
-    cacheService = await import('app/services/cache/cache.service.js');
+    cacheService = await import('app/services/cache/cacheService.js');
   });
 
   describe('searchFlights', () => {
@@ -389,7 +389,7 @@ describe('flights.tool', () => {
         serpApiGet: vi.fn(),
         SerpApiQuotaExceededError: class SerpApiQuotaExceededError extends Error {},
       }));
-      vi.doMock('app/services/cache/cache.service.js', () => ({
+      vi.doMock('app/services/cache/cacheService.js', () => ({
         cacheGet: vi.fn(),
         cacheSet: vi.fn(),
         normalizeCacheKey: vi.fn().mockReturnValue('test-cache-key'),

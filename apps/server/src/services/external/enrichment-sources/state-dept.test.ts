@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('app/services/cache/cache.service.js', () => ({
+vi.mock('app/services/cache/cacheService.js', () => ({
   cacheGet: vi.fn().mockResolvedValue(null),
   cacheSet: vi.fn(),
 }));
@@ -15,7 +15,7 @@ beforeEach(async () => {
   vi.clearAllMocks();
   vi.resetModules();
 
-  vi.doMock('app/services/cache/cache.service.js', () => ({
+  vi.doMock('app/services/cache/cacheService.js', () => ({
     cacheGet: vi.fn().mockResolvedValue(null),
     cacheSet: vi.fn(),
   }));

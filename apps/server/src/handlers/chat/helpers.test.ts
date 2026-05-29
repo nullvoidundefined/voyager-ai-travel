@@ -10,7 +10,7 @@ import {
   buildTripContext,
   computeFlowPosition,
   toFlowInput,
-} from './chat.helpers.js';
+} from './helpers.js';
 
 const baseTripDetails: TripWithDetails = {
   id: 'trip-1',
@@ -35,7 +35,7 @@ const baseTripDetails: TripWithDetails = {
   experiences: [],
 };
 
-describe('chat.helpers', () => {
+describe('chat helpers', () => {
   describe('toFlowInput', () => {
     it('maps TripWithDetails to TripState correctly', () => {
       const result = toFlowInput(baseTripDetails);
