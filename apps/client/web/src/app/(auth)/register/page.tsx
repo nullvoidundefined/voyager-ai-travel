@@ -150,7 +150,11 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder='At least 8 characters'
                     autoComplete='new-password'
+                    aria-describedby='password-hint'
                   />
+                  <p id='password-hint' className={styles.fieldHint}>
+                    Must be at least 8 characters.
+                  </p>
                 </label>
 
                 {error && (
