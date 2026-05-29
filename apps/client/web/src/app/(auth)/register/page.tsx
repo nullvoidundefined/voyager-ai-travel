@@ -2,6 +2,7 @@
 
 import { type FormEvent, useState } from 'react';
 
+import { PasswordStrengthMeter } from '@/components/PasswordStrengthMeter/PasswordStrengthMeter';
 import { PreferencesWizard } from '@/components/PreferencesWizard/PreferencesWizard';
 import { Toast } from '@/components/Toast/Toast';
 import { useAuth } from '@/context/AuthContext';
@@ -150,11 +151,12 @@ export default function RegisterPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder='At least 8 characters'
                     autoComplete='new-password'
-                    aria-describedby='password-hint'
+                    aria-describedby='password-hint password-strength'
                   />
                   <p id='password-hint' className={styles.fieldHint}>
                     Must be at least 8 characters.
                   </p>
+                  <PasswordStrengthMeter password={password} />
                 </label>
 
                 {error && (
