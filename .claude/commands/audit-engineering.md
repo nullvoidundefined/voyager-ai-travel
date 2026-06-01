@@ -12,7 +12,7 @@ Apply the canonical Engineering role to the Voyager codebase with these project-
 - `apps/client/web/`. Next.js 15 frontend
 - `packages/`. Shared packages across the pnpm workspace
 - `apps/server/migrations/`. Postgres migrations (pg driver, raw SQL, no ORM)
-- `Dockerfile.server`, `railway.toml`. Deploy config
+- `Dockerfile.server`, `Dockerfile.web`, `railway.server.toml`, `railway.web.toml`. Deploy config
 - `.github/workflows/`. CI / CD (if present)
 - `lefthook.yml`. Pre-commit / pre-push hooks
 
@@ -22,7 +22,7 @@ Apply the canonical Engineering role to the Voyager codebase with these project-
 - **External API integration**: SerpApi caching + quota management (250 searches/month free tier is unforgiving), Google Places rate limiting, retry logic, cost per agent turn in Claude tokens.
 - **Monorepo hygiene**: pnpm workspace structure, shared types between `apps/server/` and `apps/client/web/`, duplication across packages.
 - **Dead Amadeus references**: `apps/server/src/schemas/trips.ts` has `amadeus_offer_id` / `amadeus_hotel_id` columns, and several tests reference Amadeus as a label string, but there is no Amadeus client in `apps/server/src/`. Call out this spec-vs-implementation drift and recommend either removing the dead references or actually implementing the integration.
-- **Docker & Railway build**: `Dockerfile.server` multi-stage effectiveness, image size, env var hygiene, `railway.toml` `dockerfilePath` correctness.
+- **Docker & Railway build**: `Dockerfile.server` and `Dockerfile.web` multi-stage effectiveness, image size, env var hygiene, `railway.server.toml` / `railway.web.toml` `dockerfilePath` correctness.
 - **E2E readiness**: per the canonical role's "Operational Basics" requirement: do E2E tests exist? Are they wired to any trigger (pre-push, CI, nightly)? Voyager currently has only minimal E2E coverage. `e2e/auth.spec.ts` and `e2e/navigation.spec.ts`. Flag the gap.
 
 **Product documents:**

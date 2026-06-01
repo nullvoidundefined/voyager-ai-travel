@@ -11,7 +11,7 @@ Apply the canonical Security role to the Voyager codebase with these project-spe
 - `apps/server/src/`. All auth, middleware, agent loop, tool executors, API routes
 - `apps/server/migrations/`. Schema for RLS-relevant tables
 - `apps/client/web/src/`. Auth flows, API calls, credential handling
-- `Dockerfile.server`, `railway.toml`, environment variable configuration
+- `Dockerfile.server`, `Dockerfile.web`, `railway.server.toml`, `railway.web.toml`, environment variable configuration
 - `package.json` and `pnpm-lock.yaml` for dependency vulnerability review
 
 **Voyager-specific concerns to evaluate carefully:**

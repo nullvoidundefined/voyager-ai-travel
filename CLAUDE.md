@@ -42,7 +42,7 @@ railway up --detach
 ```
 
 - Railway CLI is linked to the monorepo root, where `Dockerfile.server` lives
-- `railway.toml` sets `dockerfilePath = "Dockerfile.server"`
+- Each service has its own config-as-code file: the server reads `railway.server.toml` (`dockerfilePath = "Dockerfile.server"`), the web service reads `railway.web.toml` (`dockerfilePath = "Dockerfile.web"`). Each service's "Railway Config File" setting points at its file. A `railway*.toml` build setting locks the matching dashboard Builder field; edit the file, not the UI.
 - `CORS_ORIGIN` env var must match the frontend production URL
 
 ### Deploy pitfalls
