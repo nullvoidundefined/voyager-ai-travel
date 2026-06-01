@@ -6,6 +6,17 @@ Each entry includes severity, effort, category, and source (which audit surfaced
 
 ---
 
+## 2026-06-01 web outage recovery
+
+Source: production incident. The `web` Railway service was crash-looping because its Builder was set to `Dockerfile.server` (it ran the API, which fatals on missing `DATABASE_URL`). Root cause: the repo-root `railway.toml` pins `dockerfilePath = "Dockerfile.server"` as config-as-code, which locks the dashboard Builder for every service that reads it. Fixed by adding `Dockerfile.web` (standalone Next.js image) and a dedicated `railway.web.toml` the web service is pointed at. Site verified back up (HTTP 200).
+
+### [DEP-01] Rename `railway.toml` to `railway.server.toml` for config-file symmetry
+
+- **Severity:** P3 · **Effort:** S · **Category:** deploy / consistency
+- **Notes:** After the web fix, the server reads the default `railway.toml` while the web service reads an explicit `railway.web.toml`. Asymmetric. Rename for clarity (`railway.server.toml` + `railway.web.toml`). NOT a drop-in rename: `railway.toml` is the default filename Railway auto-discovers, so renaming without first pointing the **server** service's config-path at `railway.server.toml` will leave the server with no config, fall back to auto-detect, and take down the working API. Safe sequence: (1) add `railway.server.toml` as a copy of `railway.toml`; (2) set the server service's config-path to `railway.server.toml` and redeploy; (3) confirm server still green; (4) delete `railway.toml`; (5) update the `railway.toml` references in `CLAUDE.md`. Do as its own change, not bundled with feature work.
+
+---
+
 ## 2026-05-27 code quality sweep
 
 Source: `docs/audits/2026-05-27-code-quality-sweep.md`
