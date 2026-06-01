@@ -1,0 +1,49 @@
+FROM node:22-slim AS base
+RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
+WORKDIR /app
+
+# Copy workspace config
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+
+# Copy web and shared-types package.json for dependency resolution
+COPY apps/client/web/package.json apps/client/web/package.json
+COPY packages/shared-types/package.json packages/shared-types/package.json
+
+# Install dependencies (production + dev for the Next.js build)
+RUN pnpm install --frozen-lockfile --filter voyager-web --filter @voyager/shared-types --ignore-scripts
+
+# Copy web source and shared-types
+COPY apps/client/web/ apps/client/web/
+COPY packages/shared-types/ packages/shared-types/
+
+# Build shared-types first (web transpiles its source, but its dist is needed for type resolution)
+RUN pnpm --filter @voyager/shared-types run build
+
+# NEXT_PUBLIC_* values are inlined into the client bundle at build time.
+# Railway exposes service variables as build args automatically.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+ARG NEXT_PUBLIC_MAPBOX_TOKEN
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
+    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=$NEXT_PUBLIC_GOOGLE_MAPS_API_KEY \
+    NEXT_PUBLIC_MAPBOX_TOKEN=$NEXT_PUBLIC_MAPBOX_TOKEN
+
+RUN pnpm --filter voyager-web run build
+
+# Production stage. Next.js standalone output is self-contained:
+# it bundles server.js plus only the node_modules it traced, so there is no
+# pnpm install, no runtime TypeScript-config load, and nothing to write at boot.
+FROM node:22-slim AS production
+WORKDIR /app
+ENV NODE_ENV=production
+
+# standalone bundles the traced monorepo (server.js under apps/client/web/, plus node_modules)
+COPY --from=base --chown=node:node /app/apps/client/web/.next/standalone ./
+COPY --from=base --chown=node:node /app/apps/client/web/.next/static apps/client/web/.next/static
+COPY --from=base --chown=node:node /app/apps/client/web/public apps/client/web/public
+
+EXPOSE 3000
+USER node
+CMD ["node", "apps/client/web/server.js"]
